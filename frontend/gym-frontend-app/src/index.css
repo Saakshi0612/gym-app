@@ -1,7 +1,120 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+@theme {
+ --color-primary-green: #9ef300;
+ --color-primary-white: #ffffff;
+ --color-primary-black: #323A3A;
+
+ --color-semantic-blue: #4eb7fc;
+ --color-semantic-yellow: #fdd63b;
+ --color-semantic-red: #ff4242;
+ --color-semantic-grey: #6c6f80;
+
+ --color-neutral-900: #323232;
+ --color-neutral-700: #4b5563;
+ --color-neutral-600: #909090;
+ --color-neutral-500: #b7b6b6;
+ --color-neutral-400: #dadada;
+ --color-neutral-200: #eeeeee;
+
+ --color-green-100: #f6ffe5;
+ --color-green-50: #fbfff5;
+}
+
+@plugin 'tailwind-scrollbar';
+html,
+body {
+ @apply scrollbar-thin;
+  font-family: "Lexend",sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+::-webkit-scrollbar {
+ height: 8px;
+ width: 8px;
+}
+
+::-webkit-scrollbar-track {
+ @apply rounded;
+ background: #f1f1f1; /* Light gray track */
+}
+
+::-webkit-scrollbar-thumb {
+ @apply rounded;
+ background: var(
+  --color-primary-green
+ ); /* Lime green thumb from your original CSS */
+}
+
+::-webkit-scrollbar-thumb:hover {
+ background: var(
+  --color-neutral-900
+ ); /* Darker lime green on hover from your original CSS */
+}
+
+@layer utilities {
+ .text-h1 {
+  @apply text-[2.5rem] leading-[3rem];
+ }
+
+ .text-h2 {
+  @apply text-[1.5rem] leading-[2.5rem] font-bold text-neutral-900;
+ }
+
+ .text-subtitle {
+  @apply text-[1.125rem] leading-[1.5rem] font-semibold text-neutral-700;
+ }
+
+ .text-subtitle-2 {
+  @apply text-[1.125rem] leading-[1.5rem] font-medium text-neutral-600;
+ }
+
+ .text-block-title {
+  @apply text-[1.5rem] leading-[1.5rem] text-primary-black tracking-[0.01em];
+ }
+
+ .text-body {
+  @apply text-base leading-6 font-normal text-neutral-900;
+ }
+
+ .text-body-2 {
+  @apply text-[0.875rem] leading-5 font-normal text-neutral-700;
+ }
+
+ .text-body-2-bold {
+  @apply text-[0.875rem] leading-5 font-semibold text-neutral-700;
+ }
+
+ .text-caption {
+  @apply text-[0.75rem] leading-4 font-medium text-neutral-600;
+ }
+
+ .text-caption-2 {
+  @apply text-[0.75rem] leading-3 font-normal text-neutral-600;
+ }
+
+ .text-caption-light {
+  @apply text-[0.75rem] leading-3 font-light text-neutral-500;
+ }
+
+ .text-link {
+  @apply text-[0.75rem] leading-4 font-medium text-semantic-blue underline;
+ }
+
+ .text-button-primary {
+  @apply text-[0.875rem] leading-6 font-semibold text-primary-black uppercase tracking-[0.03em];
+ }
+
+ .text-button-secondary {
+  @apply text-[0.875rem] leading-6 font-semibold text-primary-white uppercase tracking-[0.03em];
+ }
+
+ .text-body-bold {
+  @apply text-base leading-6 font-semibold text-neutral-900;
+ }
+}
+ 
 html,
 body {
   font-family: "Lexend", sans-serif;
