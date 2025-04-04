@@ -4,7 +4,7 @@ import './App.css';
 const App: React.FC = () => {
   return (
     <div className='flex justify-between'>
-    <h1 className="text-3xl font-bold underline">
+    <h1 className="text-3xl font-bold underline bg-primary-green">
       Hello world!
     </h1>
     <h1 className="text-3xl font-bold underline">

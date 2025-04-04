@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities; 
+@tailwind utilities;
+
+html,
+body {
+  font-family: "Lexend", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply rounded;
+  background: #f1f1f1; /* Light gray track */
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded bg-primary-green;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-neutral-900;
+}
