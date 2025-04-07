@@ -1,17 +1,34 @@
+// src/App.tsx
 import React from 'react';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import Dashboard from './pages/user_pages/dashboard';
+import RegisterForm from './components/RegisterForm';
+import LoginForm from './components/LoginForm';
+import { useAppSelector } from './store/store';
 
-const App: React.FC = () => {
-  return (
-    <div className='flex justify-between'>
-    <h1 className="text-3xl font-bold underline bg-primary-green">
-      Hello world!
-    </h1>
-    <h1 className="text-3xl font-bold underline">
-    Hello world!
-  </h1>
-  </div>
-  );
+// Protected route component using Outlet
+const ProtectedRoute = () => {
+  const { isAuthenticated } = useAppSelector(state => state.auth);
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };
 
-export default App;
+// Main app content
+function AppContent() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/register" />} />
+        <Route path="/register" element={<RegisterForm />} />
+        <Route path="/login" element={<LoginForm />} />
+        
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          {/* Add other protected routes here as needed */}
+        </Route>
+      </Routes>
+    </Router>
+  );
+}
+
+export default AppContent;
