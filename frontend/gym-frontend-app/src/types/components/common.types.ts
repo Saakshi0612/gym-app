@@ -3,6 +3,7 @@ import { ButtonHTMLAttributes, InputHTMLAttributes, FormHTMLAttributes, ReactNod
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string | null;
+  register?:object;
   helpText?: string;
   icon?: ReactNode;
   rightElement?: ReactNode;
