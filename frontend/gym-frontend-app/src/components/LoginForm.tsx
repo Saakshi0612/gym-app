@@ -17,9 +17,7 @@ export default function LoginForm() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   
-  
   const { isLoading, error } = useAppSelector(state => state.auth);
-  
   
   const isSystemError = error && error.includes('technical difficulties');
   const passwordError = error && !isSystemError ? error : null;
@@ -30,6 +28,8 @@ export default function LoginForm() {
     const resultAction = await dispatch(loginUser({ email, password }));
     
     if (loginUser.fulfilled.match(resultAction)) {
+      // If login is successful, save the user data to localStorage
+      localStorage.setItem('user', JSON.stringify(resultAction.payload));
       navigate('/dashboard');
     }
   };
@@ -81,3 +81,4 @@ export default function LoginForm() {
     </AuthLayout>
   );
 }
+
