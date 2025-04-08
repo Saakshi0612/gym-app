@@ -2,17 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import CoachCard from '../../components/CoachComponents/CoachCard';
 import coachesData from '../../assets/JSON/Coaches.json';
-
-// Coach Interface and API Service
-export interface Coach {
-  id: string;
-  name: string;
-  rating: number;
-  title: string;
-  specialty: string;
-  description: string;
-  imageUrl: string;
-}
+import { Coach } from '../../types/components/coach.types';
+import Button from '../../components/common/button';
 
 // API functions - will be replaced with real API calls in the future
 const coachesApi = {
@@ -20,27 +11,27 @@ const coachesApi = {
   fetchCoaches: async (): Promise<Coach[]> => {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     // Using the imported JSON file
     return coachesData.coaches;
   },
-  
+
   // Book a workout with a coach
   bookCoachWorkout: async (coachId: string): Promise<{ success: boolean; message: string }> => {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     return {
       success: true,
       message: `Workout booked successfully with coach ID: ${coachId}`
     };
   },
-  
+
   // Get a coach by ID
   getCoachById: async (id: string): Promise<Coach | undefined> => {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
     return coachesData.coaches.find(coach => coach.id === id);
   }
 };
@@ -94,12 +85,13 @@ const CoachesPage: React.FC = () => {
     return (
       <div className="text-center py-10">
         <div className="text-red-500 mb-4">{error}</div>
-        <button 
+        <Button
           onClick={() => window.location.reload()}
+          variant="primary"
           className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
         >
           Try Again
-        </button>
+        </Button>
       </div>
     );
   }
@@ -107,7 +99,7 @@ const CoachesPage: React.FC = () => {
   return (
     <div className="max-w-full px-4 py-6 bg-gray-50">
       <h1 className="text-xl font-medium mb-6">Our Coaches</h1>
-    
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {coaches.map((coach) => (
           <Link to={`/coaches/${coach.id}`} key={coach.id} className="no-underline">

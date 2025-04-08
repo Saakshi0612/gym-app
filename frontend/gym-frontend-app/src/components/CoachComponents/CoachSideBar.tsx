@@ -1,20 +1,8 @@
 import React from 'react';
 import pdfIconPath from '../../assets/PDF.svg';
+import { CoachProps } from '../../types/components/coach.types';
+import Button from '../common/button';
 
-interface Certificate {
-  name: string;
-  file: string;
-}
-
-interface CoachProps {
-  name: string;
-  rating: number;
-  title: string;
-  about: string;
-  specializations: string[];
-  certificates: Certificate[];
-  profileImage: string;
-}
 
 const CoachSidebar: React.FC<CoachProps> = ({
   name,
@@ -29,13 +17,13 @@ const CoachSidebar: React.FC<CoachProps> = ({
     <div className="w-full max-w-xs mx-auto rounded-lg overflow-hidden shadow-lg bg-white p-0">
       {/* Profile Image */}
       <div className="w-full">
-        <img 
-          src={profileImage} 
-          alt={`${name} - Yoga Trainer`} 
+        <img
+          src={profileImage}
+          alt={`${name} - Yoga Trainer`}
           className="w-full h-72 object-cover rounded-t-lg"
         />
       </div>
-      
+
       {/* Content Container with padding */}
       <div className="p-5">
         {/* Coach Info */}
@@ -51,20 +39,20 @@ const CoachSidebar: React.FC<CoachProps> = ({
           </div>
           <p className="text-sm text-gray-600 mt-1">{title}</p>
         </div>
-        
+
         {/* About Section */}
         <div className="mb-5"> {/* Increased margin from mb-3 to mb-5 */}
           <h3 className="font-medium text-sm text-gray-800 mb-2">About coach</h3> {/* Increased bottom margin */}
           <p className="text-sm text-gray-600 leading-relaxed">{about}</p> {/* Increased text size and added leading-relaxed for better line height */}
         </div>
-        
+
         {/* Specialization */}
         <div className="mb-5"> {/* Increased margin from mb-3 to mb-5 */}
           <h3 className="font-medium text-sm text-gray-800 mb-2">Specialization</h3> {/* Increased bottom margin */}
           <div className="flex flex-wrap gap-2"> {/* Increased gap from 1 to 2 */}
             {specializations.map((spec, index) => (
-              <span 
-                key={index} 
+              <span
+                key={index}
                 className="bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full"
               >
                 {spec}
@@ -72,8 +60,8 @@ const CoachSidebar: React.FC<CoachProps> = ({
             ))}
           </div>
         </div>
-  {/* Certificates */}
-  <div className="mb-6"> {/* Kept as mb-6 */}
+        {/* Certificates */}
+        <div className="mb-6"> {/* Kept as mb-6 */}
           <h3 className="font-medium text-sm text-gray-800 mb-2">Certificates</h3> {/* Increased bottom margin */}
           <div className="space-y-2"> {/* Increased space from 1 to 2 */}
             {certificates.map((cert, index) => (
@@ -90,16 +78,25 @@ const CoachSidebar: React.FC<CoachProps> = ({
             ))}
           </div>
         </div>
-        
-        
-          {/* Action Buttons - added more space between buttons */}
-          <div className="space-y-3"> {/* Increased space from 2 to 3 */}
-          <button className="w-full bg-primary-green hover:bg-green-600 text-black py-2.5 px-4 rounded-md transition duration-200 text-sm font-medium"> {/* Increased padding and added font-medium */}
+
+
+        {/* Action Buttons - added more space between buttons */}
+        <div className="space-y-3"> {/* Increased space from 2 to 3 */}
+          <Button
+            variant="primary"
+            fullWidth={true}
+            className="bg-primary-green hover:bg-green-600 text-black py-2.5 px-4 text-sm"
+          >
             Book Workout
-          </button>
-          <button className="w-full bg-white hover:bg-gray-100 text-gray-800 py-2.5 px-4 rounded-md border border-gray-300 text-sm font-medium"> {/* Increased padding and added font-medium */}
+          </Button>
+
+          <Button
+            variant="secondary"
+            fullWidth={true}
+            className="bg-white hover:bg-gray-100 text-gray-800 py-2.5 px-4 border border-gray-300 text-sm"
+          >
             Repeat Previous Workout
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -1,15 +1,7 @@
 // FeedbackCard.tsx
 import React from 'react';
 import { StarIcon } from '@heroicons/react/24/solid';
-
-interface FeedbackCardProps {
-  name: string;
-  date: string;
-  rating: number;
-  review: string;
-  avatarUrl: string;
-}
-
+import { FeedbackCardProps } from '../../types/components/feedback.types';
 const FeedbackCard: React.FC<FeedbackCardProps> = ({
   name,
   date,

@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
-import Calendar from './Calender';
-import TimeSlots, { TimeSlot } from './TimeSlots';
-
-interface CoachAvailabilityCalendarProps {
-  initialDate?: Date;
-  availableTimeSlots: TimeSlot[];
-  onTimeSlotSelect: (timeSlot: TimeSlot) => void;
-  onDateChange?: (date: Date) => void;
-}
+import Calendar from '../common/Calender';
+import TimeSlots from './TimeSlots';
+import { CoachAvailabilityCalendarProps } from '../../types/components/coach.types';
+import { TimeSlot } from '../../types/components/coach.types';
 
 const CoachAvailabilityCalendar: React.FC<CoachAvailabilityCalendarProps> = ({
   initialDate = new Date(),

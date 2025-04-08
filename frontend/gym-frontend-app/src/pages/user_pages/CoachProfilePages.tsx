@@ -3,13 +3,7 @@ import CoachSidebar from '../../components/CoachComponents/CoachSideBar';
 import AvatarImg from '../../assets/Avatar.jpg';
 import CoachAvailabilityCalendar from '../../components/CoachComponents/CoachCalendar';
 import FeedbackSection from '../../components/FeedBack/FeedBack';
-
-interface TimeSlot {
-  id: string;
-  startTime: string;
-  endTime: string;
-  isAvailable: boolean;
-}
+import { TimeSlot } from '../../types/components/coach.types';
 
 const CoachProfilePage: React.FC = () => {
   // Sample time slots data

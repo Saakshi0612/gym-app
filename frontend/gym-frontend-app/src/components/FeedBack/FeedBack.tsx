@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
 import FeedbackCard from './FeedBackCard';
+import Button from '../common/button';
 import mockFeedbackData from '../../assets/JSON/Feedback.json';
-
-interface Feedback {
-  id: string;
-  name: string;
-  date: string;
-  rating: number;
-  review: string;
-  avatarUrl: string;
-}
+import { Feedback } from '../../types/components/feedback.types';
 
 const fetchFeedbackData = async (): Promise<Feedback[]> => {
   // When API is ready, replace this with:
@@ -130,80 +123,78 @@ const FeedbackSection: React.FC = () => {
           />
         ))}
       </div>
-      {/*pagination*/}
+      
+      {/*pagination with Button component*/}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6">
-          <div className="flex items-center space-x-6">
-            {/* Show the « icon to go back to previous pages when not on first set */}
-            {currentPage > 3 && (
-              <button
-                className="text-gray-500 hover:text-gray-700 text-sm pb-2 cursor-pointer"
-                onClick={() => {
-                  // Navigate to the previous set of 3 pages
-                  const prevPage = Math.max(
-                    Math.floor((currentPage - 1) / 3) * 3 - 2,
-                    1
-                  );
-                  paginate(prevPage);
-                }}
-              >
-                «
-              </button>
-            )}
-
-            {/* Show only 3 pages at a time */}
-            {[...Array(Math.min(3, totalPages))].map((_, i) => {
-              // Calculate the actual page number based on current position
-              let pageNum;
-              if (currentPage <= 3) {
-                // First set of pages: 1, 2, 3
-                pageNum = i + 1;
-              } else {
-                // Calculate which set of 3 we're in
-                const setStart = Math.floor((currentPage - 1) / 3) * 3 + 1;
-                pageNum = setStart + i;
-              }
-
-              // Don't render if page number exceeds total pages
-              if (pageNum > totalPages) return null;
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => paginate(pageNum)}
-                  className={`cursor-pointer relative text-sm font-medium pb-2 ${
-                    currentPage === pageNum
-                      ? 'text-black'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {pageNum}
-                  {currentPage === pageNum && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-green-500"></div>
-                  )}
-                </button>
-              );
-            })}
-
-            {/* Show the » icon only if there are more pages beyond what's currently shown */}
-            {totalPages > 3 && currentPage <= Math.floor((totalPages - 1) / 3) * 3 && (
-              <button
-                className="cursor-pointer text-gray-500 hover:text-gray-700 text-sm pb-2"
-                onClick={() => {
-                  // Navigate to the next set of 3 pages
-                  const nextPage = Math.min(
-                    Math.ceil(currentPage / 3) * 3 + 1,
-                    totalPages
-                  );
-                  paginate(nextPage);
-                }}
-              >
-                »
-              </button>
-            )}
-          </div>
-        </div>
+  <div className="flex justify-center mt-6">
+    <div className="flex items-center space-x-6">
+      {/* Show the « icon to go back to previous pages when not on first set */}
+      {currentPage > 3 && (
+        <Button
+          variant="secondary"
+          className="!bg-transparent !p-2 !shadow-none !rounded-none text-gray-500 hover:text-gray-700 text-sm"
+          onClick={() => {
+            const prevPage = Math.max(
+              Math.floor((currentPage - 1) / 3) * 3 - 2,
+              1
+            );
+            paginate(prevPage);
+          }}
+        >
+          «
+        </Button>
       )}
+
+      {/* Show only 3 pages at a time */}
+      {[...Array(Math.min(3, totalPages))].map((_, i) => {
+        let pageNum;
+        if (currentPage <= 3) {
+          pageNum = i + 1;
+        } else {
+          const setStart = Math.floor((currentPage - 1) / 3) * 3 + 1;
+          pageNum = setStart + i;
+        }
+
+        if (pageNum > totalPages) return null;
+
+        return (
+          <Button
+            key={i}
+            variant="secondary"
+            className={`!bg-transparent !p-2 !shadow-none !rounded-none relative text-sm font-medium pb-2 ${
+              currentPage === pageNum
+                ? 'text-black'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => paginate(pageNum)}
+          >
+            {pageNum}
+            {currentPage === pageNum && (
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-green-500"></div>
+            )}
+          </Button>
+        );
+      })}
+
+      {/* Show the » icon only if there are more pages beyond what's currently shown */}
+      {totalPages > 3 && currentPage <= Math.floor((totalPages - 1) / 3) * 3 && (
+        <Button
+          variant="secondary"
+          className="!bg-transparent !p-2 !shadow-none !rounded-none text-gray-500 hover:text-gray-700 text-sm"
+          onClick={() => {
+            const nextPage = Math.min(
+              Math.ceil(currentPage / 3) * 3 + 1,
+              totalPages
+            );
+            paginate(nextPage);
+          }}
+        >
+          »
+        </Button>
+      )}
+    </div>
+  </div>
+)}
     </div>
   );
 };

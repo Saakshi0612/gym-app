@@ -1,15 +1,7 @@
 // CoachCard.tsx
 import React from 'react';
-
-interface CoachCardProps {
-  name: string;
-  rating: number;
-  title: string;
-  description: string;
-  imageUrl: string;
-  onBookWorkout: (e: React.MouseEvent, coachName: string) => void;
-}
-
+import { CoachCardProps } from '../../types/components/coach.types';
+import Button from '../common/button';
 const CoachCard: React.FC<CoachCardProps> = ({
   name,
   rating,
@@ -22,13 +14,13 @@ const CoachCard: React.FC<CoachCardProps> = ({
     <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-md transition-shadow duration-300 w-full h-full flex flex-col">
       {/* Coach Image - Fixed height for consistency */}
       <div className="w-full h-48">
-        <img 
-          src={imageUrl} 
+        <img
+          src={imageUrl}
           alt={`${name}`}
           className="w-full h-full object-cover"
         />
       </div>
-      
+
       {/* Coach Info - Using flex-grow to ensure consistent card heights */}
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex justify-between items-center mb-1">
@@ -40,18 +32,20 @@ const CoachCard: React.FC<CoachCardProps> = ({
             </svg>
           </div>
         </div>
-        
+
         <p className="text-xs text-gray-500 mb-2">{title}</p>
-        
+
         {/* Using line-clamp to ensure consistent text length */}
         <p className="text-sm text-gray-600 mb-auto line-clamp-3 flex-grow">{description}</p>
-        
-        <button 
+
+        <Button
           onClick={(e) => onBookWorkout(e, name)}
-          className="w-full mt-6 bg-primary-green hover:bg-lime-500 text-center py-2 rounded text-sm font-medium text-black"
+          variant="primary"
+          fullWidth={true}
+          className="mt-6 bg-primary-green hover:bg-lime-500 py-2 text-sm text-black"
         >
           Book Workout
-        </button>
+        </Button>
       </div>
     </div>
   );

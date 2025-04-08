@@ -1,20 +1,6 @@
 import React from 'react';
+import {TimeSlotsProps} from '../../types/components/coach.types'
 
-// TimeSlot interface
-export interface TimeSlot {
-  id: string;
-  startTime: string;
-  endTime: string;
-  isAvailable: boolean;
-}
-
-// TimeSlots Component Props
-interface TimeSlotsProps {
-  selectedDate: Date;
-  timeSlots: TimeSlot[];
-  selectedTimeSlotId: string | null;
-  onTimeSlotSelect: (timeSlot: TimeSlot) => void;
-}
 
 const TimeSlots: React.FC<TimeSlotsProps> = ({
   selectedDate,
