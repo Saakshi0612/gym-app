@@ -1,17 +1,19 @@
 import React from 'react';
 import './App.css';
 
+import Mainsection from './components/homepage/Mainsection'
+
 const App: React.FC = () => {
   return (
-    <div className='flex justify-between'>
-    <h1 className="text-3xl font-bold underline bg-primary-green">
-      Hello world!
-    </h1>
-    <h1 className="text-3xl font-bold underline">
-    Hello world!
-  </h1>
+    <div>
+     
+
+     <Mainsection/>
+
+   
   </div>
   );
 };
 
-export default App;
+
+export default App; 
