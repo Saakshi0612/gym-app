@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../common/Header";
 // import HugInput from "./Input";
 import Button from "../common/Button";
 import DropdownField from "../common/dropdown";
+import Calendar from "../common/Calender";
+import DatePickerField from "../common/DatePickerField";
 
 const ACTIVITY_OPTIONS = [
   { value: "yoga", label: "Yoga" },
@@ -15,6 +17,7 @@ const ACTIVITY_OPTIONS = [
 ];
 
 const MainSection: React.FC = () => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
   return (
     <div>
       <main>
@@ -38,7 +41,6 @@ const MainSection: React.FC = () => {
             </div>
           </div> */}
 
-
           <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-end w-full">
             <div className="flex-1">
               <DropdownField
@@ -48,10 +50,10 @@ const MainSection: React.FC = () => {
               />
             </div>
             <div className="flex-1">
-              <DropdownField
-                label="Date"
-                options={ACTIVITY_OPTIONS}
-                name="date"
+              <DatePickerField
+                label="Workout Date"
+                value={selectedDate}
+                onChange={setSelectedDate}
               />
             </div>
             <div className="flex-1">
