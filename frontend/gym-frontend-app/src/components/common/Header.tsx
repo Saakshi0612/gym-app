@@ -60,7 +60,7 @@ const Header: React.FC = () => {
 
       {/* Welcome Bar */}
       <div className="bg-primary-green text-white py-2 px-4">
-        <h1 className="text-lg font-semibold">Welcome</h1>
+        <h1 className="text-lg font-semibold">Welcome!</h1>
       </div>
 
       {/* Overlay */}

@@ -5,6 +5,8 @@ import Dashboard from './pages/user_pages/dashboard';
 import RegisterForm from './components/RegisterForm';
 import LoginForm from './components/LoginForm';
 import { useAppSelector } from './store/store';
+import CoachesPage from './pages/user_pages/Coaches';
+import CoachProfilePage from './pages/user_pages/CoachProfilePages';
 import MainSection from './components/homepage/Mainsection';
 
 // Protected route component using Outlet
@@ -21,6 +23,8 @@ function AppContent() {
         <Route path="/" element={<MainSection/>} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/login" element={<LoginForm />} />
+        <Route path='/coaches'  element={<CoachesPage/>}/>
+        <Route path='/coaches/:id' element={<CoachProfilePage/>}/>
         
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>

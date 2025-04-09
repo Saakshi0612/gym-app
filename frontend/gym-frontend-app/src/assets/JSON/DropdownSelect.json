@@ -1,0 +1,28 @@
+{
+    "activityOptions": [
+      { "value": "yoga", "label": "Yoga" },
+      { "value": "weight-training", "label": "Weight Training" },
+      { "value": "cardio", "label": "Cardio" },
+      { "value": "pilates", "label": "Pilates" },
+      { "value": "crossfit", "label": "CrossFit" },
+      { "value": "swimming", "label": "Swimming" },
+      { "value": "cycling", "label": "Cycling" }
+    ],
+    "timeSlotOptions": [
+      { "value": "6am-7am", "label": "6 AM - 7 AM" },
+      { "value": "7am-8am", "label": "7 AM - 8 AM" },
+      { "value": "8am-9am", "label": "8 AM - 9 AM" },
+      { "value": "5pm-6pm", "label": "5 PM - 6 PM" },
+      { "value": "6pm-7pm", "label": "6 PM - 7 PM" },
+      { "value": "7pm-8pm", "label": "7 PM - 8 PM" }
+    ],
+    "coachNameOptions": [
+      { "value": "alex-johnson", "label": "Alex Johnson" },
+      { "value": "maria-garcia", "label": "Maria Garcia" },
+      { "value": "david-lee", "label": "David Lee" },
+      { "value": "sophia-patel", "label": "Sophia Patel" },
+      { "value": "chris-martin", "label": "Chris Martin" },
+      { "value": "nina-williams", "label": "Nina Williams" }
+    ]
+  }
+  
