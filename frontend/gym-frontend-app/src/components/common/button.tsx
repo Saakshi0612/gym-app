@@ -1,15 +1,14 @@
-// src/components/common/Button.tsx
-import { ButtonProps } from '../../types/components/common.types';
-
+import { ButtonProps } from '../../types/types';
+ 
 const variants = {
   primary: 'bg-lime-400 hover:bg-lime-500 text-black',
-  secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800',
+  secondary: 'border border-gray-800 text-gray-800 hover:bg-gray-100 ',
   danger: 'bg-red-500 hover:bg-red-600 text-white',
 };
-
+ 
 // Define a type for the variant keys
 type VariantKey = keyof typeof variants;
-
+ 
 export default function Button({
   children,
   variant = 'primary',
@@ -23,12 +22,12 @@ export default function Button({
 }: ButtonProps) {
   const baseClasses = 'font-semibold py-3 px-4 rounded-md transition-colors';
   const widthClass = fullWidth ? 'w-full' : '';
-  
+ 
   // Fix the type issue with variant lookup
   const variantClass = variants[variant as VariantKey] || variants.primary;
-  
+ 
   const loadingClass = isLoading ? 'opacity-70 cursor-not-allowed' : '';
-
+ 
   return (
     <button
       className={`${baseClasses} ${widthClass} ${variantClass} ${loadingClass} ${className}`}
