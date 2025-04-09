@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
-import Button from "../common/Button";
+import Button from "../common/button";
 import { RiFlashlightFill } from "react-icons/ri";
 
 const Header: React.FC = () => {

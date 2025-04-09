@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import Header from "../common/Header";
 // import HugInput from "./Input";
-import Button from "../common/Button";
+import Button from "../common/button";
 import DropdownField from "../common/dropdown";
-import Calendar from "../common/Calender";
+//import Calendar from "../common/Calender";
 import DatePickerField from "../common/DatePickerField";
 
 const ACTIVITY_OPTIONS = [
@@ -14,6 +14,24 @@ const ACTIVITY_OPTIONS = [
   { value: "crossfit", label: "CrossFit" },
   { value: "swimming", label: "Swimming" },
   { value: "cycling", label: "Cycling" },
+];
+
+const TIME_SLOT_OPTIONS = [
+  { value: "6am-7am", label: "6 AM - 7 AM" },
+  { value: "7am-8am", label: "7 AM - 8 AM" },
+  { value: "8am-9am", label: "8 AM - 9 AM" },
+  { value: "5pm-6pm", label: "5 PM - 6 PM" },
+  { value: "6pm-7pm", label: "6 PM - 7 PM" },
+  { value: "7pm-8pm", label: "7 PM - 8 PM" },
+];
+
+const COACH_NAME_OPTIONS = [
+  { value: "alex-johnson", label: "Alex Johnson" },
+  { value: "maria-garcia", label: "Maria Garcia" },
+  { value: "david-lee", label: "David Lee" },
+  { value: "sophia-patel", label: "Sophia Patel" },
+  { value: "chris-martin", label: "Chris Martin" },
+  { value: "nina-williams", label: "Nina Williams" },
 ];
 
 const MainSection: React.FC = () => {
@@ -59,14 +77,14 @@ const MainSection: React.FC = () => {
             <div className="flex-1">
               <DropdownField
                 label="Time"
-                options={ACTIVITY_OPTIONS}
+                options={TIME_SLOT_OPTIONS}
                 name="time"
               />
             </div>
             <div className="flex-1">
               <DropdownField
                 label="Coach"
-                options={ACTIVITY_OPTIONS}
+                options={COACH_NAME_OPTIONS}
                 name="coach"
               />
             </div>
