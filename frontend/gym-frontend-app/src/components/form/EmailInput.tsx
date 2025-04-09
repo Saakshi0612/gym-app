@@ -1,6 +1,6 @@
 // src/components/form/EmailInput.tsx
 import React from 'react';
-import Input from '../common/Input';
+import IsInput from '../common/Input';
 
 interface EmailInputProps {
   value: string;
@@ -12,7 +12,7 @@ interface EmailInputProps {
 
 export default function EmailInput({ value, onChange, helpText, error, required = true }: EmailInputProps) {
   return (
-    <Input
+    <IsInput
       type="email"
       label="Email"
       value={value}

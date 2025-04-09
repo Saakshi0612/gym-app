@@ -7,6 +7,7 @@ import LoginForm from './components/LoginForm';
 import { useAppSelector } from './store/store';
 import CoachesPage from './pages/user_pages/Coaches';
 import CoachProfilePage from './pages/user_pages/CoachProfilePages';
+import MainSection from './components/homepage/Mainsection';
 
 // Protected route component using Outlet
 const ProtectedRoute = () => {
@@ -19,7 +20,7 @@ function AppContent() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/register" />} />
+        <Route path="/" element={<MainSection/>} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path='/coaches'  element={<CoachesPage/>}/>
