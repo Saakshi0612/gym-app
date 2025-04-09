@@ -24,7 +24,7 @@ interface DropdownFieldProps<T extends FieldValues> {
   setValue: UseFormSetValue<T>;
   trigger: UseFormTrigger<T>;
   error?: string;
-  resetSignal?: boolean; // ✅ reset signal passed from parent
+  resetSignal?: boolean; 
 }
 
 function DropdownField<T extends FieldValues>({
