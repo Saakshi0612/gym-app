@@ -1,8 +1,10 @@
 import { ButtonHTMLAttributes, InputHTMLAttributes, FormHTMLAttributes, ReactNode } from 'react';
+import { UseFormRegisterReturn } from 'react-hook-form';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string | null;
+  register?: UseFormRegisterReturn;
   helpText?: string;
   icon?: ReactNode;
   rightElement?: ReactNode;

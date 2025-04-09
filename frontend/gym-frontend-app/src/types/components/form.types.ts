@@ -5,6 +5,15 @@ export interface EmailInputProps {
     error?: string | null;
     required?: boolean;
   }
+
+  export interface RegistrationFormData {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    targets: string;
+    preferableActivity: string;
+  }
   
   export interface PasswordInputProps {
     value: string;
