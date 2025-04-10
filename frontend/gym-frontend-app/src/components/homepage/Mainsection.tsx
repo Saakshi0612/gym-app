@@ -13,10 +13,7 @@ const MainSection: React.FC = () => {
     <div>
       <main>
         <Header />
-        {/* <div className="flex flex-col text-5xl p-10 gap-4">
-          <h1>Achieve your fitness goals!</h1>
-          <h1>Find a workout and book today.</h1>
-        </div> */}
+       
     <div className="flex flex-col  lg:text-5xl md:text-4xl sm:text-3xl p-10 gap-4">
   <h1>
     Achieve your{' '}
@@ -24,28 +21,7 @@ const MainSection: React.FC = () => {
       fitness goals!
       <span className="absolute left-0 bottom-[-16px] w-full h-[8px] z-0">
 
-        <svg
-          width="100%"
-          height="8"
-          viewBox="0 0 423 8"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-        >
-          <g clipPath="url(#clip0_13041_8217)">
-            <path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M420.267 2.51048C336.888 -0.954197 252.209 2.38643 168.678 2.50872C113.442 2.58343 58.1914 1.91631 2.99774 2.09253C1.34297 2.09922 -0.00587149 2.86153 -0.013822 3.80184C-0.0207733 4.74214 1.31639 5.4979 2.97016 5.49122C58.1578 5.31507 113.403 5.98226 168.632 5.90761C252.014 5.78695 336.533 2.44239 419.761 5.90304C421.411 5.97003 422.859 5.26894 423.004 4.33281C423.139 3.39678 421.907 2.58324 420.267 2.51048Z"
-              fill="#9EF300"
-            />
-          </g>
-          <defs>
-            <clipPath id="clip0_13041_8217">
-              <rect width="423" height="8" fill="white" />
-            </clipPath>
-          </defs>
-        </svg>
+        
       </span>
     </span>
   </h1>
@@ -57,46 +33,6 @@ const MainSection: React.FC = () => {
 </h1>
 
 </div>
-
- 
-
-        {/* <div className="text-base mt-4 px-10 space-y-5">
-          <h2 className="text-gray-800">Book workout</h2>
-
-          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-end w-full">
-            <div className="flex-1">
-              <DropdownField
-                label="Type of Sport"
-                options={dropdownData.activityOptions}
-                name="type"
-              />
-            </div>
-            <div className="flex-1">
-              <DatePickerField
-                label="Workout Date"
-                value={selectedDate}
-                onChange={setSelectedDate}
-              />
-            </div>
-            <div className="flex-1">
-              <DropdownField
-                label="Time"
-                options={dropdownData.timeSlotOptions}
-                name="time"
-              />
-            </div>
-            <div className="flex-1">
-              <DropdownField
-                label="Coach"
-                options={dropdownData.coachNameOptions}
-                name="coach"
-              />
-            </div>
-            <Button variant="primary" className="text-sm self-center">
-              Find Workout
-            </Button>
-          </div>
-        </div> */}
     <div className="text-base mt-4 px-4 md:px-10 space-y-5">
   <h2 className="text-gray-800 font-medium">Book workout</h2>
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end w-full">

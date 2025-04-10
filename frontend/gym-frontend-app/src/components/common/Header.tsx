@@ -58,11 +58,6 @@ const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* Welcome Bar */}
-      {/* <div className="bg-primary-green text-white py-2 px-4">
-        <h1 className="text-lg font-semibold">Welcome!</h1>
-      </div> */}
-
 <div
   className="relative bg-cover bg-center text-white py-8 px-4"
   style={{ backgroundImage: `url(${BackgroundHeader})` }} // Replace with your actual path
