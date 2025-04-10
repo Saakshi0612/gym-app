@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Calendar } from "lucide-react";
-import Button from "../common/button";
-import CancelWorkoutModal from "./cancelWorkoutPopup";
-import WorkoutFeedbackModal from "./workoutFeebackModal";
+import CancelWorkoutModal from "./CancelWorkoutPopup";
+import WorkoutFeedbackModal from "./WorkoutFeebackModal";
+import Button from "../common/ButtonComponent";
 
 interface Workout {
   id: number;

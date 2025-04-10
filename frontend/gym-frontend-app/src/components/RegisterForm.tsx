@@ -4,13 +4,14 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from '../store/store';
 import { registerUser,clearError } from '../services/authSlice';
-import DropdownField from "./common/Dropdown";
 import { QuoteSidebar } from "./common/QuoteBanner";
 import Input from "./common/Input";
-import AuthLayout from './layout/authLayout';
 import SystemErrorAlert from './SystemErrorAlert';
 import AuthFooter from './auth/AuthFooter';
 import { RegistrationFormData } from "../types";
+import DropdownField from "./common/Selection";
+import AuthLayout from "./layout/AuthLayout";
+
 
 
 

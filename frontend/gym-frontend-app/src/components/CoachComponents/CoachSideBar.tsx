@@ -133,7 +133,7 @@
 import React from "react";
 import pdfIconPath from "../../assets/PDF.svg";
 import { CoachProps } from "../../types/components/coach.types";
-import Button from "../common/button";
+import Button from "../common/ButtonComponent";
 
 const CoachSidebar: React.FC<CoachProps> = ({
   name_of_coach,
@@ -190,7 +190,7 @@ const CoachSidebar: React.FC<CoachProps> = ({
             Specialization
           </h3>
           <div className="flex flex-wrap gap-2">
-            {specializations.map((spec, index) => (
+            {specializations?.map((spec, index) => (
               <span
                 key={index}
                 className="bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full"
@@ -207,7 +207,7 @@ const CoachSidebar: React.FC<CoachProps> = ({
             Certificates
           </h3>
           <div className="space-y-2">
-            {certificates.map((cert, index) => (
+            {certificates?.map((cert, index) => (
               <div key={index} className="flex items-center">
                 <img src={pdfIconPath} alt="PDF" className="h-5 w-5 mr-2" />
                 <a

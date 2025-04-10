@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import Header from "../common/Header";
-import Button from "../common/button";
 import DatePickerField from "../common/DatePickerField";
 import dropdownData from "../../assets/JSON/DropdownSelect.json";
 import CoachesData from "../../assets/JSON/Coaches.json";
 import { useWorkoutContext } from "../../context/WorkoutContext";
-
-import ShowWorkouts from "./showWorkouts";
-import DropdownField from "../common/Dropdown";
+import ShowWorkouts from "./ShowWorkouts";
+import DropdownField from "../common/Selection";
+import Button from "../common/ButtonComponent";
 
 const MainSection: React.FC = () => {
   const { setFilteredResults, setShowResults, showResults } =

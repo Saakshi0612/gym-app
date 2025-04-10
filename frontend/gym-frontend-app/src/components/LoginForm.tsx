@@ -8,7 +8,7 @@ import PasswordInput from './form/PasswordInput';
 import SubmitButton from './form/SubmitButton';
 import AuthFooter from './auth/AuthFooter';
 import { useAppDispatch, useAppSelector } from '../store/store';
-import AuthLayout from './layout/authLayout';
+import AuthLayout from './layout/AuthLayout';
 import { QuoteSidebar } from './common/QuoteBanner';
 
 export default function LoginForm() {
@@ -30,7 +30,7 @@ export default function LoginForm() {
     if (loginUser.fulfilled.match(resultAction)) {
       // If login is successful, save the user data to localStorage
       localStorage.setItem('user', JSON.stringify(resultAction.payload));
-      navigate('/dashboard');
+      navigate('/');
     }
   };
 

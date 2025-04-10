@@ -1,6 +1,6 @@
 // src/components/form/SubmitButton.tsx
 import React from 'react';
-import Button from '../common/button';
+import Button from '../common/ButtonComponent';
 
 
 interface SubmitButtonProps {
@@ -11,7 +11,7 @@ interface SubmitButtonProps {
 
 export default function SubmitButton({ isLoading, text, loadingText }: SubmitButtonProps) {
   return (
-    <Button 
+    <Button
       type="submit" 
       variant="primary"
       isLoading={isLoading}

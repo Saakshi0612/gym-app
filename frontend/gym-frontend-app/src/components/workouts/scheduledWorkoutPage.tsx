@@ -1,5 +1,5 @@
 import WorkoutData from "../../assets/JSON/workout.json";
-import ScheduledWorkoutCard from "./scheduleWorkoutCard";
+import ScheduledWorkoutCard from "./ScheduleWorkoutCard";
 
 export default function ScheduledWorkoutPage() {
   return (

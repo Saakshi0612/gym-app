@@ -1,6 +1,6 @@
 // import React from "react";
 import { useWorkoutContext } from "../../context/WorkoutContext";
-import ShowCochesCard from "./showCoachCard";
+import ShowCochesCard from "./ShowCoachCard";
 
 export default function ShowWorkouts() {
   const { filteredResults, filters } = useWorkoutContext();

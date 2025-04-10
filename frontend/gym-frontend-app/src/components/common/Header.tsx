@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
-import Button from "../common/button";
 import { RiFlashlightFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import BackgroundHeader from "../../assets/Base.jpg"
+import Button from "./ButtonComponent";
 
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);

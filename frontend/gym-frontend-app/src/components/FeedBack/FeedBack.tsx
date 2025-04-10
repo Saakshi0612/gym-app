@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
 import FeedbackCard from './FeedBackCard';
-import Button from '../common/button';
 import mockFeedbackData from '../../assets/JSON/Feedback.json';
 import { Feedback } from '../../types/components/feedback.types';
+import Button from '../common/ButtonComponent';
 
 const fetchFeedbackData = async (): Promise<Feedback[]> => {
   // When API is ready, replace this with:

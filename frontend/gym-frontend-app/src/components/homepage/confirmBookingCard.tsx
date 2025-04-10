@@ -1,8 +1,8 @@
 import React from "react";
 import { Calendar, Clock, Dumbbell, X } from "lucide-react";
 
-import Button from "../common/button";
 import CoachDataInterface from "../../types/components/CoachDataInterface";
+import Button from "../common/ButtonComponent";
 
 interface ConfirmBookingCardProps {
   coach: CoachDataInterface & {
