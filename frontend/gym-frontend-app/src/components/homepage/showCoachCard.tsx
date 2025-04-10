@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Dumbbell, Calendar, Clock } from "lucide-react";
-import ConfirmBookingCard from "./confirmBookingCard";
+
 import { useWorkoutContext } from "../../context/WorkoutContext";
 import { Link, useNavigate } from "react-router-dom";
-import Button from "../common/button";
 import { useAppSelector } from "../../store/store";
+
+import Button from "../common/ButtonComponent";
+import ConfirmBookingCard from "./confirmBookingCard";
 import LoginPromptModal from "./isLoggedInCard";
 
 const ShowCochesCard: React.FC<any> = (coach) => {

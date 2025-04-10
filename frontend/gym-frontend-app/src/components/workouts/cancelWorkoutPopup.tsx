@@ -1,5 +1,5 @@
-import Button from "../common/button";
 import { X } from "lucide-react";
+import Button from "../common/ButtonComponent";
 
 interface CancelWorkoutModalProps {
   isOpen: boolean;

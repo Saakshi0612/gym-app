@@ -7,15 +7,16 @@ import {
   Navigate,
   Outlet,
 } from "react-router-dom";
-import Dashboard from "./pages/user_pages/dashboard";
+
 import RegisterForm from "./components/RegisterForm";
 import LoginForm from "./components/LoginForm";
 import { useAppSelector } from "./store/store";
 import CoachesPage from "./pages/user_pages/Coaches";
 import CoachProfilePage from "./pages/user_pages/CoachProfilePages";
 import MainSection from "./components/homepage/Mainsection";
-
 import ScheduledWorkoutPage from "./components/workouts/scheduledWorkoutPage";
+
+
 
 // Protected route component using Outlet
 const ProtectedRoute = () => {
@@ -37,7 +38,7 @@ function AppContent() {
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<MainSection />} />
           {/* Add other protected routes here as needed */}
         </Route>
       </Routes>

@@ -1,7 +1,7 @@
 // CoachCard.tsx
 import React from "react";
 import { CoachCardProps } from "../../types/components/coach.types";
-import Button from "../common/button";
+import Button from "../common/ButtonComponent";
 const CoachCard: React.FC<CoachCardProps> = ({
   name_of_coach,
   rating,

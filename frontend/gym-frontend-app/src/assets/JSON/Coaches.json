@@ -3,46 +3,90 @@
     {
       "id": 1,
       "name_of_coach": "Alex",
-      "rating": 4.8,
-      "time": ["9.00"],
-      "date": "2025-04-08",
-      "title": "Certified Certified Certified Certified ",
+      "rating": 4.96,
+      "time": ["8.00", "10.00"],
+      "date": "2025-04-09",
+      "title": "Certified personal yoga trainer",
       "type_of_sport": "yoga",
-      "description": "Helping you burn calories and boost stamina with customized cardio routines routines .",
+      "description": "A Yoga Expert dedicated to crafting personalized workout plans that align with your goals.",
       "imageUrl": "https://webneel.com/daily/sites/default/files/images/daily/05-2018/portrait-photography-by-dennis-drozhzhin.jpg"
     },
     {
       "id": 2,
-      "name_of_coach": "Alex",
-      "rating": 4.9,
-      "time": ["9.00", "11.00"],
-      "date": "2025-04-08",
-      "title": "Advanced Yoga",
-      "type_of_sport": "yoga",
-      "description": "Focused on balance, strength, and mindfulness through personalized yoga sessions.",
-      "imageUrl": "https://webneel.com/daily/sites/default/files/images/daily/05-2018/portrait-photography-by-dennis-drozhzhin.jpg"
+      "name_of_coach": "Wade Warren",
+      "rating": 4.8,
+      "time": ["11.00", "14.00"],
+      "date": "2025-04-09",
+      "title": "Climbing Coach",
+      "type_of_sport": "climbing",
+      "description": "Scale new challenges with our Climbing Coach. Get instruction to improve climbing skills, and build confidence on the wall.",
+      "imageUrl": "https://randomuser.me/api/portraits/men/32.jpg"
     },
     {
       "id": 3,
-      "name_of_coach": "Nancy",
-      "rating": 4.85,
-      "time": ["9.00", "12.00"],
+      "name_of_coach": "Cameron Williamson",
+      "rating": 5.0,
+      "time": ["10.00", "13.00"],
       "date": "2025-04-09",
-      "title": "Holistic Yoga Coach",
-      "type_of_sport": "yoga",
-      "description": "Bringing peace and flexibility to your practice with deep experience in Hatha Yoga.",
-      "imageUrl": "https://webneel.com/daily/sites/default/files/images/daily/05-2018/portrait-photography-by-dennis-drozhzhin.jpg"
+      "title": "Strength Coach",
+      "type_of_sport": "strength training",
+      "description": "Achieve peak performance with our Strength Coach, a specialist in building muscle and increasing power.",
+      "imageUrl": "https://randomuser.me/api/portraits/men/83.jpg"
     },
     {
       "id": 4,
-      "name_of_coach": "Kristin Watson",
-      "rating": 4.96,
-      "time": ["11.00"],
+      "name_of_coach": "Jenny Wilson",
+      "rating": 5.0,
+      "time": ["9.00", "12.00"],
       "date": "2025-04-09",
-      "title": "Certified Personal ",
+      "title": "Certified personal yoga trainer",
       "type_of_sport": "yoga",
       "description": "A Yoga Expert dedicated to crafting personalized workout plans that align with your goals.",
-      "imageUrl": "https://webneel.com/daily/sites/default/files/images/daily/05-2018/portrait-photography-by-dennis-drozhzhin.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/women/63.jpg"
+    },
+    {
+      "id": 5,
+      "name_of_coach": "Jacob Jones",
+      "rating": 4.6,
+      "time": ["13.00", "16.00"],
+      "date": "2025-04-09",
+      "title": "Climbing Coach",
+      "type_of_sport": "climbing",
+      "description": "Scale new challenges with our Climbing Coach. Get instruction to improve climbing skills, and build confidence on the wall.",
+      "imageUrl": "https://randomuser.me/api/portraits/men/46.jpg"
+    },
+    {
+      "id": 6,
+      "name_of_coach": "Guy Hawkins",
+      "rating": 4.89,
+      "time": ["8.30", "11.30"],
+      "date": "2025-04-09",
+      "title": "Functional Fitness Trainer",
+      "type_of_sport": "functional fitness",
+      "description": "Transform your fitness with our Functional Fitness Trainer, who focuses on exercises that mimic real-life movements.",
+      "imageUrl": "https://randomuser.me/api/portraits/men/55.jpg"
+    },
+    {
+      "id": 7,
+      "name_of_coach": "Brooklyn Simmons",
+      "rating": 5.0,
+      "time": ["14.00", "17.00"],
+      "date": "2025-04-09",
+      "title": "Strength Coach",
+      "type_of_sport": "strength training",
+      "description": "Achieve peak performance with our Strength Coach, a specialist in building muscle and increasing power.",
+      "imageUrl": "https://randomuser.me/api/portraits/women/32.jpg"
+    },
+    {
+      "id": 8,
+      "name_of_coach": "Bessie Cooper",
+      "rating": 4.97,
+      "time": ["7.00", "10.00"],
+      "date": "2025-04-09",
+      "title": "Functional Fitness Trainer",
+      "type_of_sport": "functional fitness",
+      "description": "Transform your fitness with our Functional Fitness Trainer, who focuses on exercises that mimic real-life movements.",
+      "imageUrl": "https://randomuser.me/api/portraits/women/14.jpg"
     }
   ]
 }
