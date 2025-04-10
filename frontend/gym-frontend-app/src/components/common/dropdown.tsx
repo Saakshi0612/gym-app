@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { UseFormRegister } from "react-hook-form";
-import dropdownIcon from "../../assets/images/dropdown.svg"; // Example dropdown arrow image
-// Example checkmark image
+import dropdownIcon from "../../assets/images/dropdown.svg";
 
 interface DropdownFieldProps {
   label: string;
@@ -15,57 +14,89 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   label,
   name,
   options,
+  register,
   error,
 }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown visibility
-  const [selectedValue, setSelectedValue] = useState(""); // State for selected value
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedValue, setSelectedValue] = useState("");
+  const [selectedLabel, setSelectedLabel] = useState("");
 
-  const handleSelection = (optionValue: string) => {
-    setSelectedValue(optionValue); // Update the selected value in state
-    setIsDropdownOpen(false); // Close the dropdown after selection
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleSelection = (optionValue: string, optionLabel: string) => {
+    setSelectedValue(optionValue);
+    setSelectedLabel(optionLabel);
+    setIsDropdownOpen(false);
   };
 
+  // 🔻 Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div className="relative">
-      {/* Fieldset wraps the dropdown */}
-      <fieldset className="border rounded-md border-[#DADADA] py-1 font-[lexend]  text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white">
-        <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px]  ml-1 px-1  bg-white   text-[#4B5563]">
+    <div className="relative" ref={dropdownRef}>
+      <fieldset className="border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white">
+        <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px] ml-1 px-1 bg-white text-[#4B5563]">
           {label}
         </legend>
         <div className="relative">
-          {/* Dropdown Trigger Button */}
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full p-2 pt-0 border-gray-200 rounded bg-white flex justify-between items-center font-light"
+            className="w-full p-2 pt-0 rounded bg-white flex justify-between items-center font-light"
           >
-            {selectedValue || `${label}`}
+            {selectedLabel || `Select ${label}`}
             <img
               src={dropdownIcon}
               alt="Dropdown Icon"
-              className={`w-6 h- transition-transform duration-100 ${
+              className={`w-5 h-5 transition-transform duration-100 ${
                 isDropdownOpen ? "rotate-180" : ""
               }`}
             />
           </button>
 
-          {/* Dropdown List */}
+          <input
+            type="hidden"
+            name={name}
+            value={selectedValue}
+            {...(register && register)}
+          />
+
           {isDropdownOpen && (
-            <ul className="absolute w-full font-lexend bg-white border border-gray-200 rounded shadow-lg mt-1 z-10">
-              {options.map(({ value, label }) => (
+            <ul className="absolute w-full font-lexend bg-white border border-gray-200 rounded shadow-lg mt-1 z-10 max-h-60 overflow-y-auto">
+              {options.map(({ value, label: optionLabel }) => (
                 <li
                   key={value}
                   className="p-2 cursor-pointer hover:bg-[#F6FFE5] transition flex justify-between items-center"
-                  onClick={() => handleSelection(value)}
+                  onClick={() => handleSelection(value, optionLabel)}
                 >
-                  <span>{label}</span>
-                  {/* Show checkmark for the selected option */}
+                  <span>{optionLabel}</span>
                   {value === selectedValue && (
-                    <img
-                    //   src={checkMarkIcon}
-                      alt="Selected"
-                      className="w-4 h-4"
-                    />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 text-green-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
                   )}
                 </li>
               ))}
@@ -74,10 +105,12 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
         </div>
       </fieldset>
 
-      {/* Error Message */}
-      {error && <span className="text-xs text-red-500">{error}</span>}
+      {error && <span className="text-xs text-red-500 mt-1">{error}</span>}
     </div>
   );
 };
 
 export default DropdownField;
+
+
+ 
