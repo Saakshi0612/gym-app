@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
 import Button from "../common/button";
 import { RiFlashlightFill } from "react-icons/ri";
+import { useNavigate } from "react-router-dom";
+import BackgroundHeader from "../../assets/Base.jpg"
 
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Optional: Close menu on outside click or escape key
   useEffect(() => {
@@ -15,40 +18,37 @@ const Header: React.FC = () => {
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
+  const handleLoginClick = () => {
+    navigate("/login");
+  };
+
+  const handleSignUpClick = () => {
+    navigate("/register");
+  };
+
   return (
     <>
       <header className="shadow-md px-4 py-3 flex items-center justify-between gap-10 relative z-20">
       <div className="flex items-center gap-1 text-xl font-bold">
-  <RiFlashlightFill />
-  EnergyX
-</div>
-
+        <RiFlashlightFill />
+        EnergyX
+      </div>
 
         {/* Desktop Nav */}
-        {/* <nav className="hidden md:flex items-center w-full  justify-between gap-6">
+        <nav className="hidden md:flex items-center w-full justify-between gap-6">
           <ul className="flex gap-4">
-            <li>Home</li>
-            <li>Coaches</li>
+            <li className={`border-b-2 ${location.pathname === "/" ? "border-primary-green" : "border-transparent"}`}>
+              Home
+            </li>
+            <li className={`border-b-2 ${location.pathname === "/coaches" ? "border-primary-green" : "border-transparent"}`}>
+              Coaches
+            </li>
           </ul>
           <div className="flex gap-2">
-            <Button variant="secondary">Log In</Button>
-            <Button variant="secondary">Sign Up</Button>
+            <Button variant="secondary" onClick={handleLoginClick}>Log In</Button>
+            <Button variant="secondary" onClick={handleSignUpClick}>Sign Up</Button>
           </div>
-        </nav> */}
-        <nav className="hidden md:flex items-center w-full justify-between gap-6">
-  <ul className="flex gap-4">
-    <li className={`border-b-2 ${location.pathname === "/" ? "border-primary-green" : "border-transparent"}`}>
-      Home
-    </li>
-    <li className={`border-b-2 ${location.pathname === "/coaches" ? "border-primary-green" : "border-transparent"}`}>
-      Coaches
-    </li>
-  </ul>
-  <div className="flex gap-2">
-    <Button variant="secondary">Log In</Button>
-    <Button variant="secondary">Sign Up</Button>
-  </div>
-</nav>
+        </nav>
 
         {/* Hamburger Icon */}
         <div className="md:hidden">
@@ -59,9 +59,18 @@ const Header: React.FC = () => {
       </header>
 
       {/* Welcome Bar */}
-      <div className="bg-primary-green text-white py-2 px-4">
+      {/* <div className="bg-primary-green text-white py-2 px-4">
         <h1 className="text-lg font-semibold">Welcome!</h1>
-      </div>
+      </div> */}
+
+<div
+  className="relative bg-cover bg-center text-white py-8 px-4"
+  style={{ backgroundImage: `url(${BackgroundHeader})` }} // Replace with your actual path
+>
+  <div className=" absolute inset-0 z-0" />
+  <h1 className="relative z-10 text-2xl font-semibold">Welcome!</h1>
+</div>
+
 
       {/* Overlay */}
       {menuOpen && (
@@ -82,8 +91,8 @@ const Header: React.FC = () => {
           <li>Coaches</li>
         </ul>
         <div className="mt-6 flex flex-col gap-2">
-          <Button variant="secondary">Log In</Button>
-          <Button variant="secondary">Sign Up</Button>
+          <Button variant="secondary" onClick={handleLoginClick}>Log In</Button>
+          <Button variant="secondary" onClick={handleSignUpClick}>Sign Up</Button>
         </div>
       </div>
     </>
@@ -91,3 +100,4 @@ const Header: React.FC = () => {
 };
 
 export default Header;
+

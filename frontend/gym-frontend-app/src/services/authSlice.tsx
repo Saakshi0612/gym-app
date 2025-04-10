@@ -7,19 +7,6 @@ interface StoredUser extends User {
   password: string;
 }
 
-// Mock data for demonstration
-const mockCoaches: StoredUser[] = [
-  { email: 'coach1@gym.com', password: 'Coach123', firstName: 'Coach', lastName: 'One', role: 'coach' as const },
-];
-
-const adminUser: StoredUser = { 
-  email: 'admin@gym.com', 
-  password: 'Admin123', 
-  firstName: 'Admin', 
-  lastName: '', 
-  role: 'admin' as const 
-};
-
 // Async thunks for authentication
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -28,25 +15,19 @@ export const loginUser = createAsyncThunk(
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Fix the any type issue by properly typing the clients array
       const storedClients = localStorage.getItem('clients') || '[]';
       const clients: StoredUser[] = JSON.parse(storedClients);
       
-      const user: StoredUser | undefined =
-        clients.find((u) => u.email === credentials.email && u.password === credentials.password) ||
-        mockCoaches.find((u) => u.email === credentials.email && u.password === credentials.password) ||
-        (credentials.email === adminUser.email && credentials.password === adminUser.password ? adminUser : undefined);
+      const user = clients.find(u => u.email === credentials.email && u.password === credentials.password);
 
       if (!user) {
         return rejectWithValue("We couldn't log you in. Double-check your password and try again.");
       }
 
-      // Fix the unused variable warning by using object rest spread without naming the password
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...userWithoutPassword } = user;
       return userWithoutPassword;
     } catch (error: unknown) {
-      // Use the error variable to avoid the unused warning
       console.error("Login error:", error);
       return rejectWithValue("We're experiencing technical difficulties. Please try logging in again later.");
     }
@@ -71,7 +52,6 @@ export const registerUser = createAsyncThunk(
       existingUsers.push(newUser);
       localStorage.setItem('clients', JSON.stringify(existingUsers));
 
-      // Fix the unused variable warning
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...userWithoutPassword } = newUser;
       return userWithoutPassword;
@@ -101,6 +81,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.isAuthenticated = false;
       state.user = null;
+      localStorage.removeItem('user');
     },
     clearError: (state) => {
       state.error = null;

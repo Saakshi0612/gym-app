@@ -1,7 +1,14 @@
 import React from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
-import {CalendarProps} from "../../types/components/coach.types"
+
 // Calendar Component Props
+interface CalendarProps {
+  currentDate: Date;
+  selectedDate: Date;
+  onDateSelect: (date: Date) => void;
+  onMonthChange: (date: Date) => void;
+}
+
 const Calendar: React.FC<CalendarProps> = ({
   currentDate,
   selectedDate,
