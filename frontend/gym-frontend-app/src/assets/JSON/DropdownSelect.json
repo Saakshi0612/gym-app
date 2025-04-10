@@ -17,7 +17,7 @@
       { "value": "7pm-8pm", "label": "7 PM - 8 PM" }
     ],
     "coachNameOptions": [
-      { "value": "alex-johnson", "label": "Alex Johnson" },
+      { "value": "Alex", "label": "Alex Johnson" },
       { "value": "maria-garcia", "label": "Maria Garcia" },
       { "value": "david-lee", "label": "David Lee" },
       { "value": "sophia-patel", "label": "Sophia Patel" },

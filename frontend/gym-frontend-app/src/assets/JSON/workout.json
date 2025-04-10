@@ -1,0 +1,68 @@
+{
+  "workouts": [
+    {
+      "id": 1,
+      "type_of_sport": "Yoga",
+      "description": "Enhance your flexibility and balance with this calming yoga session. Flow through a series of poses designed to stretch and strengthen your entire body while promoting relaxation.",
+      "time": "10.00",
+      "date": "July 9",
+      "workout_status": "Scheduled"
+    },
+    {
+      "id": 2,
+      "type_of_sport": "HIIT",
+      "description": "High-intensity interval training that boosts your heart rate and burns calories fast. Perfect for fat loss and building endurance.",
+      "time": "08.00",
+      "date": "July 10",
+      "workout_status": "Finished"
+    },
+    {
+      "id": 3,
+      "type_of_sport": "Strength Training",
+      "description": "Build muscle and tone your body with compound movements focusing on weightlifting techniques.",
+      "time": "12.00",
+      "date": "July 10",
+      "workout_status": "Waiting for Feedback"
+    },
+    {
+      "id": 4,
+      "type_of_sport": "Pilates",
+      "description": "A low-impact session focusing on core strength, posture, and controlled movements. Great for injury prevention and mobility.",
+      "time": "09.30",
+      "date": "July 11",
+      "workout_status": "Finished"
+    },
+    {
+      "id": 5,
+      "type_of_sport": "Zumba",
+      "description": "Dance your way to fitness with this energetic and fun cardio workout set to upbeat Latin rhythms.",
+      "time": "18.00",
+      "date": "July 11",
+      "workout_status": "Waiting for Feedback"
+    },
+    {
+      "id": 6,
+      "type_of_sport": "CrossFit",
+      "description": "Challenge yourself with a high-intensity mix of strength, cardio, and functional movements in this CrossFit session.",
+      "time": "07.00",
+      "date": "July 12",
+      "workout_status": "Scheduled"
+    },
+    {
+      "id": 7,
+      "type_of_sport": "Boxing",
+      "description": "Learn basic boxing techniques while improving your cardio and overall body coordination in this intense training session.",
+      "time": "17.00",
+      "date": "July 13",
+      "workout_status": "Canceled"
+    },
+    {
+      "id": 8,
+      "type_of_sport": "Cycling",
+      "description": "Burn calories and boost your endurance with this indoor cycling class that simulates various terrains and intensities.",
+      "time": "06.30",
+      "date": "July 13",
+      "workout_status": "Scheduled"
+    }
+  ]
+}

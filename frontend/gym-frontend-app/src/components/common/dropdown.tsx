@@ -9,6 +9,8 @@ interface DropdownFieldProps {
   options: { value: string; label: string }[];
   register?: ReturnType<UseFormRegister<any>>;
   error?: string;
+  onChange: (name: string) => void;
+  value: string;
 }
 
 const DropdownField: React.FC<DropdownFieldProps> = ({
@@ -16,12 +18,13 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   name,
   options,
   error,
+  onChange,
+  value,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown visibility
-  const [selectedValue, setSelectedValue] = useState(""); // State for selected value
 
   const handleSelection = (optionValue: string) => {
-    setSelectedValue(optionValue); // Update the selected value in state
+    onChange(optionValue); // Update the selected value in state
     setIsDropdownOpen(false); // Close the dropdown after selection
   };
 
@@ -39,7 +42,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="w-full p-2 pt-0 border-gray-200 rounded bg-white flex justify-between items-center font-light"
           >
-            {selectedValue || `${label}`}
+            {value || `${label}`}
             <img
               src={dropdownIcon}
               alt="Dropdown Icon"
@@ -60,9 +63,9 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
                 >
                   <span>{label}</span>
                   {/* Show checkmark for the selected option */}
-                  {value === selectedValue && (
+                  {value === value && (
                     <img
-                    //   src={checkMarkIcon}
+                      //   src={checkMarkIcon}
                       alt="Selected"
                       className="w-4 h-4"
                     />
