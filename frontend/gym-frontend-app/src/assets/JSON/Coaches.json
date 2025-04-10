@@ -1,76 +1,48 @@
 {
   "coaches": [
     {
-      "id": "1",
-      "name": "Kristin Watson",
-      "rating": 4.96,
-      "title": "Certified personal yoga trainer",
-      "specialty": "Yoga Expert",
-      "description": "A Yoga Expert dedicated to crafting personalized workout plans that align with your goals.",
+      "id": 1,
+      "name_of_coach": "Alex",
+      "rating": 4.8,
+      "time": ["9.00"],
+      "date": "2025-04-08",
+      "title": "Certified Certified Certified Certified ",
+      "type_of_sport": "yoga",
+      "description": "Helping you burn calories and boost stamina with customized cardio routines routines .",
       "imageUrl": "https://webneel.com/daily/sites/default/files/images/daily/05-2018/portrait-photography-by-dennis-drozhzhin.jpg"
     },
     {
-      "id": "2",
-      "name": "Wade Warren",
-      "rating": 4.8,
-      "title": "Climbing Coach",
-      "specialty": "Climbing",
-      "description": "Scale new challenges with our Climbing Coach. Get instruction to improve climbing skills, and build confidence on the wall.",
-      "imageUrl": "https://randomuser.me/api/portraits/men/32.jpg"
+      "id": 2,
+      "name_of_coach": "Alex",
+      "rating": 4.9,
+      "time": ["9.00", "11.00"],
+      "date": "2025-04-08",
+      "title": "Advanced Yoga",
+      "type_of_sport": "yoga",
+      "description": "Focused on balance, strength, and mindfulness through personalized yoga sessions.",
+      "imageUrl": "https://webneel.com/daily/sites/default/files/images/daily/05-2018/portrait-photography-by-dennis-drozhzhin.jpg"
     },
     {
-      "id": "3",
-      "name": "Cameron Williamson",
-      "rating": 5.0,
-      "title": "Strength Coach",
-      "specialty": "Strength Training",
-      "description": "Achieve peak performance with our Strength Coach, a specialist in building muscle and increasing power.",
-      "imageUrl": "https://randomuser.me/api/portraits/men/83.jpg"
+      "id": 3,
+      "name_of_coach": "Nancy",
+      "rating": 4.85,
+      "time": ["9.00", "12.00"],
+      "date": "2025-04-09",
+      "title": "Holistic Yoga Coach",
+      "type_of_sport": "yoga",
+      "description": "Bringing peace and flexibility to your practice with deep experience in Hatha Yoga.",
+      "imageUrl": "https://webneel.com/daily/sites/default/files/images/daily/05-2018/portrait-photography-by-dennis-drozhzhin.jpg"
     },
     {
-      "id": "4",
-      "name": "Jenny Wilson",
-      "rating": 5.0,
-      "title": "Certified personal yoga trainer",
-      "specialty": "Yoga Expert",
+      "id": 4,
+      "name_of_coach": "Kristin Watson",
+      "rating": 4.96,
+      "time": ["11.00"],
+      "date": "2025-04-09",
+      "title": "Certified Personal ",
+      "type_of_sport": "yoga",
       "description": "A Yoga Expert dedicated to crafting personalized workout plans that align with your goals.",
-      "imageUrl": "https://randomuser.me/api/portraits/women/63.jpg"
-    },
-    {
-      "id": "5",
-      "name": "Jacob Jones",
-      "rating": 4.6,
-      "title": "Climbing Coach",
-      "specialty": "Climbing",
-      "description": "Scale new challenges with our Climbing Coach. Get instruction to improve climbing skills, and build confidence on the wall.",
-      "imageUrl": "https://randomuser.me/api/portraits/men/46.jpg"
-    },
-    {
-      "id": "6",
-      "name": "Guy Hawkins",
-      "rating": 4.89,
-      "title": "Functional Fitness Trainer",
-      "specialty": "Functional Fitness",
-      "description": "Transform your fitness with our Functional Fitness Trainer, who focuses on exercises that mimic real-life movements.",
-      "imageUrl": "https://randomuser.me/api/portraits/men/55.jpg"
-    },
-    {
-      "id": "7",
-      "name": "Brooklyn Simmons",
-      "rating": 5.0,
-      "title": "Strength Coach",
-      "specialty": "Strength Training",
-      "description": "Achieve peak performance with our Strength Coach, a specialist in building muscle and increasing power.",
-      "imageUrl": "https://randomuser.me/api/portraits/women/32.jpg"
-    },
-    {
-      "id": "8",
-      "name": "Bessie Cooper",
-      "rating": 4.97,
-      "title": "Functional Fitness Trainer",
-      "specialty": "Functional Fitness",
-      "description": "Transform your fitness with our Functional Fitness Trainer, who focuses on exercises that mimic real-life movements.",
-      "imageUrl": "https://randomuser.me/api/portraits/women/14.jpg"
+      "imageUrl": "https://webneel.com/daily/sites/default/files/images/daily/05-2018/portrait-photography-by-dennis-drozhzhin.jpg"
     }
   ]
 }
