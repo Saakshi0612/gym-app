@@ -1,47 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import CoachCard from '../../components/CoachComponents/CoachCard';
-import coachesData from '../../assets/JSON/Coaches.json';
-import { Coach } from '../../types/components/coach.types';
-import Button from '../../components/common/button';
+import React, { useState, useEffect } from "react";
+import {  useNavigate } from "react-router-dom";
+import CoachCard from "../../components/CoachComponents/CoachCard";
+import coachesData from "../../assets/JSON/Coaches.json";
+import { Coach } from "../../types/components/coach.types";
+import Button from "../../components/common/ButtonComponent";
 
-// API functions - will be replaced with real API calls in the future
+// API simulation
 const coachesApi = {
-  // Get all coaches
   fetchCoaches: async (): Promise<Coach[]> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Using the imported JSON file
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return coachesData.coaches;
   },
 
-  // Book a workout with a coach
-  bookCoachWorkout: async (coachId: string): Promise<{ success: boolean; message: string }> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-
+  bookCoachWorkout: async (
+    coachId: number
+  ): Promise<{ success: boolean; message: string }> => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
     return {
       success: true,
-      message: `Workout booked successfully with coach ID: ${coachId}`
+      message: `Workout booked successfully with coach ID: ${coachId}`,
     };
   },
 
-  // Get a coach by ID
-  getCoachById: async (id: string): Promise<Coach | undefined> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    return coachesData.coaches.find(coach => coach.id === id);
-  }
+  getCoachById: async (id: number): Promise<Coach | undefined> => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return coachesData.coaches.find((coach) => coach.id === id);
+  },
 };
 
-// Main CoachesPage Component
 const CoachesPage: React.FC = () => {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const navigate =useNavigate();
   useEffect(() => {
     const loadCoaches = async () => {
       try {
@@ -49,8 +40,8 @@ const CoachesPage: React.FC = () => {
         const data = await coachesApi.fetchCoaches();
         setCoaches(data);
       } catch (err) {
-        console.error('Failed to load coaches:', err);
-        setError('Failed to load coaches. Please try again.');
+        console.error("Failed to load coaches:", err);
+        setError("Failed to load coaches. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -59,19 +50,15 @@ const CoachesPage: React.FC = () => {
     loadCoaches();
   }, []);
 
-  const handleBookWorkout = async (coachId: string) => {
-    try {
-      const result = await coachesApi.bookCoachWorkout(coachId);
-      if (result.success) {
-        alert(result.message);
-      } else {
-        alert('Booking failed. Please try again.');
-      }
-    } catch (err) {
-      console.error('Error booking workout:', err);
-      alert('An error occurred while booking. Please try again.');
-    }
-  };
+  // const handleBookWorkout = async (coachId: number) => {
+  //   try {
+  //     const result = await coachesApi.bookCoachWorkout(coachId);
+  //     alert(result.message);
+  //   } catch (err) {
+  //     console.error("Error booking workout:", err);
+  //     alert("An error occurred while booking. Please try again.");
+  //   }
+  // };
 
   if (loading) {
     return (
@@ -80,6 +67,10 @@ const CoachesPage: React.FC = () => {
       </div>
     );
   }
+
+  const handleNavigate = (coachId: number) => {
+    navigate(`/coaches/${coachId}`);
+  };
 
   if (error) {
     return (
@@ -98,25 +89,18 @@ const CoachesPage: React.FC = () => {
 
   return (
     <div className="max-w-full px-4 py-6 bg-gray-50">
-      <h1 className="text-xl font-medium mb-6">Our Coaches</h1>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {coaches.map((coach) => (
-          <Link to={`/coaches/${coach.id}`} key={coach.id} className="no-underline">
-            <div className="h-full"> {/* Wrapper to ensure consistent height */}
+            <div className="h-full">
               <CoachCard
-                name={coach.name}
+                name_of_coach={coach.name_of_coach}
                 rating={coach.rating}
                 title={coach.title}
                 description={coach.description}
                 imageUrl={coach.imageUrl}
-                onBookWorkout={(e, name) => {
-                  e.preventDefault(); // Prevent the Link navigation
-                  handleBookWorkout(coach.id);
-                }}
+                onBookWorkout={()=>handleNavigate(coach.id)}
               />
             </div>
-          </Link>
         ))}
       </div>
     </div>

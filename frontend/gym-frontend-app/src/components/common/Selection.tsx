@@ -8,6 +8,8 @@ interface DropdownFieldProps {
   options: { value: string; label: string }[];
   register?: ReturnType<UseFormRegister<any>>;
   error?: string;
+  onChange: (name: string) => void;
+  value: string;
 }
 
 const DropdownField: React.FC<DropdownFieldProps> = ({
@@ -16,6 +18,8 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   options,
   register,
   error,
+  onChange,
+  value,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState("");
@@ -24,8 +28,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleSelection = (optionValue: string, optionLabel: string) => {
-    setSelectedValue(optionValue);
-    setSelectedLabel(optionLabel);
+    onChange(optionValue);
     setIsDropdownOpen(false);
   };
 
@@ -45,7 +48,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative z-20" ref={dropdownRef}>
       <fieldset className="border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white">
         <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px] ml-1 px-1 bg-white text-[#4B5563]">
           {label}
@@ -56,7 +59,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="w-full p-2 pt-0 rounded bg-white flex justify-between items-center font-light"
           >
-            {selectedLabel || `Select ${label}`}
+            {value || `Select ${label}`}
             <img
               src={dropdownIcon}
               alt="Dropdown Icon"
@@ -111,5 +114,3 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
 };
 
 export default DropdownField;
-
-

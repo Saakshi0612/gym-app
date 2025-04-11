@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../store/store';
 import { logout } from '../services/authSlice';
-import Button from './common/button';
+import Button from './common/ButtonComponent';
 
 
 

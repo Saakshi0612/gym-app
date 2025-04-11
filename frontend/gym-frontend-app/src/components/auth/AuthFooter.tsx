@@ -1,11 +1,7 @@
 // src/components/auth/AuthFooter.tsx
 import React from 'react';
+import { AuthFooterProps } from '../../types';
 
-type AuthFooterProps = {
-  message: string;
-  linkText: string;
-  linkUrl: string;
-};
 
 export default function AuthFooter({ message, linkText, linkUrl }: AuthFooterProps) {
   return (

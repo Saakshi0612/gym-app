@@ -8,7 +8,7 @@ import PasswordInput from './form/PasswordInput';
 import SubmitButton from './form/SubmitButton';
 import AuthFooter from './auth/AuthFooter';
 import { useAppDispatch, useAppSelector } from '../store/store';
-import AuthLayout from './layout/authLayout';
+import AuthLayout from './layout/AuthLayout';
 import { QuoteSidebar } from './common/QuoteBanner';
 
 export default function LoginForm() {
@@ -17,9 +17,7 @@ export default function LoginForm() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   
-  
   const { isLoading, error } = useAppSelector(state => state.auth);
-  
   
   const isSystemError = error && error.includes('technical difficulties');
   const passwordError = error && !isSystemError ? error : null;
@@ -30,7 +28,9 @@ export default function LoginForm() {
     const resultAction = await dispatch(loginUser({ email, password }));
     
     if (loginUser.fulfilled.match(resultAction)) {
-      navigate('/dashboard');
+      // If login is successful, save the user data to localStorage
+      localStorage.setItem('user', JSON.stringify(resultAction.payload));
+      navigate('/');
     }
   };
 
@@ -81,3 +81,4 @@ export default function LoginForm() {
     </AuthLayout>
   );
 }
+
