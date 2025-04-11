@@ -49,7 +49,7 @@ const CoachCard: React.FC<CoachCardProps> = ({
           onClick={(e) => onBookWorkout(e, name_of_coach)}
           variant="primary"
           fullWidth={true}
-          className="mt-6 bg-primary-green hover:bg-lime-500 py-2 text-sm text-black"
+          className="mt-6 bg-primary-green hover:bg-lime-500 py-2 text-sm text-black cursor-pointer"
         >
           Book Workout
         </Button>
