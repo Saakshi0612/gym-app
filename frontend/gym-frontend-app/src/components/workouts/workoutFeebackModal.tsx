@@ -8,6 +8,7 @@ interface FeedbackModalProps {
   workoutType: string;
   time: string;
   date: string;
+  imageUrl: string;
 }
 
 export default function WorkoutFeedbackModal({
@@ -17,6 +18,7 @@ export default function WorkoutFeedbackModal({
   workoutType,
   time,
   date,
+  imageUrl,
 }: FeedbackModalProps) {
   const [rating, setRating] = useState(4);
   const [comment, setComment] = useState("");
@@ -24,7 +26,7 @@ export default function WorkoutFeedbackModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+    <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/30">
       <div className="bg-white w-[500px] rounded-lg shadow-xl p-6 relative">
         {/* Close Button */}
         <button className="absolute top-4 right-4" onClick={onClose}>
@@ -40,7 +42,7 @@ export default function WorkoutFeedbackModal({
           {/* Trainer Info */}
           <div className="flex items-center gap-4">
             <img
-              src=""
+              src={imageUrl}
               alt="Trainer"
               className="w-12 h-12 rounded-full bg-gray-200 object-cover"
             />

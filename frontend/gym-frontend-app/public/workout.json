@@ -16,7 +16,7 @@
       "time": "08.00",
       "date": "July 10",
       "workout_status": "Finished",
-      "imageUrl": "https://randomuser.me/api/portraits/men/83.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/men/32.jpg"
     },
     {
       "id": 3,
@@ -25,7 +25,7 @@
       "time": "12.00",
       "date": "July 10",
       "workout_status": "Waiting for Feedback",
-      "imageUrl": "https://randomuser.me/api/portraits/men/83.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/women/63.jpg"
     },
     {
       "id": 4,
@@ -34,7 +34,7 @@
       "time": "09.30",
       "date": "July 11",
       "workout_status": "Finished",
-      "imageUrl": "https://randomuser.me/api/portraits/men/83.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/men/46.jpg"
     },
     {
       "id": 5,
@@ -43,7 +43,7 @@
       "time": "18.00",
       "date": "July 11",
       "workout_status": "Waiting for Feedback",
-      "imageUrl": "https://randomuser.me/api/portraits/men/83.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/men/55.jpg"
     },
     {
       "id": 6,
@@ -52,7 +52,7 @@
       "time": "07.00",
       "date": "July 12",
       "workout_status": "Scheduled",
-      "imageUrl": "https://randomuser.me/api/portraits/men/83.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/women/32.jpg"
     },
     {
       "id": 7,
@@ -61,7 +61,7 @@
       "time": "17.00",
       "date": "July 13",
       "workout_status": "Canceled",
-      "imageUrl": "https://randomuser.me/api/portraits/men/83.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/women/14.jpg"
     },
     {
       "id": 8,

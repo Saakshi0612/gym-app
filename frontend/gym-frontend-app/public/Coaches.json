@@ -13,12 +13,12 @@
     },
     {
       "id": 2,
-      "name_of_coach": "Wade Warren",
+      "name_of_coach": "Alex",
       "rating": 4.8,
       "time": ["6am-7am", "7am-8am"],
       "date": "April 11",
       "title": "Climbing Coach",
-      "type_of_sport": "climbing",
+      "type_of_sport": "yoga",
       "description": "Scale new challenges with our Climbing Coach. Get instruction to improve climbing skills, and build confidence on the wall.",
       "imageUrl": "https://randomuser.me/api/portraits/men/32.jpg"
     },

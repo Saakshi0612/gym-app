@@ -39,7 +39,7 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex text-gray-800 items-center justify-center px-5 bg-black/30">
+    <div className="fixed inset-0 z-90 flex text-gray-800 items-center justify-center px-5 bg-black/30">
       <div className="bg-white w-full max-w-xl rounded-2xl shadow-lg relative px-6 py-6">
         {/* Close Button */}
         <button
