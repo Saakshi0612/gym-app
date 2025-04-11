@@ -23,7 +23,7 @@ const ProfileFeedbackSection: React.FC = () => {
   useEffect(() => {
     const fetchFeedbacks = async () => {
       try {
-        const response = await fetch('../../assets/JSON/data/mockFeedbacks.json'); // Update path if needed
+        const response = await fetch('/src/assets/JSON/data/mockFeedbacks.json'); // Update path if needed
         if (!response.ok) throw new Error('Failed to load feedbacks');
         const data = await response.json();
         setFeedbacks(data);
