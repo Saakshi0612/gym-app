@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+body {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+
 @theme {
  --color-primary-green: #9ef300;
  --color-primary-white: #ffffff;

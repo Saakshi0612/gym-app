@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Header from "../common/Header";
 import Button from "../common/button";
@@ -77,4 +76,3 @@ const MainSection: React.FC = () => {
 };
 
 export default MainSection;
-
