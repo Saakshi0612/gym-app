@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import CoachCard from "../../components/CoachComponents/CoachCard";
 import coachesData from "../../assets/JSON/Coaches.json";
 import { Coach } from "../../types/components/coach.types";
@@ -32,7 +32,7 @@ const CoachesPage: React.FC = () => {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const navigate =useNavigate();
   useEffect(() => {
     const loadCoaches = async () => {
       try {
@@ -50,15 +50,15 @@ const CoachesPage: React.FC = () => {
     loadCoaches();
   }, []);
 
-  const handleBookWorkout = async (coachId: number) => {
-    try {
-      const result = await coachesApi.bookCoachWorkout(coachId);
-      alert(result.message);
-    } catch (err) {
-      console.error("Error booking workout:", err);
-      alert("An error occurred while booking. Please try again.");
-    }
-  };
+  // const handleBookWorkout = async (coachId: number) => {
+  //   try {
+  //     const result = await coachesApi.bookCoachWorkout(coachId);
+  //     alert(result.message);
+  //   } catch (err) {
+  //     console.error("Error booking workout:", err);
+  //     alert("An error occurred while booking. Please try again.");
+  //   }
+  // };
 
   if (loading) {
     return (
@@ -67,6 +67,10 @@ const CoachesPage: React.FC = () => {
       </div>
     );
   }
+
+  const handleNavigate = (coachId: number) => {
+    navigate(`/coaches/${coachId}`);
+  };
 
   if (error) {
     return (
@@ -85,15 +89,8 @@ const CoachesPage: React.FC = () => {
 
   return (
     <div className="max-w-full px-4 py-6 bg-gray-50">
-      <h1 className="text-xl font-medium mb-6">Our Coaches</h1>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {coaches.map((coach) => (
-          <Link
-            to={`/coaches/${coach.id}`}
-            key={coach.id}
-            className="no-underline"
-          >
             <div className="h-full">
               <CoachCard
                 name_of_coach={coach.name_of_coach}
@@ -101,13 +98,9 @@ const CoachesPage: React.FC = () => {
                 title={coach.title}
                 description={coach.description}
                 imageUrl={coach.imageUrl}
-                onBookWorkout={(e, name_of_coach) => {
-                  e.preventDefault();
-                  handleBookWorkout(coach.id);
-                }}
+                onBookWorkout={()=>handleNavigate(coach.id)}
               />
             </div>
-          </Link>
         ))}
       </div>
     </div>
