@@ -28,3 +28,20 @@ export interface User {
     target: string;
     activity: string;
   }
+
+export interface UserNavigationProps {
+  isAuthenticated: boolean;
+  userName?: string;
+  userEmail?: string;
+  userDetail?: {
+    role?: string;
+    [key: string]: unknown; 
+  };
+  notification: string;
+  profile: string;
+  accountIcon: string;
+  handleLogout: () => void;
+  handleAccountClick: () => void;
+  onMobileMenuToggle?: (isOpen: boolean) => void;
+  className?: string;
+}

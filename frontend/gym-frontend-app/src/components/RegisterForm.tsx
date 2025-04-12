@@ -9,8 +9,10 @@ import Input from "./common/Input";
 import AuthFooter from './auth/AuthFooter';
 import { RegistrationFormData } from "../types";
 import DropdownField from "./common/Selection";
-import AuthLayout from "./layout/authLayout";
+
 import SystemAlert from './SystemAlert';
+import AuthLayout from "./layout/authLayout";
+
 
 const TARGET_OPTIONS = [
   { value: "lose-weight", label: "Lose Weight" },

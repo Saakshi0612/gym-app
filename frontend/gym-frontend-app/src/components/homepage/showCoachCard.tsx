@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { Dumbbell, Calendar, Clock } from "lucide-react";
-
 import { useWorkoutContext } from "../../context/WorkoutContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../store/store";
-
 import Button from "../common/ButtonComponent";
 import ConfirmBookingCard from "./confirmBookingCard";
 import LoginPromptModal from "./isLoggedInCard";
