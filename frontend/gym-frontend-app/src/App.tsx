@@ -1,12 +1,6 @@
 // src/App.tsx
 import React from "react";
-import {
-  Routes,
-  Route,
-  Navigate,
-  Outlet,
-  useLocation,
-} from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 
 import RegisterForm from "./components/RegisterForm";
 import LoginForm from "./components/LoginForm";
@@ -16,6 +10,7 @@ import CoachProfilePage from "./pages/user_pages/CoachProfilePages";
 import MainSection from "./components/homepage/Mainsection";
 import ScheduledWorkoutPage from "./components/workouts/scheduledWorkoutPage";
 import Header from "./components/common/Header";
+import DynamicUserProfile from "./pages/UserProfile";
 
 // Protected route component using Outlet
 const ProtectedRoute = () => {
@@ -29,23 +24,27 @@ function AppContent() {
   const hideHeaderRoutes = ["/login", "/register"];
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
   return (
-      <>
-        {!shouldHideHeader && <Header />}
-        <Routes>
-          <Route path="/" element={<MainSection />} />
-          <Route path="/register" element={<RegisterForm />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/coaches" element={<CoachesPage />} />
-          <Route path="/coaches/:id" element={<CoachProfilePage />} />
-          <Route path="/workout" element={<ScheduledWorkoutPage />} />
+    <>
+      {!shouldHideHeader && <Header />}
+      <Routes>
+        <Route path="/" element={<MainSection />} />
+        <Route path="/register" element={<RegisterForm />} />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/coaches" element={<CoachesPage />} />
+        <Route path="/coaches/:id" element={<CoachProfilePage />} />
+        <Route path="/workout" element={<ScheduledWorkoutPage />} />
+        <Route
+          path="/account"
+          element={<DynamicUserProfile role={"coach"} />}
+        />
 
-          {/* Protected routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<MainSection />} />
-            {/* Add other protected routes here as needed */}
-          </Route>
-        </Routes>
-      </>
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<MainSection />} />
+          {/* Add other protected routes here as needed */}
+        </Route>
+      </Routes>
+    </>
   );
 }
 

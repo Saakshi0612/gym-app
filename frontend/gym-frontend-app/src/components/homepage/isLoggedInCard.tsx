@@ -15,7 +15,7 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-100">
       <div className="bg-white rounded-2xl p-7 w-full max-w-md shadow-lg relative">
         {/* Close button */}
         <button
