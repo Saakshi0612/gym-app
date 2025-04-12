@@ -8,7 +8,7 @@ import { UserRole } from "../types/components/UserProfileSettings.types";
 import { SidebarTab } from "../types/components/sidebar.types";
 
 type Props = {
-  role: string;
+  role: 'client'|'coach'|'admin'|undefined;
 };
 
 const DynamicUserProfile: React.FC<Props> = ({ role }) => {

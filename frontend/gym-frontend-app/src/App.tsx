@@ -17,9 +17,14 @@ const ProtectedRoute = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };
-
+  
+  
 // Main app content
 function AppContent() {
+  const { user} = useAppSelector(
+    (state) => state.auth
+  );
+  const role :'coach'|'client'| 'admin' | undefined= user?.role;
   const location = useLocation();
   const hideHeaderRoutes = ["/login", "/register"];
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
@@ -33,14 +38,15 @@ function AppContent() {
         <Route path="/coaches" element={<CoachesPage />} />
         <Route path="/coaches/:id" element={<CoachProfilePage />} />
         <Route path="/workout" element={<ScheduledWorkoutPage />} />
-        <Route
-          path="/account"
-          element={<DynamicUserProfile role={"coach"} />}
-        />
+     
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<MainSection />} />
+          <Route
+          path="/account"
+          element={<DynamicUserProfile role= {role} />}
+        />
           {/* Add other protected routes here as needed */}
         </Route>
       </Routes>
