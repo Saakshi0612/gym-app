@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../../store/store';
 import CoachSidebar from '../../components/CoachComponents/CoachSideBar';
 import AvatarImg from '../../assets/Avatar.jpg';
 import CoachAvailabilityCalendar from '../../components/CoachComponents/CoachCalendar';
@@ -7,7 +8,9 @@ import FeedbackSection from '../../components/FeedBack/FeedBack';
 import { TimeSlot } from '../../types/components/coach.types';
 import { Coach } from '../../types/components/coach.types';
 import ConfirmBookingCard from '../../components/homepage/confirmBookingCard';
+import LoginPromptModal from '../../components/homepage/isLoggedInCard';
 import { ChevronRightIcon } from 'lucide-react';
+import SystemAlert from '../../components/common/SystemAlertD';
 
 // Define the structure of the JSON file
 interface CoachesData {
@@ -16,13 +19,24 @@ interface CoachesData {
 
 const CoachProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [coach, setCoach] = useState<Coach | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(2024, 6, 3)); // July 3, 2024
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [showConfirmCard, setShowConfirmCard] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  
+  // Get authentication state from Redux
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
+  // Log authentication state for debugging
+  useEffect(() => {
+    console.log('Auth state in CoachProfilePage:', { isAuthenticated });
+  }, [isAuthenticated]);
 
   // Sample time slots data
   const [availableTimeSlots] = useState<TimeSlot[]>([
@@ -61,7 +75,6 @@ const CoachProfilePage: React.FC = () => {
 
   const handleTimeSlotSelect = (timeSlot: TimeSlot) => {
     console.log(`Selected time slot: ${timeSlot.startTime} - ${timeSlot.endTime}`);
-    // Handle booking logic here
     setSelectedTimeSlot(timeSlot);
   };
 
@@ -70,7 +83,27 @@ const CoachProfilePage: React.FC = () => {
       alert("Please select a time slot before booking.");
       return;
     }
-    setShowConfirmCard(true);
+    
+    // Check if user is authenticated
+    if (isAuthenticated) {
+      setShowConfirmCard(true);
+    } else {
+      setShowLoginPrompt(true);
+    }
+  };
+
+  const handleBookingConfirmed = () => {
+    // Close the confirmation modal
+    setShowConfirmCard(false);
+    
+    // Show success alert
+    setAlertMessage(`Your workout with ${coach?.name_of_coach} has been booked successfully!`);
+    setShowAlert(true);
+    
+    // Automatically hide the alert after 5 seconds
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 5000);
   };
 
   const upcomingWorkouts = [
@@ -99,11 +132,20 @@ const CoachProfilePage: React.FC = () => {
 
   return (
     <div className="p-4 min-h-screen bg-gray-50">
-     <p className="flex items-center space-x-2 p-4">
-  <span>Coaches</span>
-  <ChevronRightIcon className="h-5 w-5 text-gray-500" />
-  <span className="text-gray-600">{coach.name_of_coach}</span>
-</p>
+      {/* Success Alert */}
+      {showAlert && (
+        <SystemAlert 
+          type="success" 
+          message={alertMessage} 
+          onDismiss={() => setShowAlert(false)} 
+        />
+      )}
+      
+      <p className="flex items-center space-x-2 p-4">
+        <span>Coaches</span>
+        <ChevronRightIcon className="h-5 w-5 text-gray-500" />
+        <span className="text-gray-600">{coach.name_of_coach}</span>
+      </p>
 
       <div className="max-w-7xl mx-auto">
         {/* Use grid for better responsive layout */}
@@ -174,6 +216,8 @@ const CoachProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Confirmation Card Modal */}
       {showConfirmCard && selectedTimeSlot && (
         <ConfirmBookingCard
           coach={{
@@ -182,8 +226,20 @@ const CoachProfilePage: React.FC = () => {
             date: selectedDate.toISOString(),
           }}
           onClose={() => setShowConfirmCard(false)}
+          onConfirm={handleBookingConfirmed}
         />
       )}
+      
+      {/* Login Prompt Modal */}
+      <LoginPromptModal
+        isOpen={showLoginPrompt}
+        onCancel={() => setShowLoginPrompt(false)}
+        onLogin={() => {
+          // Store the current URL for redirect after login
+          localStorage.setItem('redirectAfterLogin', `/coaches/${id}`);
+          navigate("/login");
+        }}
+      />
     </div>
   );
 };
