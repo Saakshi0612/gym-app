@@ -160,7 +160,7 @@ const Calendar: React.FC<CalendarProps> = ({
             <button
               onClick={() => !isPast && handleDateSelect(day)}
               disabled={isPast}
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm
                 ${isSelectedDate(day) 
                   ? 'bg-green-100 border border-green-300 text-green-800' 
                   : isToday(day)

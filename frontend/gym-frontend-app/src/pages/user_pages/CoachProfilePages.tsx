@@ -10,7 +10,7 @@ import { Coach } from '../../types/components/coach.types';
 import ConfirmBookingCard from '../../components/homepage/confirmBookingCard';
 import LoginPromptModal from '../../components/homepage/isLoggedInCard';
 import { ChevronRightIcon } from 'lucide-react';
-import SystemAlert from '../../components/common/SystemAlertD';
+import SystemAlert from '../../components/SystemAlert';
 
 // Define the structure of the JSON file
 interface CoachesData {
