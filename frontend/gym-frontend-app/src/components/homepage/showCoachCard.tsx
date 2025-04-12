@@ -22,10 +22,12 @@ const ShowCochesCard: React.FC<any> = (coach) => {
     selectedTime && selectedTime !== "all" ? selectedTime : timeArray[0];
   const remainingTimes = timeArray.filter((t: string) => t !== selected);
 
-  const formattedDate = new Date(coach.date).toLocaleDateString("en-GB", {
-    day: "numeric",
+  const formattedDate = new Date(coach.date).toLocaleDateString("en-US", {
     month: "long",
+    day: "numeric",
   });
+
+  console.log(formattedDate);
 
   const handleBookingClick = () => {
     if (isAuthenticated) {
@@ -37,8 +39,8 @@ const ShowCochesCard: React.FC<any> = (coach) => {
 
   return (
     <>
-      <div className="w-full max-w-3xl  p-4 shadow-xl rounded-2xl text-gray-700 bg-white relative z-10">
-        <div className="flex flex-col md:flex-row justify-between gap-4">
+      <div className="w-full max-w-3xl   p-4 shadow-xl rounded-2xl text-gray-700 bg-white relative z-10">
+        <div className=" flex flex-col md:flex-row justify-between gap-4">
           <div className="flex gap-4 md:gap-5 items-center lg:w-[300px]">
             <div className="h-[80px] w-[80px] md:h-[100px] md:w-[100px] rounded-full overflow-hidden border shrink-0">
               {coach.imageUrl && (
@@ -65,7 +67,7 @@ const ShowCochesCard: React.FC<any> = (coach) => {
               <legend className="text-sm font-semibold px-2">
                 Booking Details
               </legend>
-              <div className="py-1 px-5 text-gray-600">
+              <div className=" py-1 px-5 md:h-[120px] md:flex md:flex-col justify-between md:w-[250px] lg:w-[200px] text-gray-600">
                 <div className="flex items-center gap-2 text-sm mt-2">
                   <Dumbbell className="w-5 h-5" />
                   <p>

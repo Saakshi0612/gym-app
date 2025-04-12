@@ -2,25 +2,25 @@
   "coaches": [
     {
       "id": 1,
-      "name_of_coach": "Kristin Watson",
+      "name_of_coach": "Alex",
       "rating": 4.96,
       "time": ["7am-8am", "8am-9am"],
       "date": "April 11",
       "title": "Certified personal yoga trainer",
       "type_of_sport": "yoga",
       "description": "A Yoga Expert dedicated to crafting personalized workout plans that align with your goals.",
-      "imageUrl": "https://t4.ftcdn.net/jpg/02/62/46/55/240_F_262465578_xxIWQunF7zDbFpJDzSiYWJBwzMzPuEFh.jpg"
+      "imageUrl": "https://webneel.com/daily/sites/default/files/images/daily/05-2018/portrait-photography-by-dennis-drozhzhin.jpg"
     },
     {
       "id": 2,
-      "name_of_coach": "Wade Warren",
+      "name_of_coach": "Alex",
       "rating": 4.8,
       "time": ["6am-7am", "7am-8am"],
       "date": "April 11",
       "title": "Climbing Coach",
-      "type_of_sport": "climbing",
+      "type_of_sport": "yoga",
       "description": "Scale new challenges with our Climbing Coach. Get instruction to improve climbing skills, and build confidence on the wall.",
-      "imageUrl": "https://th.bing.com/th/id/OIP.pNJi2fW_JCl28aj9HLILbQHaEJ?rs=1&pid=ImgDetMain"
+      "imageUrl": "https://randomuser.me/api/portraits/men/32.jpg"
     },
     {
       "id": 3,
@@ -31,7 +31,7 @@
       "title": "Strength Coach",
       "type_of_sport": "strength",
       "description": "Achieve peak performance with our Strength Coach, a specialist in building muscle and increasing power.",
-      "imageUrl": "https://t3.ftcdn.net/jpg/10/89/37/42/240_F_1089374256_D5xmwlHydTITkkiNdRinQUp2ejbeA3Dx.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/men/83.jpg"
     },
     {
       "id": 4,
@@ -42,7 +42,7 @@
       "title": "Certified personal yoga trainer",
       "type_of_sport": "yoga",
       "description": "A Yoga Expert dedicated to crafting personalized workout plans that align with your goals.",
-      "imageUrl": "https://t4.ftcdn.net/jpg/02/54/97/97/240_F_254979750_GANfJyN2VgIx93xjq3wa2wpQgrf1TKBa.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/women/63.jpg"
     },
     {
       "id": 5,
@@ -53,7 +53,7 @@
       "title": "Climbing Coach",
       "type_of_sport": "climbing",
       "description": "Scale new challenges with our Climbing Coach. Get instruction to improve climbing skills, and build confidence on the wall.",
-      "imageUrl": "https://images.pexels.com/photos/1229356/pexels-photo-1229356.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+      "imageUrl": "https://randomuser.me/api/portraits/men/46.jpg"
     },
     {
       "id": 6,
@@ -64,7 +64,7 @@
       "title": "Functional Fitness Trainer",
       "type_of_sport": "functional fitness",
       "description": "Transform your fitness with our Functional Fitness Trainer, who focuses on exercises that mimic real-life movements.",
-      "imageUrl": "https://th.bing.com/th/id/OIP.llBJQaGCAlRX2RVSEHZ0DAHaEo?rs=1&pid=ImgDetMain"
+      "imageUrl": "https://randomuser.me/api/portraits/men/55.jpg"
     },
     {
       "id": 7,
@@ -75,7 +75,7 @@
       "title": "Strength Coach",
       "type_of_sport": "strength training",
       "description": "Achieve peak performance with our Strength Coach, a specialist in building muscle and increasing power.",
-      "imageUrl": "https://t3.ftcdn.net/jpg/02/63/86/56/240_F_263865606_TRrDFzCzuJXPHOW1nixoQK5WcYZwfsry.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/women/32.jpg"
     },
     {
       "id": 8,
@@ -86,7 +86,7 @@
       "title": "Functional Fitness Trainer",
       "type_of_sport": "functional fitness",
       "description": "Transform your fitness with our Functional Fitness Trainer, who focuses on exercises that mimic real-life movements.",
-      "imageUrl": "https://t4.ftcdn.net/jpg/00/87/23/79/240_F_87237976_9BTv3jDpQDbMj7an3bHOFs5WYhqdGTbF.jpg"
+      "imageUrl": "https://randomuser.me/api/portraits/women/14.jpg"
     }
   ]
 }
