@@ -8,7 +8,7 @@ interface DropdownFieldProps {
   options: { value: string; label: string }[];
   register?: ReturnType<UseFormRegister<any>>;
   error?: string;
-  onChange: (name: string) => void;
+  onChange: (val: string) => void;
   value: string;
 }
 
@@ -48,12 +48,12 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   }, []);
 
   return (
-    <div className="relative z-20" ref={dropdownRef}>
+    <div className="relative " ref={dropdownRef}>
       <fieldset className="border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white">
         <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px] ml-1 px-1 bg-white text-[#4B5563]">
           {label}
         </legend>
-        <div className="relative">
+        <div className="relative ">
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -77,7 +77,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
           />
 
           {isDropdownOpen && (
-            <ul className="absolute w-full font-lexend bg-white border border-gray-200 rounded shadow-lg mt-1 z-10 max-h-60 overflow-y-auto">
+            <ul className="absolute w-full font-lexend bg-white border border-gray-200 rounded shadow-lg mt-1  max-h-60 overflow-y-auto">
               {options.map(({ value, label: optionLabel }) => (
                 <li
                   key={value}
