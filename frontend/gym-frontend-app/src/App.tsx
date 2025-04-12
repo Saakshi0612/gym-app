@@ -15,6 +15,7 @@ import CoachesPage from "./pages/user_pages/Coaches";
 import CoachProfilePage from "./pages/user_pages/CoachProfilePages";
 import MainSection from "./components/homepage/Mainsection";
 import ScheduledWorkoutPage from "./components/workouts/scheduledWorkoutPage";
+import DynamicUserProfile from "./pages/UserProfile";
 
 
 
@@ -35,6 +36,7 @@ function AppContent() {
         <Route path="/coaches" element={<CoachesPage />} />
         <Route path="/coaches/:id" element={<CoachProfilePage />} />
         <Route path="/workout" element={<ScheduledWorkoutPage />} />
+        <Route path="/my_account" element={<DynamicUserProfile role = {"coach"}/>} />
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
@@ -47,3 +49,4 @@ function AppContent() {
 }
 
 export default AppContent;
+
