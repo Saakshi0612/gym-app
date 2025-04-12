@@ -1,11 +1,11 @@
 // src/App.tsx
 import React from "react";
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
   Outlet,
+  useLocation,
 } from "react-router-dom";
 
 import RegisterForm from "./components/RegisterForm";
@@ -15,8 +15,7 @@ import CoachesPage from "./pages/user_pages/Coaches";
 import CoachProfilePage from "./pages/user_pages/CoachProfilePages";
 import MainSection from "./components/homepage/Mainsection";
 import ScheduledWorkoutPage from "./components/workouts/scheduledWorkoutPage";
-
-
+import Header from "./components/common/Header";
 
 // Protected route component using Outlet
 const ProtectedRoute = () => {
@@ -26,23 +25,27 @@ const ProtectedRoute = () => {
 
 // Main app content
 function AppContent() {
+  const location = useLocation();
+  const hideHeaderRoutes = ["/login", "/register"];
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<MainSection />} />
-        <Route path="/register" element={<RegisterForm />} />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/coaches" element={<CoachesPage />} />
-        <Route path="/coaches/:id" element={<CoachProfilePage />} />
-        <Route path="/workout" element={<ScheduledWorkoutPage />} />
-
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
+      <>
+        {!shouldHideHeader && <Header />}
+        <Routes>
           <Route path="/" element={<MainSection />} />
-          {/* Add other protected routes here as needed */}
-        </Route>
-      </Routes>
-    </Router>
+          <Route path="/register" element={<RegisterForm />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/coaches" element={<CoachesPage />} />
+          <Route path="/coaches/:id" element={<CoachProfilePage />} />
+          <Route path="/workout" element={<ScheduledWorkoutPage />} />
+
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<MainSection />} />
+            {/* Add other protected routes here as needed */}
+          </Route>
+        </Routes>
+      </>
   );
 }
 

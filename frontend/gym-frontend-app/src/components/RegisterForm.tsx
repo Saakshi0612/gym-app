@@ -13,8 +13,6 @@ import DropdownField from "./common/Selection";
 import AuthLayout from "./layout/AuthLayout";
 
 
-
-
 const TARGET_OPTIONS = [
   { value: "lose-weight", label: "Lose Weight" },
   { value: "gain-weight", label: "Gain Weight" },

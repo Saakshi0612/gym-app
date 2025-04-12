@@ -57,9 +57,7 @@ const MainSection: React.FC = () => {
 
   return (
     <div>
-      <main>
-        <Header />
-       
+      <main>       
         <div className="flex flex-col  lg:text-5xl md:text-4xl sm:text-3xl p-10 gap-4">
           <h1>
             Achieve your{" "}
