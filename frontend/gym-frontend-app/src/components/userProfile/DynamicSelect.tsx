@@ -1,10 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
+interface Option {
+  value: string;
+  label: string;
+}
+
 interface DynamicSelectProps {
   id: string;
   label: string;
-  options: string[];
+  options: Option[];
   selected: string;
   onChange: (value: string) => void;
 }
@@ -46,7 +51,7 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
         break;
       case "Enter":
         e.preventDefault();
-        onChange(options[highlightedIndex]);
+        onChange(options[highlightedIndex].value);
         setIsOpen(false);
         break;
       case "Escape":
@@ -54,6 +59,8 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
         break;
     }
   };
+
+  const selectedLabel = options.find((opt) => opt.value === selected)?.label || "";
 
   return (
     <div
@@ -77,7 +84,7 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
         className="flex items-center justify-between w-full px-3 py-3 text-body border border-[var(--color-neutral-400)] rounded-md cursor-pointer"
       >
         <span className={selected ? "text-[var(--color-neutral-900)]" : "text-[var(--color-neutral-400)]"}>
-          {selected || "Select an option"}
+          {selectedLabel || "Select an option"}
         </span>
         <ChevronDown
           size={20}
@@ -95,19 +102,19 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
       >
         {options.map((option, index) => (
           <li
-            key={option}
+            key={option.value}
             className={`px-4 py-3 text-sm md:text-base cursor-pointer transition-colors duration-150 ${
               index === highlightedIndex
                 ? "bg-[var(--color-primary-green)] text-[var(--color-primary-black)]"
                 : "text-[var(--color-neutral-700)] hover:bg-[var(--color-green-100)]"
             }`}
             onMouseDown={() => {
-              onChange(option);
+              onChange(option.value);
               setIsOpen(false);
             }}
             onMouseEnter={() => setHighlightedIndex(index)}
           >
-            {option}
+            {option.label}
           </li>
         ))}
       </ul>

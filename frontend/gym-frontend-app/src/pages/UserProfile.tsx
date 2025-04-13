@@ -6,12 +6,15 @@ import Sidebar from "../components/userProfile/Sidebar";
 
 import { UserRole } from "../types/components/UserProfileSettings.types";
 import { SidebarTab } from "../types/components/sidebar.types";
+import { useAppSelector } from "../store/store";
 
 type Props = {
-  role: string;
+  role: 'client' | 'coach' | 'admin' | undefined;
 };
 
+
 const DynamicUserProfile: React.FC<Props> = ({ role }) => {
+  const { user } = useAppSelector((state) => state.auth); // ✅ Lifted out for reuse
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<SidebarTab>(SidebarTab.GENERAL_INFO);
@@ -20,11 +23,16 @@ const DynamicUserProfile: React.FC<Props> = ({ role }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/src/assets/JSON/data/mockProfiles.json"); // Adjust the path as needed
+        const res = await fetch("/src/assets/JSON/data/mockProfiles.json");
         const data = await res.json();
-        if (data[role]) {
-          const fullName = `${data[role].firstName ?? ""} ${data[role].lastName ?? ""}`.trim();
-          setProfileData({ ...data[role], fullName });
+
+        if (user) {
+          const fullName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim();
+          setProfileData({ 
+            ...user, 
+            fullName, 
+            avatarUrl: user.avatarUrl || 'https://t4.ftcdn.net/jpg/02/62/46/55/240_F_262465578_xxIWQunF7zDbFpJDzSiYWJBwzMzPuEFh.jpg' // Static image for avatar
+          }); 
         } else {
           console.warn(`Role "${role}" not found in mock data.`);
         }
@@ -36,7 +44,7 @@ const DynamicUserProfile: React.FC<Props> = ({ role }) => {
     };
 
     fetchData();
-  }, [role]);
+  }, [role, user]); // ✅ Added `user` as dependency
 
   if (loading) {
     return <div className="text-center py-10 text-body">Loading {role} data...</div>;
@@ -77,6 +85,7 @@ const DynamicUserProfile: React.FC<Props> = ({ role }) => {
           position={role as UserRole}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          user={user} // ✅ Optionally pass here if Sidebar uses it
         />
       </div>
       <div className="flex-1 px-4 sm:px-6 md:px-8 lg:px-10 py-6">

@@ -18,7 +18,7 @@ import LabeledInput from "./shared/LabeledInput";
 import DynamicSelect from "./DynamicSelect";
 import { toast } from "sonner";
 
-import options from "../../assets/JSON/data/options.json";
+import options from "../../assets/JSON/DropdownSelect.json";
 
 interface UnifiedUserProfileFormProps {
   role: UserRole;
@@ -244,7 +244,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
               <DynamicSelect
                 label="Preferable Activity"
                 placeholder="Select Activity"
-                options={options.activities}
+                options={options.activityOptions}
                 selected={formState.preferableActivity}
                 onChange={(val) =>
                   setFormState((prev) => ({
@@ -258,7 +258,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
               <DynamicSelect
                 label="Target Goal"
                 placeholder="Select Goal"
-                options={options.goals}
+                options={options.activityOptions}//to change later
                 selected={formState.targetGoal}
                 onChange={(val) =>
                   setFormState((prev) => ({ ...prev, targetGoal: val }))
