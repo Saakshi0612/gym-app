@@ -1,5 +1,5 @@
 // src/components/form/EmailInput.tsx
-import React from 'react';
+
 import IsInput from '../common/Input';
 
 interface EmailInputProps {

@@ -35,7 +35,7 @@ export default function SystemAlert({ type, message, onDismiss }: SystemAlertPro
       };
 
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50  w-full p-2  max-w-md">
       <div className={`${colorClasses.bg} ${colorClasses.border} rounded-md p-4 relative shadow-lg`}>
         <div className="flex items-start">
           <div className="flex-shrink-0">

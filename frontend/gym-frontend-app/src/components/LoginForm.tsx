@@ -119,6 +119,7 @@ export default function LoginForm() {
           <Input
             label="Password"
             name="password"
+            
             placeholder="Enter your Password "
             type={showPassword ? 'text' : 'password'}
             value={password}
