@@ -73,7 +73,10 @@ const UserNavigation= ({
                 <hr className="my-2" />
                 <div
                   className="flex items-center gap-2 py-2 hover:bg-neutral-100 rounded-md cursor-pointer px-2"
-                  onClick={handleAccountClick}
+                  onClick={() => {
+                    handleAccountClick();
+                    setIsDropdownOpen(false);
+                  }}
                 >
                   <img src={accountIcon} alt="Account" className="w-4 h-4" />
                   <div>
@@ -82,7 +85,10 @@ const UserNavigation= ({
                   </div>
                 </div>
                 <Button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleLogout();
+                    setIsDropdownOpen(false);
+                  }}
                   variant="secondary"
                   className="w-full mt-4 text-center"
                 >

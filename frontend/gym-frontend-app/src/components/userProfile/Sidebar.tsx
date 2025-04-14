@@ -1,5 +1,9 @@
 import React, { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { SidebarProps, SidebarTab, UserRole } from "../../types/components/sidebar.types";
+import { logout } from "../../services/authSlice";
+import { User, Lock, Briefcase, Award, Dumbbell } from "lucide-react";
 
 const Sidebar: React.FC<SidebarProps> = ({
   position = UserRole.CLIENT,
@@ -8,6 +12,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const isAdmin = position === UserRole.ADMIN;
   const isCoach = position === UserRole.COACH;
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const indicatorStyle = useMemo(
     () => ({
@@ -26,17 +32,22 @@ const Sidebar: React.FC<SidebarProps> = ({
     ];
   }, [isCoach]);
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
+
   return (
-    <div className="relative">
+    <div className="h-screen flex flex-col">
       {/* Mobile Top Navbar (Non-Sticky) */}
-      <div className="lg:hidden w-full bg-primary-white font-['Lexend'] shadow-sm relative">
+      <div className="lg:hidden w-full bg-primary-white font-['Lexend'] shadow-sm">
         <div className="flex overflow-x-auto px-0 pt-3 pb-0 gap-0">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`relative text-sm px-4 py-2 whitespace-nowrap transition-all duration-200 ease-out ${
-                activeTab === tab ? "font-medium text-black" : "font-light text-neutral-700"
+                activeTab === tab ? "font-medium text-primary-black" : "font-light text-neutral-700"
               }`}
             >
               {tab}
@@ -51,14 +62,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Desktop Sidebar (Non-Sticky) */}
-      <div className="hidden lg:flex w-[250px] min-h-full bg-primary-white flex-col p-5 font-['Lexend']">
-        <div className="flex flex-col gap-2">
+      {/* Desktop Sidebar (Full Height) */}
+      <div className="hidden lg:block bg-primary-white h-full">
+        <div className="flex flex-col gap-2 p-4">
           {tabs.map((tab) => (
             <div key={tab} className="relative flex items-center">
               <button
                 className={`w-full text-left px-4 py-3 text-sm font-light rounded-md transition-all duration-200 ease-out relative ${
-                  activeTab === tab ? "font-medium" : ""
+                  activeTab === tab ? "font-medium text-primary-black" : "text-neutral-700"
                 } hover:bg-neutral-200`}
                 onClick={() => setActiveTab(tab)}
               >
@@ -72,13 +83,14 @@ const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
           ))}
-
-          {/* Log Out */}
-          <div className="mt-auto pt-4">
-            <button className="w-[90px] h-9 px-2 py-1 text-sm font-medium text-neutral-900 border border-neutral-700 rounded-md flex items-center justify-center hover:bg-neutral-200 transition-all duration-200 ease-in-out">
-              Log out
-            </button>
-          </div>
+          
+          {/* Log Out Button - Now positioned right after the tabs */}
+          <button 
+            onClick={handleLogout}
+            className="w-full text-left px-4 py-3 text-sm font-medium text-primary-black rounded-md hover:bg-neutral-200 transition-all duration-200 ease-in-out"
+          >
+            Log out
+          </button>
         </div>
       </div>
     </div>
