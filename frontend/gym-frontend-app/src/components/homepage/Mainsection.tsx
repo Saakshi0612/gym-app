@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import Header from "../common/Header";
+import React, { useState, useEffect } from "react";
+
 import Arrow from "../../assets/images/arrow.svg";
 import Underlined from "../../assets/images/fitnessg.svg";
 import DatePickerField from "../common/DatePickerField";
@@ -11,15 +11,46 @@ import Button from "../common/ButtonComponent";
 import axios from "axios";
 
 const MainSection: React.FC = () => {
-  const { setFilteredResults, setShowResults, showResults } =
-    useWorkoutContext();
+  const {
+    setFilteredResults,
+    setAllResults,
+    setShowResults,
+    showResults,
+    allResults,
+  } = useWorkoutContext();
 
   const [filters, setFilters] = useState({
     type: "All",
     time: "All",
     coach: "All",
-    date: new Date(), // default value
+    date: new Date(),
   });
+
+  // Fetch workouts on load and show today's by default
+  useEffect(() => {
+    const fetchCoaches = async () => {
+      try {
+        const { coaches } = (await axios.get("./Coaches.json")).data;
+        setAllResults(coaches);
+
+        const formattedDate = filters.date.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+        });
+
+        const todaysWorkouts = coaches.filter(
+          (session) => session.date === formattedDate
+        );
+
+        setFilteredResults(todaysWorkouts);
+        setShowResults(true);
+      } catch (error) {
+        console.error("Error loading coaches:", error);
+      }
+    };
+
+    fetchCoaches();
+  }, []);
 
   const handleDropdownChange = (name: string, value: string) => {
     setFilters((prev) => ({
@@ -35,35 +66,28 @@ const MainSection: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async () => {
-    try {
-      const { coaches } = (await axios.get("./Coaches.json")).data;
+  const handleSubmit = () => {
+    const formattedDate = filters.date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+    });
 
-      const formattedDate = filters.date.toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-      });
+    const results = allResults.filter(
+      (session) =>
+        session.date === formattedDate &&
+        (filters.type === "All" || session.type_of_sport === filters.type) &&
+        (filters.time === "All" || session.time.includes(filters.time)) &&
+        (filters.coach === "All" || session.name_of_coach === filters.coach)
+    );
 
-      const results = coaches.filter(
-        (session) =>
-          (filters.type === "All" || session.type_of_sport === filters.type) &&
-          (filters.time === "All" || session.time.includes(filters.time)) &&
-          (filters.coach === "All" ||
-            session.name_of_coach === filters.coach) &&
-          (!filters.date || session.date === formattedDate)
-      );
-
-      setFilteredResults(results);
-      setShowResults(true);
-    } catch (error) {
-      console.error("Error filtering coaches:", error);
-    }
+    setFilteredResults(results);
+    setShowResults(true);
   };
 
   return (
     <div>
-      <main>       
-        <div className="flex flex-col  lg:text-5xl md:text-4xl sm:text-3xl p-10 gap-4">
+      <main>
+        <div className="flex flex-col lg:text-5xl md:text-4xl sm:text-3xl p-10 gap-4">
           <h1>
             Achieve your{" "}
             <span className="relative inline-block z-10">
@@ -83,7 +107,7 @@ const MainSection: React.FC = () => {
         <div className="text-base mt-2 px-4 md:px-10 space-y-5">
           <h2 className="text-gray-800 font-medium">Book workout</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end w-full">
-            <div className="w-full z-60">
+            <div className="z-40">
               <DropdownField
                 label="Type of Sport"
                 options={dropdownData.activityOptions}
@@ -94,14 +118,14 @@ const MainSection: React.FC = () => {
                 value={filters.type}
               />
             </div>
-            <div className="w-full z-50">
-              <DatePickerField
-                label="Workout Date"
-                value={filters.date}
-                onChange={handleDateChange}
-              />
-            </div>
-            <div className="w-full z-40">
+
+            <DatePickerField
+              label="Workout Date"
+              value={filters.date}
+              onChange={handleDateChange}
+            />
+
+            <div className="z-30">
               <DropdownField
                 label="Time"
                 options={dropdownData.timeSlotOptions}
@@ -112,7 +136,8 @@ const MainSection: React.FC = () => {
                 value={filters.time}
               />
             </div>
-            <div className="w-full z-30">
+
+            <div className="z-20">
               <DropdownField
                 label="Coach"
                 options={dropdownData.coachNameOptions}
