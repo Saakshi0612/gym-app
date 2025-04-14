@@ -1,10 +1,26 @@
-import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Eye, EyeOff, Check, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FormDataType, PasswordFormProps, TouchedType, VisibilityType } from "../../types/components/passwordFormTypes";
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../../store/store';
+import { updatePassword } from '../../services/authSlice';
 
+interface VisibilityType {
+  old: boolean;
+  new: boolean;
+  confirm: boolean;
+}
 
-const PasswordForm: React.FC<PasswordFormProps> = ({ user }) => {
+interface FormDataType {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+const PasswordForm: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const isLoading = useSelector((state: RootState) => state.auth.isLoading);
+
   const [visibility, setVisibility] = useState<VisibilityType>({
     old: false,
     new: false,
@@ -17,20 +33,8 @@ const PasswordForm: React.FC<PasswordFormProps> = ({ user }) => {
     confirmPassword: "",
   });
 
-  const [isTouched, setIsTouched] = useState<TouchedType>({
-    old: false,
-    new: false,
-    confirm: false,
-  });
-
-  const [currentPassword, setCurrentPassword] = useState<string>("");
-
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
-
-  useEffect(() => {
-    setCurrentPassword(user.currentPassword || "");
-  }, [user.currentPassword]);
 
   const toggleVisibility = (field: keyof VisibilityType) => {
     setVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
@@ -41,19 +45,9 @@ const PasswordForm: React.FC<PasswordFormProps> = ({ user }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleBlur = (field: keyof TouchedType) => {
-    setIsTouched((prev) => ({ ...prev, [field]: true }));
-  };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { oldPassword, newPassword, confirmPassword } = formData;
-
-    if (oldPassword !== currentPassword) {
-      setErrorMessage("Old password is incorrect.");
-      setSuccessMessage("");
-      return;
-    }
+    const { newPassword, confirmPassword } = formData;
 
     if (newPassword !== confirmPassword) {
       setErrorMessage("New passwords do not match.");
@@ -62,27 +56,19 @@ const PasswordForm: React.FC<PasswordFormProps> = ({ user }) => {
     }
 
     try {
-      const response = await fetch("/api/update-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oldPassword, newPassword }),
-      });
+      await dispatch(updatePassword({
+        oldPassword: formData.oldPassword,
+        newPassword: formData.newPassword
+      })).unwrap();
+      
+      setSuccessMessage("The password has been updated successfully.");
+      setErrorMessage("");
+      setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccessMessage("The password has been updated successfully.");
-        setErrorMessage("");
-        setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
-
-        setTimeout(() => setSuccessMessage(""), 4000);
-      } else {
-        setErrorMessage(data.message || "An error occurred.");
-        setSuccessMessage("");
-      }
+      setTimeout(() => setSuccessMessage(""), 4000);
     } catch (error) {
       console.error("Error updating password:", error);
-      setErrorMessage("We couldn’t process your request at this time. Please try again later.");
+      setErrorMessage(error as string || "We couldn't process your request at this time. Please try again later.");
       setSuccessMessage("");
     }
   };
@@ -190,7 +176,6 @@ const PasswordForm: React.FC<PasswordFormProps> = ({ user }) => {
                   type={visibility[vis as keyof VisibilityType] ? "text" : "password"}
                   value={value}
                   onChange={handleChange}
-                  onBlur={() => handleBlur(vis as keyof TouchedType)}
                   autoComplete="new-password"
                   className="w-full h-16 px-4 pr-14 text-base text-[#323A3A] placeholder:text-gray-400 border border-[#DADADA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ef300] bg-white"
                   required
@@ -239,9 +224,10 @@ const PasswordForm: React.FC<PasswordFormProps> = ({ user }) => {
         <div className="w-full text-center md:text-right">
           <button
             type="submit"
-            className="bg-[#9ef300] hover:bg-lime-500 text-[#323A3A] text-base px-8 py-3 rounded-lg font-semibold transition-all"
+            disabled={isLoading}
+            className="bg-[#9ef300] hover:bg-lime-500 text-[#323A3A] text-base px-8 py-3 rounded-lg font-semibold transition-all disabled:opacity-50"
           >
-            Save Changes
+            {isLoading ? "Updating..." : "Save Changes"}
           </button>
         </div>
       </form>

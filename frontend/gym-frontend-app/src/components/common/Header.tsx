@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
 import { RiFlashlightFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import BackgroundHeader from "../../assets/Base.jpg";
 import Button from "./ButtonComponent";
 import { useAppSelector } from "../../store/store";
+import { logout } from "../../services/authSlice";
 
 import notification from "../../assets/images/notification.svg";
 import profile from "../../assets/images/profile.svg";
@@ -15,6 +17,7 @@ import UserNavigation from "./Profilepop";
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const { user, isAuthenticated, isLoading } = useAppSelector(
     (state) => state.auth
@@ -48,9 +51,8 @@ const Header: React.FC = () => {
   );
 
   const handleLogout = () => {
-    // Implement your logout logic here
-    // For example: dispatch(logout());
-    navigate("/login");
+    dispatch(logout());
+    navigate("/");
   };
 
   const handleAccountClick = () => {
@@ -200,26 +202,7 @@ const Header: React.FC = () => {
           ))}
         </ul>
 
-        <div className="mt-6">
-          {!isAuthenticated ? (
-            <div className="flex flex-col gap-2">
-              <Button variant="secondary" onClick={() => {
-                onLoginClick();
-                setMenuOpen(false);
-              }}>
-                Log In
-              </Button>
-              <Button variant="secondary" onClick={() => {
-                onSignUpClick();
-                setMenuOpen(false);
-              }}>
-                Sign Up
-              </Button>
-            </div>
-          ) : (
-            <MobileUserMenu />
-          )}
-        </div>
+        {isAuthenticated && <MobileUserMenu />}
       </div>
     </>
   );
