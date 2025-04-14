@@ -2,22 +2,21 @@ import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
 import { RiFlashlightFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import BackgroundHeader from "../../assets/Base.jpg";
 import Button from "./ButtonComponent";
-import { useAppSelector } from "../../store/store";
-import { logout } from "../../services/authSlice";
+import { useAppDispatch, useAppSelector } from "../../store/store";
 
 import notification from "../../assets/images/notification.svg";
 import profile from "../../assets/images/profile.svg";
-import accountIcon from "../../assets/images/account.svg";
+import accountIcon from "../../assets/images/account.svg"; // Make sure you have this icon
 import { useHeaderProps } from "../../helpers/UseHeaderProps";
 import UserNavigation from "./Profilepop";
+import { logout } from "../../services/authSlice";
 
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch= useAppDispatch();
 
   const { user, isAuthenticated, isLoading } = useAppSelector(
     (state) => state.auth
@@ -51,8 +50,8 @@ const Header: React.FC = () => {
   );
 
   const handleLogout = () => {
-    dispatch(logout());
     navigate("/");
+    dispatch(logout());
   };
 
   const handleAccountClick = () => {
@@ -84,10 +83,7 @@ const Header: React.FC = () => {
       
       <div className="flex items-center gap-2 py-2">
         <img src={notification} alt="Notifications" className="w-6 h-6" />
-        <div>
-          <div className="text-sm font-medium">Notifications</div>
-          <div className="text-xs text-neutral-500">View your notifications</div>
-        </div>
+        <div className="text-sm font-medium">Notifications</div>
       </div>
       
       <Button
@@ -189,7 +185,7 @@ const Header: React.FC = () => {
             ✕
           </button>
         </div>
-
+        
         <ul className="flex flex-col gap-4 text-lg">
           {navItems.map(({ label, path }) => (
             <li key={label}>
@@ -205,7 +201,26 @@ const Header: React.FC = () => {
           ))}
         </ul>
 
-        {isAuthenticated && <MobileUserMenu />}
+        <div className="mt-6">
+          {!isAuthenticated ? (
+            <div className="flex flex-col gap-2">
+              <Button variant="secondary" onClick={() => {
+                onLoginClick();
+                setMenuOpen(false);
+              }}>
+                Log In
+              </Button>
+              <Button variant="secondary" onClick={() => {
+                onSignUpClick();
+                setMenuOpen(false);
+              }}>
+                Sign Up
+              </Button>
+            </div>
+          ) : (
+            <MobileUserMenu />
+          )}
+        </div>
       </div>
     </>
   );

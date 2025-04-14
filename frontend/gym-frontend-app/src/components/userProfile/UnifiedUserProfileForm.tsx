@@ -1,14 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import {
-  UserRole,
-  UserProfileData,
-  Certificate,
-  AdminProfileData,
-  CoachProfileData,
-  ClientProfileData,
-  UserProfileFormState,
-} from "../../types/components/UserProfileSettings.types";
+import { UserRole, UserProfileData, Certificate, AdminProfileData, CoachProfileData, ClientProfileData, UserProfileFormState } from "../../types/components/UserProfileSettings.types";
 
 import UserProfileHeader from "./shared/UserProfileHeader";
 import TagsField from "./TagsField";
@@ -21,7 +13,6 @@ import { toast } from "sonner";
 
 import options from "../../assets/JSON/DropdownSelect.json";
 import { updateUserProfile } from "../../services/authSlice";
-import { User } from "../../types/auth.types";
 
 interface UnifiedUserProfileFormProps {
   role: UserRole;
@@ -50,34 +41,43 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     saving: false,
   });
 
-  useEffect(() => {
-    const userData: UserProfileData = {
-      name: `${profileData.firstName} ${profileData.lastName}`,
-      email: profileData.email,
-      role: profileData.role,
-      avatarUrl: profileData.avatarUrl,
-    };
+  const [showSuccess, setShowSuccess] = useState(false);  // State for controlling the success alert visibility
 
-    setFormState({
-      ...formState,
-      userData,
-      firstName: profileData.firstName,
-      lastName: profileData.lastName,
-      phoneNumber:
-        role === UserRole.ADMIN && "phoneNumber" in profileData
-          ? profileData.phoneNumber
-          : "",
-      title: role === UserRole.COACH ? (profileData as CoachProfileData).title : "",
-      about: role === UserRole.COACH ? (profileData as CoachProfileData).about : "",
-      tags: role === UserRole.COACH ? (profileData as CoachProfileData).tags : [],
-      certificates:
-        role === UserRole.COACH ? (profileData as CoachProfileData).certificates : [],
-      rating: role === UserRole.COACH ? (profileData as CoachProfileData).rating : 0,
-      preferableActivity:
-        role === UserRole.CLIENT ? (profileData as ClientProfileData).preferableActivity : "",
-      targets:
-        role === UserRole.CLIENT ? (profileData as ClientProfileData).targets : "",
-    });
+  useEffect(() => {
+    const savedFormState = sessionStorage.getItem("userProfileFormState");
+
+    // Initialize state only once during the first render
+    if (savedFormState) {
+      setFormState(JSON.parse(savedFormState));
+    } else {
+      const userData: UserProfileData = {
+        name: `${profileData.firstName} ${profileData.lastName}`,
+        email: profileData.email,
+        role: profileData.role,
+        avatarUrl: profileData.avatarUrl,
+      };
+
+      setFormState({
+        ...formState,
+        userData,
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        phoneNumber:
+          role === UserRole.ADMIN && "phoneNumber" in profileData
+            ? profileData.phoneNumber
+            : "",
+        title: role === UserRole.COACH ? (profileData as CoachProfileData).title : "",
+        about: role === UserRole.COACH ? (profileData as CoachProfileData).about : "",
+        tags: role === UserRole.COACH ? (profileData as CoachProfileData).tags : [],
+        certificates:
+          role === UserRole.COACH ? (profileData as CoachProfileData).certificates : [],
+        rating: role === UserRole.COACH ? (profileData as CoachProfileData).rating : 0,
+        preferableActivity:
+          role === UserRole.CLIENT ? (profileData as ClientProfileData).preferableActivity : "",
+        targets:
+          role === UserRole.CLIENT ? (profileData as ClientProfileData).targets : "",
+      });
+    }
   }, [role, profileData]);
 
   const handleDrop = (files: FileList | null) => {
@@ -122,12 +122,13 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       };
 
       setFormState(updatedFormState);
+      sessionStorage.setItem("userProfileFormState", JSON.stringify(updatedFormState));
 
-      const userPayload: User = {
+      const userPayload = {
         email: formState.userData?.email || "",
+        role: formState.userData?.role || UserRole.CLIENT,
         firstName: formState.firstName,
         lastName: formState.lastName,
-        role: formState.userData?.role || UserRole.CLIENT,
         phoneNumber: formState.phoneNumber,
         title: formState.title,
         about: formState.about,
@@ -135,15 +136,20 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         certificates: formState.certificates,
         rating: formState.rating,
         preferableActivity: formState.preferableActivity,
-        target: formState.targets,
-        avatarUrl: formState.userData?.avatarUrl || "",
+        targets: formState.targets,
       };
 
       dispatch(updateUserProfile(userPayload));
       toast.success("Changes saved!");
 
+      // Store success message in sessionStorage
+      sessionStorage.setItem("profileUpdateSuccess", "true");
+
+      // Set success flag to show success message
+      setShowSuccess(true);
+
       setTimeout(() => {
-        setFormState((prev) => ({ ...prev, showSuccess: false }));
+        setShowSuccess(false);
       }, 4000);
 
       console.log("✅ Data saved:", updatedFormState);
@@ -158,18 +164,16 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
   return (
     <>
-      {formState.showSuccess && (
+      {showSuccess && (
         <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
           <SuccessAlert
             message="Your profile has been updated successfully."
-            onClose={() =>
-              setFormState((prev) => ({ ...prev, showSuccess: false }))
-            }
+            onClose={() => setShowSuccess(false)}
           />
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 w-full bg-primary-white rounded-lg">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 w-full">
         <UserProfileHeader
           {...formState.userData}
           onFileSelect={(file) => console.log("Selected file:", file)}

@@ -32,6 +32,7 @@ export default function LoginForm() {
     const resultAction = await dispatch(loginUser({ email, password }));
 
     if (loginUser.fulfilled.match(resultAction)) {
+      localStorage.setItem('user', JSON.stringify(resultAction.payload));
       setShowLoginSuccess(true);
     } else {
       setShowErrorAlert(true);
@@ -98,43 +99,46 @@ export default function LoginForm() {
         </>
       }
     >
-      <div className="w-full max-w-md mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Welcome Back</h1>
+      <div className="max-w-md mx-auto w-full py-4">
+        <h2 className="text-gray-700 mb-1 uppercase text-xs font-lexend">WELCOME BACK</h2>
+        <h1 className="text-2xl font-lexend mb-6">Log In to Your Account</h1>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Input
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-          <div>
-            <Input
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => handlePasswordChange(e.target.value)}
-              placeholder="Enter your password"
-              required
-              rightIcon={passwordToggleIcon}
-              error={passwordError}
-            />
-          </div>
-          <div className="pt-2">
-            <SubmitButton
-              type="submit"
-              isLoading={isLoading}
-              text="Log In"
-              fullWidth
-            />
-          </div>
+          {/* Replaced EmailInput with reusable Input */}
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            placeholder="Enter your Email"
+            value={email}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            helpText="e.g. username@domain.com"
+          />
+
+          {/* Replaced PasswordInput with reusable Input */}
+          <Input
+            label="Password"
+            name="password"
+            
+            placeholder="Enter your Password "
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePasswordChange(e.target.value)}
+            error={passwordError}
+            helpText="At least one capital letter required"
+            rightElement={passwordToggleIcon}
+          />
+
+          <SubmitButton
+            isLoading={isLoading}
+            text="Log In"
+            loadingText="Logging in..."
+          />
         </form>
+
         <AuthFooter
           message="Don't have an account?"
-          linkText="Sign up"
+          linkText="CREATE NEW ACCOUNT"
           linkUrl="/register"
         />
       </div>

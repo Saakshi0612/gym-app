@@ -6,18 +6,6 @@ export interface User {
     role: 'client' | 'coach' | 'admin';
     target?: string;
     activity?: string;
-    phoneNumber?: string;
-    title?: string;
-    about?: string;
-    tags?: string[];
-    certificates?: Array<{
-      name: string;
-      size: string;
-      url: string;
-    }>;
-    rating?: number;
-    preferableActivity?: string;
-    avatarUrl?: string;
   }
   
   export interface AuthState {
@@ -33,12 +21,12 @@ export interface User {
   }
   
   export interface RegisterData {
-    email: string;
-    password: string;
     firstName: string;
     lastName: string;
-    target?: string;
-    activity?: string;
+    email: string;
+    password: string;
+    target: string;
+    activity: string;
   }
 
 export interface UserNavigationProps {
