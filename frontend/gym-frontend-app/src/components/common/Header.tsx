@@ -70,14 +70,14 @@ const Header: React.FC = () => {
       {/* Overlay */}
       {menuOpen && (
         <div
-          className="fixed inset-0 bg-transparent backdrop-blur-sm z-20 md:hidden"
+          className="fixed inset-0 bg-transparent backdrop-blur-sm z-70 md:hidden"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white/80 backdrop-blur-xs shadow-lg p-6 transform transition-transform duration-300 z-30 ${
+        className={`fixed top-0 right-0 h-full w-64 bg-white/80 backdrop-blur-xs shadow-lg p-6 transform transition-transform duration-300 z-70 ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
