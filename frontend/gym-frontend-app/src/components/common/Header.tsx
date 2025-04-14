@@ -2,19 +2,12 @@ import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
 import { RiFlashlightFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/store";
 import BackgroundHeader from "../../assets/Base.jpg";
 import Button from "./ButtonComponent";
-<<<<<<< HEAD
-import { useAppSelector } from "../../store/store";
-import { logout } from "../../services/authSlice";
-=======
-import { useAppDispatch, useAppSelector } from "../../store/store";
->>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
-
 import notification from "../../assets/images/notification.svg";
 import profile from "../../assets/images/profile.svg";
-import accountIcon from "../../assets/images/account.svg"; // Make sure you have this icon
+import accountIcon from "../../assets/images/account.svg";
 import { useHeaderProps } from "../../helpers/UseHeaderProps";
 import UserNavigation from "./Profilepop";
 import { logout } from "../../services/authSlice";
@@ -22,11 +15,7 @@ import { logout } from "../../services/authSlice";
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-<<<<<<< HEAD
-  const dispatch = useDispatch();
-=======
-  const dispatch= useAppDispatch();
->>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
+  const dispatch = useAppDispatch();
 
   const { user, isAuthenticated, isLoading } = useAppSelector(
     (state) => state.auth
@@ -60,13 +49,8 @@ const Header: React.FC = () => {
   );
 
   const handleLogout = () => {
-<<<<<<< HEAD
-    dispatch(logout());
-    navigate("/");
-=======
     navigate("/");
     dispatch(logout());
->>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
   };
 
   const handleAccountClick = () => {

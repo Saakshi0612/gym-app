@@ -41,7 +41,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Add this to your authSlice.ts
 export const updatePassword = createAsyncThunk(
   'auth/updatePassword',
   async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }, { getState, rejectWithValue }) => {
@@ -53,26 +52,32 @@ export const updatePassword = createAsyncThunk(
         return rejectWithValue('No user is logged in.');
       }
 
-      const storedClients = localStorage.getItem('clients') || '[]';
-      const clients: StoredUser[] = JSON.parse(storedClients);
-      const index = clients.findIndex(client => client.email === currentUser.email);
+      const userIndex = users.findIndex(user => user.email === currentUser.email);
 
-      if (index === -1) {
-        return rejectWithValue('User not found in clients list.');
+      if (userIndex === -1) {
+        return rejectWithValue('User not found.');
       }
 
-      // Verify old password
-      if (clients[index].password !== oldPassword) {
-        return rejectWithValue('Old password is incorrect.');
+      if (users[userIndex].password !== oldPassword) {
+        return rejectWithValue('Current password is incorrect.');
       }
 
-      // Update password
-      clients[index].password = newPassword;
-
-      // Update localStorage
-      localStorage.setItem('clients', JSON.stringify(clients));
+      // Update the password
+      users[userIndex].password = newPassword;
       
-      return { success: true };
+      // Update localStorage
+      try {
+        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        const storedIndex = storedUsers.findIndex((u: User) => u.email === currentUser.email);
+        if (storedIndex !== -1) {
+          storedUsers[storedIndex].password = newPassword;
+          localStorage.setItem('users', JSON.stringify(storedUsers));
+        }
+      } catch (e) {
+        console.error('Error updating password in localStorage:', e);
+      }
+
+      return currentUser;
     } catch (error) {
       console.error("Error updating password:", error);
       return rejectWithValue('Failed to update password.');
@@ -168,50 +173,6 @@ export const updateUserProfile = createAsyncThunk(
     } catch (error) {
       console.error("Error updating user profile:", error);
       return rejectWithValue('Failed to update user profile.');
-    }
-  }
-);
-
-export const updatePassword = createAsyncThunk(
-  'auth/updatePassword',
-  async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }, { getState, rejectWithValue }) => {
-    try {
-      const state = getState() as { auth: AuthState };
-      const currentUser = state.auth.user;
-
-      if (!currentUser) {
-        return rejectWithValue('No user is logged in.');
-      }
-
-      const userIndex = users.findIndex(user => user.email === currentUser.email);
-
-      if (userIndex === -1) {
-        return rejectWithValue('User not found.');
-      }
-
-      if (users[userIndex].password !== oldPassword) {
-        return rejectWithValue('Current password is incorrect.');
-      }
-
-      // Update the password
-      users[userIndex].password = newPassword;
-      
-      // Update localStorage
-      try {
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-        const storedIndex = storedUsers.findIndex((u: User) => u.email === currentUser.email);
-        if (storedIndex !== -1) {
-          storedUsers[storedIndex].password = newPassword;
-          localStorage.setItem('users', JSON.stringify(storedUsers));
-        }
-      } catch (e) {
-        console.error('Error updating password in localStorage:', e);
-      }
-
-      return currentUser;
-    } catch (error) {
-      console.error("Error updating password:", error);
-      return rejectWithValue('Failed to update password.');
     }
   }
 );
