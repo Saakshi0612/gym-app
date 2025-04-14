@@ -5,11 +5,13 @@ import { useAppDispatch, useAppSelector } from '../store/store';
 import { registerUser, clearError } from '../services/authSlice';
 import { QuoteSidebar } from "./common/QuoteBanner";
 import Input from "./common/Input";
+import AuthFooter from './auth/AuthFooter';
 import { RegistrationFormData } from "../types";
 import DropdownField from "./common/Selection";
 import SystemAlert from './SystemAlert';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import AuthLayout from "./layout/authLayout";
+
 
 const TARGET_OPTIONS = [
   { value: "lose-weight", label: "Lose Weight" },
@@ -23,10 +25,10 @@ const TARGET_OPTIONS = [
 const ACTIVITY_OPTIONS = [
   { value: "yoga", label: "Yoga" },
   { value: "climbing", label: "Climbing" },
-  { value: "strength-training", label: "Strength Training" },
+  { value: "strength training", label: "Strength training" },
   { value: "crossfit", label: "CrossFit" },
-  { value: "cardio-training", label: "Cardio Training" },
-  { value: "rehabilitation", label: "Rehabilitation" },
+  { value: "cardio Training", label: "Cardio Training" },
+  { value: "rehabilitation", label: "rehabilitation" },
 ];
 
 // const TickSVG = () => (
@@ -146,30 +148,25 @@ const RegistrationForm: React.FC = () => {
         </>
       }
     >
-      <div className="w-full max-w-md mx-auto">
-        <div className="mb-8">
-          <h3 className="text-sm font-medium text-neutral-500 mb-2">LET'S GET YOU STARTED</h3>
-          <h1 className="text-2xl font-bold text-neutral-900">Create an Account</h1>
-        </div>
+      <div className="max-w-md mx-auto w-full py-4">
+        <h2 className="text-gray-700 mb-1 uppercase text-xs font-lexend">Let&apos;s Get You Started</h2>
+        <h1 className="text-2xl font-lexend mb-6">Create an Account</h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Input
               label="First Name"
               name="firstName"
-              type="text"
               placeholder="Enter your First Name"
-              register={register("firstName", { required: "First name is required" })}
+              register={register("firstName", { required: "First Name is required" })}
               error={errors.firstName?.message}
               helpText="e.g. Jonson"
             />
-
             <Input
               label="Last Name"
               name="lastName"
-              type="text"
               placeholder="Enter your Last Name"
-              register={register("lastName", { required: "Last name is required" })}
+              register={register("lastName", { required: "Last Name is required" })}
               error={errors.lastName?.message}
               helpText="e.g. Doe"
             />
@@ -183,8 +180,8 @@ const RegistrationForm: React.FC = () => {
             register={register("email", {
               required: "Email is required",
               pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: "Invalid email address",
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Invalid email format",
               },
             })}
             error={errors.email?.message}
@@ -209,51 +206,69 @@ const RegistrationForm: React.FC = () => {
             rightElement={passwordToggleIcon}
           />
 
-          <div className="space-y-4">
-            <DropdownField
-              label="Your Target"
-              name="targets"
-              options={TARGET_OPTIONS}
-              value={targets}
-              onChange={(val) => {
-                setValue("targets", val, { shouldValidate: true });
-                trigger("targets");
-              }}
-              error={errors.targets?.message}
-            />
+<div className="relative z-20">
+  <DropdownField
+    label="Your Target"
+    name="targets"
+    options={TARGET_OPTIONS.map((opt) => ({
+      value: opt.value,
+      label: (
+        <span className="flex justify-between items-center">
+          {opt.label}
+          {opt.value === targets }
+        </span>
+      ) as unknown as string, // 👈 Type-safe fix
+    }))}
+    value={targets}
+    onChange={(val) => {
+      setValue("targets", val, { shouldValidate: true });
+      trigger("targets");
+    }}
+    error={errors.targets?.message}
+  />
+</div>
 
-            <DropdownField
-              label="Preferable Activity"
-              name="preferableActivity"
-              options={ACTIVITY_OPTIONS}
-              value={preferableActivity}
-              onChange={(val) => {
-                setValue("preferableActivity", val, { shouldValidate: true });
-                trigger("preferableActivity");
-              }}
-              error={errors.preferableActivity?.message}
-            />
-          </div>
+<div className="relative z-10">
+  <DropdownField
+    label="Preferable Activity"
+    name="preferableActivity"
+    options={ACTIVITY_OPTIONS.map((opt) => ({
+      value: opt.value,
+      label: (
+        <div
+          className="flex justify-between items-center"
+          style={{ maxHeight: "400px", overflowY: "auto" }}
+        >
+          {opt.label}
+          {opt.value === preferableActivity}
+        </div>
+      ) as unknown as string,
+    }))}
+    value={preferableActivity}
+    onChange={(val) => {
+      setValue("preferableActivity", val, { shouldValidate: true });
+      trigger("preferableActivity");
+    }}
+    error={errors.preferableActivity?.message}
+  />
+</div>
+
+
 
           <button
             type="submit"
+            className="w-full bg-[#9EF300] hover:bg-lime-500 text-black font-medium py-3 rounded-md focus:outline-none"
             disabled={isLoading}
-            className="w-full bg-[#9ef300] text-neutral-900 font-semibold py-4 rounded-lg hover:bg-[#8edc00] transition-colors duration-200"
           >
             {isLoading ? "Creating Account..." : "Create An Account"}
           </button>
-
-          <div className="text-center text-sm text-neutral-600">
-            Already have an account?{" "}
-            <button
-              type="button"
-              onClick={() => navigate("/login")}
-              className="text-neutral-900 font-semibold hover:text-[#9ef300] transition-colors duration-200"
-            >
-              LOGIN HERE
-            </button>
-          </div>
         </form>
+
+        <AuthFooter
+          message="Already have an account?"
+          linkText="LOGIN HERE"
+          linkUrl="/login"
+        />
       </div>
     </AuthLayout>
   );

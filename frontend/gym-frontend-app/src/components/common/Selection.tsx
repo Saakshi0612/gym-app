@@ -10,7 +10,6 @@ interface DropdownFieldProps {
   error?: string;
   onChange: (val: string) => void;
   value: string;
-  containerClassName?: string;
 }
 
 const DropdownField: React.FC<DropdownFieldProps> = ({
@@ -21,7 +20,6 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   error,
   onChange,
   value,
-  containerClassName,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -48,7 +46,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <fieldset className={`border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white ${containerClassName || ''}`}>
+      <fieldset className="border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white">
         <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px] ml-1 px-1 bg-white text-[#4B5563]">
           {label}
         </legend>
