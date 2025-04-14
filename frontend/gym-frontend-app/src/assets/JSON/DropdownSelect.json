@@ -9,6 +9,14 @@
     { "value": "swimming", "label": "Swimming" },
     { "value": "cycling", "label": "Cycling" }
   ],
+  "targetOptions" : [
+    { "value": "lose-weight", "label": "Lose Weight" },
+    { "value": "gain-weight", "label": "Gain Weight" },
+    { "value": "improve-flexibility", "label": "Improve Flexibility" },
+    { "value": "general-fitness", "label": "General Fitness" },
+    { "value": "build-muscle", "label": "Build Muscle" },
+    { "value": "rehab-recovery", "label": "Rehabilitation/Recovery" }
+  ],
   "timeSlotOptions": [
     { "value": "All", "label": "All" },
     { "value": "6am-7am", "label": "6 AM - 7 AM" },
