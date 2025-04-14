@@ -43,12 +43,18 @@ export const registerUser = createAsyncThunk(
       
       const storedUsers = localStorage.getItem('clients') || '[]';
       const existingUsers: StoredUser[] = JSON.parse(storedUsers);
-      
+
       if (existingUsers.some((u) => u.email === userData.email)) {
         return rejectWithValue("Email already exists");
       }
 
-      const newUser: StoredUser = { ...userData, role: 'client' as const };
+      // List of coach emails
+      const coachEmails = ['coach1@example.com', 'coach2@example.com', 'coach3@example.com'];
+
+      // Assign role based on whether the email is a coach's
+      const role = coachEmails.includes(userData.email) ? 'coach' : 'client';
+
+      const newUser: StoredUser = { ...userData, role };
       existingUsers.push(newUser);
       localStorage.setItem('clients', JSON.stringify(existingUsers));
 
@@ -61,6 +67,7 @@ export const registerUser = createAsyncThunk(
     }
   }
 );
+
 
 const initialState: AuthState = {
   user: null,
