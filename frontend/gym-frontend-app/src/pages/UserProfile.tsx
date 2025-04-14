@@ -76,15 +76,15 @@ const DynamicUserProfile = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-primary-white">
-      <div className="w-64">
+    <div className="flex flex-col md:flex-row min-h-screen bg-primary-white">
+      <div className="w-full md:w-64">
         <Sidebar
           position={user?.role as UserRole}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
         />
       </div>
-      <main className="flex-1 p-8 overflow-auto">
+      <main className="flex-1 p-2 md:p-8 overflow-auto -mt-4 md:mt-0">
         {renderTabContent()}
       </main>
     </div>

@@ -41,50 +41,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-export const updatePassword = createAsyncThunk(
-  'auth/updatePassword',
-  async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }, { getState, rejectWithValue }) => {
-    try {
-      const state = getState() as { auth: AuthState };
-      const currentUser = state.auth.user;
-
-      if (!currentUser) {
-        return rejectWithValue('No user is logged in.');
-      }
-
-      const userIndex = users.findIndex(user => user.email === currentUser.email);
-
-      if (userIndex === -1) {
-        return rejectWithValue('User not found.');
-      }
-
-      if (users[userIndex].password !== oldPassword) {
-        return rejectWithValue('Current password is incorrect.');
-      }
-
-      // Update the password
-      users[userIndex].password = newPassword;
-      
-      // Update localStorage
-      try {
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-        const storedIndex = storedUsers.findIndex((u: User) => u.email === currentUser.email);
-        if (storedIndex !== -1) {
-          storedUsers[storedIndex].password = newPassword;
-          localStorage.setItem('users', JSON.stringify(storedUsers));
-        }
-      } catch (e) {
-        console.error('Error updating password in localStorage:', e);
-      }
-
-      return currentUser;
-    } catch (error) {
-      console.error("Error updating password:", error);
-      return rejectWithValue('Failed to update password.');
-    }
-  }
-);
-
 export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData: RegisterData, { rejectWithValue }) => {
@@ -177,6 +133,50 @@ export const updateUserProfile = createAsyncThunk(
   }
 );
 
+export const updatePassword = createAsyncThunk(
+  'auth/updatePassword',
+  async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const currentUser = state.auth.user;
+
+      if (!currentUser) {
+        return rejectWithValue('No user is logged in.');
+      }
+
+      const userIndex = users.findIndex(user => user.email === currentUser.email);
+
+      if (userIndex === -1) {
+        return rejectWithValue('User not found.');
+      }
+
+      if (users[userIndex].password !== oldPassword) {
+        return rejectWithValue('Current password is incorrect.');
+      }
+
+      // Update the password
+      users[userIndex].password = newPassword;
+      
+      // Update localStorage
+      try {
+        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        const storedIndex = storedUsers.findIndex((u: User) => u.email === currentUser.email);
+        if (storedIndex !== -1) {
+          storedUsers[storedIndex].password = newPassword;
+          localStorage.setItem('users', JSON.stringify(storedUsers));
+        }
+      } catch (e) {
+        console.error('Error updating password in localStorage:', e);
+      }
+
+      return currentUser;
+    } catch (error) {
+      console.error("Error updating password:", error);
+      return rejectWithValue('Failed to update password.');
+    }
+  }
+);
+
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
@@ -211,6 +211,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload;
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -224,6 +225,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload;
+        state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -236,6 +238,7 @@ const authSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
+        state.error = null;
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.isLoading = false;
@@ -245,9 +248,9 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(updatePassword.fulfilled, (state, action) => {
+      .addCase(updatePassword.fulfilled, (state) => {
         state.isLoading = false;
-        state.user = action.payload;
+        state.error = null;
       })
       .addCase(updatePassword.rejected, (state, action) => {
         state.isLoading = false;

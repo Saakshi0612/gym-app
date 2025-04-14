@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { SidebarProps, SidebarTab, UserRole } from "../../types/components/sidebar.types";
 import { logout } from "../../services/authSlice";
+import { User, Lock, Briefcase, Award, Dumbbell } from "lucide-react";
 
 const Sidebar: React.FC<SidebarProps> = ({
   position = UserRole.CLIENT,
