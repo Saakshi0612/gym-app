@@ -82,10 +82,13 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
           ref={calendarRef}
           className="absolute left-0 mt-1 bg-white border border-gray-200 rounded shadow-lg"
           style={{
-            width: ref.current ? `${ref.current.offsetWidth}px` : "280px",
+            width: "min(320px, 90vw)", // Use min() to cap width at 320px or 90% of viewport width
             zIndex: 50,
-            maxHeight: "350px",
-            overflowY: "auto"
+            maxHeight: "min(400px, 80vh)", // Responsive height too
+            overflowY: "auto",
+            // Position handling for small screens
+            left: "50%",
+            transform: "translateX(-50%)",
           }}
         >
           <Calendar

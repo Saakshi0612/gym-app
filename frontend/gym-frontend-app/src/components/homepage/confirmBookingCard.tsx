@@ -9,11 +9,13 @@ interface ConfirmBookingCardProps {
     selectedTime: string;
   };
   onClose: () => void;
+  onConfirm?: () => void; // Adding this prop for showing the prop to show the notification
 }
 
 const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
   coach,
   onClose,
+  onConfirm,
 }) => {
   const {
     name_of_coach,
@@ -37,6 +39,15 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
       minute: "2-digit",
     }
   );
+
+  const handleConfirm = () => {
+    console.log("Booking confirmed:", coach);
+    if (onConfirm) {
+      onConfirm();
+    } else {
+      onClose();
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-90 flex text-gray-800 items-center justify-center px-5 bg-black/30">
@@ -103,10 +114,7 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
 
         {/* Confirm Button */}
         <Button
-          onClick={() => {
-            console.log("Booking confirmed:", coach);
-            onClose();
-          }}
+          onClick={handleConfirm}
           variant="primary"
           className="w-full bg-lime-400 text-black font-semibold py-3 rounded-lg hover:bg-lime-500 transition"
         >

@@ -105,6 +105,7 @@ export interface CoachProps {
   profileImage: string;
   specializations?: string[];
   certificates?: Certificate[];
+  onBookWorkout?: () => void;
 }
 
 export interface CoachCardProps {
