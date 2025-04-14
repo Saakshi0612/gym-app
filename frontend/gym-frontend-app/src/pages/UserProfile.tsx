@@ -12,7 +12,6 @@ type Props = {
   role: 'client' | 'coach' | 'admin' | undefined;
 };
 
-
 const DynamicUserProfile: React.FC<Props> = ({ role }) => {
   const { user } = useAppSelector((state) => state.auth); // ✅ Lifted out for reuse
   const [loading, setLoading] = useState(true);
@@ -80,14 +79,17 @@ const DynamicUserProfile: React.FC<Props> = ({ role }) => {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
-      <div className="w-full lg:w-[250px] border-b lg:border-b-0 lg:border-r border-neutral-200">
+      {/* Sidebar (Mobile view above content, Desktop view as side menu) */}
+      <div className="w-full lg:w-[250px] border-b lg:border-b-0 lg:border-r border-neutral-200 bg-white sticky top-0 z-30">
         <Sidebar
           position={role as UserRole}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          user={user} // ✅ Optionally pass here if Sidebar uses it
+          user={user}
         />
       </div>
+
+      {/* Main content */}
       <div className="flex-1 px-4 sm:px-6 md:px-8 lg:px-10 py-6">
         {renderTabContent()}
       </div>
