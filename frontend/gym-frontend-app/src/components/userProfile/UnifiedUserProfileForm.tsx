@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux"; // import useDispatch
 import {
   UserRole,
   UserProfileData,
@@ -18,7 +19,8 @@ import LabeledInput from "./shared/LabeledInput";
 import DynamicSelect from "./DynamicSelect";
 import { toast } from "sonner";
 
-import options from "../../assets/JSON/data/options.json";
+import options from "../../assets/JSON/DropdownSelect.json";
+import { updateUserProfile } from "../../services/authSlice";
 
 interface UnifiedUserProfileFormProps {
   role: UserRole;
@@ -29,6 +31,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   role,
   profileData,
 }) => {
+  const dispatch = useDispatch(); // Initialize dispatch to update Redux state
+
   const [formState, setFormState] = useState<UserProfileFormState>({
     userData: null,
     firstName: "",
@@ -40,39 +44,44 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     certificates: [],
     rating: 0,
     preferableActivity: "",
-    targetGoal: "",
+    targets: "",  // Changed from targetGoal to targets
     showSuccess: false,
     saving: false,
   });
 
   useEffect(() => {
-    const userData: UserProfileData = {
-      name: `${profileData.firstName} ${profileData.lastName}`,
-      email: profileData.email,
-      role: profileData.role,
-      avatarUrl: profileData.avatarUrl,
-    };
+    const savedFormState = localStorage.getItem("userProfileFormState");
+    if (savedFormState) {
+      setFormState(JSON.parse(savedFormState));
+    } else {
+      const userData: UserProfileData = {
+        name: `${profileData.firstName} ${profileData.lastName}`,
+        email: profileData.email,
+        role: profileData.role,
+        avatarUrl: profileData.avatarUrl,
+      };
 
-    setFormState((prev) => ({
-      ...prev,
-      userData,
-      firstName: profileData.firstName,
-      lastName: profileData.lastName,
-      phoneNumber:
-        role === UserRole.ADMIN && "phoneNumber" in profileData
-          ? profileData.phoneNumber
-          : "",
-      title: role === UserRole.COACH ? (profileData as CoachProfileData).title : "",
-      about: role === UserRole.COACH ? (profileData as CoachProfileData).about : "",
-      tags: role === UserRole.COACH ? (profileData as CoachProfileData).tags : [],
-      certificates:
-        role === UserRole.COACH ? (profileData as CoachProfileData).certificates : [],
-      rating: role === UserRole.COACH ? (profileData as CoachProfileData).rating : 0,
-      preferableActivity:
-        role === UserRole.CLIENT ? (profileData as ClientProfileData).preferableActivity : "",
-      targetGoal:
-        role === UserRole.CLIENT ? (profileData as ClientProfileData).targetGoal : "",
-    }));
+      setFormState((prev) => ({
+        ...prev,
+        userData,
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        phoneNumber:
+          role === UserRole.ADMIN && "phoneNumber" in profileData
+            ? profileData.phoneNumber
+            : "",
+        title: role === UserRole.COACH ? (profileData as CoachProfileData).title : "",
+        about: role === UserRole.COACH ? (profileData as CoachProfileData).about : "",
+        tags: role === UserRole.COACH ? (profileData as CoachProfileData).tags : [],
+        certificates:
+          role === UserRole.COACH ? (profileData as CoachProfileData).certificates : [],
+        rating: role === UserRole.COACH ? (profileData as CoachProfileData).rating : 0,
+        preferableActivity:
+          role === UserRole.CLIENT ? (profileData as ClientProfileData).preferableActivity : "",
+        targets: // Changed from targetGoal to targets
+          role === UserRole.CLIENT ? (profileData as ClientProfileData).targets : "", 
+      }));
+    }
   }, [role, profileData]);
 
   const handleDrop = (files: FileList | null) => {
@@ -115,6 +124,26 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             }
           : null,
       }));
+
+      // Save form state to localStorage after successful save
+      localStorage.setItem("userProfileFormState", JSON.stringify(formState));
+
+      // Dispatch the updated formState to Redux to update the global state
+      const userPayload = {
+        email: formState.userData?.email || "",
+        role: formState.userData?.role || UserRole.CLIENT,
+        firstName: formState.firstName,
+        lastName: formState.lastName,
+        phoneNumber: formState.phoneNumber,
+        title: formState.title,
+        about: formState.about,
+        tags: formState.tags,
+        certificates: formState.certificates,
+        rating: formState.rating,
+        preferableActivity: formState.preferableActivity,
+        targets: formState.targets,
+      };
+      dispatch(updateUserProfile(userPayload));
 
       setTimeout(() => {
         setFormState((prev) => ({ ...prev, showSuccess: false }));
@@ -244,7 +273,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
               <DynamicSelect
                 label="Preferable Activity"
                 placeholder="Select Activity"
-                options={options.activities}
+                options={options.activityOptions}
                 selected={formState.preferableActivity}
                 onChange={(val) =>
                   setFormState((prev) => ({
@@ -256,12 +285,12 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             </div>
             <div className="mt-6">
               <DynamicSelect
-                label="Target Goal"
+                label="Target Goals" // Updated to "Target Goals"
                 placeholder="Select Goal"
-                options={options.goals}
-                selected={formState.targetGoal}
+                options={options.targetOptions} // Ensure this matches the new options data
+                selected={formState.targets} // Updated to match "targets"
                 onChange={(val) =>
-                  setFormState((prev) => ({ ...prev, targetGoal: val }))
+                  setFormState((prev) => ({ ...prev, targets: val })) // Updated to match "targets"
                 }
               />
             </div>

@@ -2,34 +2,33 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
 
-// Define a type for stored users that includes password
 interface StoredUser extends User {
   password: string;
 }
 
-// Async thunks for authentication
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       const storedClients = localStorage.getItem('clients') || '[]';
       const clients: StoredUser[] = JSON.parse(storedClients);
-      
-      const user = clients.find(u => u.email === credentials.email && u.password === credentials.password);
+
+      const user = clients.find(
+        u => u.email === credentials.email && u.password === credentials.password
+      );
 
       if (!user) {
         return rejectWithValue("We couldn't log you in. Double-check your password and try again.");
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...userWithoutPassword } = user;
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       return userWithoutPassword;
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Login error:", error);
-      return rejectWithValue("We're experiencing technical difficulties. Please try logging in again later.");
+      return rejectWithValue("We're experiencing technical difficulties. Please try again later.");
     }
   }
 );
@@ -38,9 +37,8 @@ export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData: RegisterData, { rejectWithValue }) => {
     try {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       const storedUsers = localStorage.getItem('clients') || '[]';
       const existingUsers: StoredUser[] = JSON.parse(storedUsers);
 
@@ -48,30 +46,61 @@ export const registerUser = createAsyncThunk(
         return rejectWithValue("Email already exists");
       }
 
-      // List of coach emails
       const coachEmails = ['coach1@example.com', 'coach2@example.com', 'coach3@example.com'];
-
-      // Assign role based on whether the email is a coach's
       const role = coachEmails.includes(userData.email) ? 'coach' : 'client';
 
       const newUser: StoredUser = { ...userData, role };
       existingUsers.push(newUser);
       localStorage.setItem('clients', JSON.stringify(existingUsers));
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...userWithoutPassword } = newUser;
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       return userWithoutPassword;
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Registration error:", error);
       return rejectWithValue("Registration failed. Please try again later.");
     }
   }
 );
 
+// Update User Profile Async Thunk
+export const updateUserProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (updatedUser: User, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const currentUser = state.auth.user;
+
+      if (!currentUser) {
+        return rejectWithValue('No user is logged in.');
+      }
+
+      const storedClients = localStorage.getItem('clients') || '[]';
+      const clients: StoredUser[] = JSON.parse(storedClients);
+      const index = clients.findIndex(client => client.email === currentUser.email);
+
+      if (index === -1) {
+        return rejectWithValue('User not found in clients list.');
+      }
+
+      // Update user profile in the list
+      clients[index] = { ...clients[index], ...updatedUser };
+
+      // Update localStorage and Redux state
+      localStorage.setItem('clients', JSON.stringify(clients));
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      return updatedUser;
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      return rejectWithValue('Failed to update user profile.');
+    }
+  }
+);
 
 const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
+  user: JSON.parse(localStorage.getItem('user') || 'null'),
+  isAuthenticated: !!localStorage.getItem('user'),
   isLoading: false,
   error: null,
 };
@@ -84,6 +113,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload;
       state.error = null;
+      localStorage.setItem('user', JSON.stringify(action.payload));
     },
     logout: (state) => {
       state.isAuthenticated = false;
@@ -96,7 +126,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login cases
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -110,7 +139,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // Register cases
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -121,6 +149,18 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(registerUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(updateUserProfile.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
