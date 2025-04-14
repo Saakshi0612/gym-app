@@ -4,17 +4,19 @@ import { RiFlashlightFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import BackgroundHeader from "../../assets/Base.jpg";
 import Button from "./ButtonComponent";
-import { useAppSelector } from "../../store/store";
+import { useAppDispatch, useAppSelector } from "../../store/store";
 
 import notification from "../../assets/images/notification.svg";
 import profile from "../../assets/images/profile.svg";
 import accountIcon from "../../assets/images/account.svg"; // Make sure you have this icon
 import { useHeaderProps } from "../../helpers/UseHeaderProps";
 import UserNavigation from "./Profilepop";
+import { logout } from "../../services/authSlice";
 
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch= useAppDispatch();
 
   const { user, isAuthenticated, isLoading } = useAppSelector(
     (state) => state.auth
@@ -48,9 +50,8 @@ const Header: React.FC = () => {
   );
 
   const handleLogout = () => {
-    // Implement your logout logic here
-    // For example: dispatch(logout());
-    navigate("/login");
+    navigate("/");
+    dispatch(logout());
   };
 
   const handleAccountClick = () => {
