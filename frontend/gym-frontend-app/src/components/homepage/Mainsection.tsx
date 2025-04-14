@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Header from "../common/Header";
-import Arrow from "../../assets/images/arrow.svg"
-import Underlined from "../../assets/images/fitnessg.svg"
+import Arrow from "../../assets/images/arrow.svg";
+import Underlined from "../../assets/images/fitnessg.svg";
 import DatePickerField from "../common/DatePickerField";
 import dropdownData from "../../assets/JSON/DropdownSelect.json";
 import { useWorkoutContext } from "../../context/WorkoutContext";
@@ -74,9 +74,9 @@ const MainSection: React.FC = () => {
             </span>
           </h1>
 
-          <h2 className="flex flex-row gap-4  lg:text-5xl md:text-4xl sm:text-3xl text-center mb-4">
+          <h2 className="flex flex-row gap-4 lg:text-5xl md:text-4xl sm:text-3xl text-center mb-4">
             Find a workout and book today.
-           <img src={Arrow} alt="" />
+            <img src={Arrow} className="hidden sm:inline-block" />
           </h2>
         </div>
 

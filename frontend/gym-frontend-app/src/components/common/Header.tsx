@@ -5,19 +5,28 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import BackgroundHeader from "../../assets/Base.jpg";
 import Button from "./ButtonComponent";
+<<<<<<< HEAD
 import { useAppSelector } from "../../store/store";
 import { logout } from "../../services/authSlice";
+=======
+import { useAppDispatch, useAppSelector } from "../../store/store";
+>>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
 
 import notification from "../../assets/images/notification.svg";
 import profile from "../../assets/images/profile.svg";
 import accountIcon from "../../assets/images/account.svg"; // Make sure you have this icon
 import { useHeaderProps } from "../../helpers/UseHeaderProps";
 import UserNavigation from "./Profilepop";
+import { logout } from "../../services/authSlice";
 
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+<<<<<<< HEAD
   const dispatch = useDispatch();
+=======
+  const dispatch= useAppDispatch();
+>>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
 
   const { user, isAuthenticated, isLoading } = useAppSelector(
     (state) => state.auth
@@ -51,8 +60,13 @@ const Header: React.FC = () => {
   );
 
   const handleLogout = () => {
+<<<<<<< HEAD
     dispatch(logout());
     navigate("/");
+=======
+    navigate("/");
+    dispatch(logout());
+>>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
   };
 
   const handleAccountClick = () => {
@@ -169,14 +183,14 @@ const Header: React.FC = () => {
       {/* Overlay */}
       {menuOpen && (
         <div
-          className="fixed inset-0 bg-transparent backdrop-blur-sm z-20 md:hidden"
+          className="fixed inset-0 bg-transparent backdrop-blur-sm z-70 md:hidden"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white/80 backdrop-blur-xs shadow-lg p-6 transform transition-transform duration-300 z-30 ${
+        className={`fixed top-0 right-0 h-full w-64 bg-white/80 backdrop-blur-xs shadow-lg p-6 transform transition-transform duration-300 z-70 ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

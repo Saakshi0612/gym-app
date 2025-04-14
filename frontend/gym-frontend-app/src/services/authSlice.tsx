@@ -41,6 +41,45 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// Add this to your authSlice.ts
+export const updatePassword = createAsyncThunk(
+  'auth/updatePassword',
+  async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const currentUser = state.auth.user;
+
+      if (!currentUser) {
+        return rejectWithValue('No user is logged in.');
+      }
+
+      const storedClients = localStorage.getItem('clients') || '[]';
+      const clients: StoredUser[] = JSON.parse(storedClients);
+      const index = clients.findIndex(client => client.email === currentUser.email);
+
+      if (index === -1) {
+        return rejectWithValue('User not found in clients list.');
+      }
+
+      // Verify old password
+      if (clients[index].password !== oldPassword) {
+        return rejectWithValue('Old password is incorrect.');
+      }
+
+      // Update password
+      clients[index].password = newPassword;
+
+      // Update localStorage
+      localStorage.setItem('clients', JSON.stringify(clients));
+      
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating password:", error);
+      return rejectWithValue('Failed to update password.');
+    }
+  }
+);
+
 export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData: RegisterData, { rejectWithValue }) => {

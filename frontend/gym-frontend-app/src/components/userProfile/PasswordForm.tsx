@@ -1,9 +1,117 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Eye, EyeOff, Check, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+<<<<<<< HEAD
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { updatePassword } from '../../services/authSlice';
+=======
+import { FormDataType, PasswordFormProps, TouchedType, VisibilityType } from "../../types/components/passwordFormTypes";
+import { useAppDispatch } from "../../store/store"; // Import useAppDispatch
+import { updatePassword } from "../../services/authSlice";
+
+// const PasswordForm: React.FC<PasswordFormProps> = ({ user }) => {
+//   const [visibility, setVisibility] = useState<VisibilityType>({
+//     old: false,
+//     new: false,
+//     confirm: false,
+//   });
+
+// const PasswordForm: React.FC<PasswordFormProps> = ({ user }) => {
+//   const dispatch = useAppDispatch(); // Add this line
+  
+//   const [visibility, setVisibility] = useState<VisibilityType>({
+//     old: false,
+//     new: false,
+//     confirm: false,
+//   });
+
+
+//   const [formData, setFormData] = useState<FormDataType>({
+//     oldPassword: "",
+//     newPassword: "",
+//     confirmPassword: "",
+//   });
+
+//   const [isTouched, setIsTouched] = useState<TouchedType>({
+//     old: false,
+//     new: false,
+//     confirm: false,
+//   });
+
+//   const [currentPassword, setCurrentPassword] = useState<string>("");
+
+//   const [successMessage, setSuccessMessage] = useState<string>("");
+//   const [errorMessage, setErrorMessage] = useState<string>("");
+
+//   useEffect(() => {
+//     setCurrentPassword(user.currentPassword || "");
+//   }, [user.currentPassword]);
+
+//   const toggleVisibility = (field: keyof VisibilityType) => {
+//     setVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
+//   };
+
+//   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleBlur = (field: keyof TouchedType) => {
+//     setIsTouched((prev) => ({ ...prev, [field]: true }));
+//   };
+
+//   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+//     e.preventDefault();
+//     const { oldPassword, newPassword, confirmPassword } = formData;
+
+//     if (oldPassword !== currentPassword) {
+//       setErrorMessage("Old password is incorrect.");
+//       setSuccessMessage("");
+//       return;
+//     }
+
+//     if (newPassword !== confirmPassword) {
+//       setErrorMessage("New passwords do not match.");
+//       setSuccessMessage("");
+//       return;
+//     }
+
+//     try {
+//       const response = await fetch("/api/update-password", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ oldPassword, newPassword }),
+//       });
+
+//       const data = await response.json();
+
+//       if (data.success) {
+//         setSuccessMessage("The password has been updated successfully.");
+//         setErrorMessage("");
+//         setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+
+//         setTimeout(() => setSuccessMessage(""), 4000);
+//       } else {
+//         setErrorMessage(data.message || "An error occurred.");
+//         setSuccessMessage("");
+//       }
+//     } catch (error) {
+//       console.error("Error updating password:", error);
+//       setErrorMessage("We couldn’t process your request at this time. Please try again later.");
+//       setSuccessMessage("");
+//     }
+//   };
+
+//   const getStrength = (password: string) => {
+//     let strength = 0;
+//     if (password.length >= 8) strength += 1;
+//     if (/[A-Z]/.test(password)) strength += 1;
+//     if (/[0-9]/.test(password)) strength += 1;
+//     if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+//     return strength;
+//   };
+>>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
 
 interface VisibilityType {
   old: boolean;
@@ -21,6 +129,12 @@ const PasswordForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const isLoading = useSelector((state: RootState) => state.auth.isLoading);
 
+<<<<<<< HEAD
+=======
+const PasswordForm: React.FC<PasswordFormProps> = ({ user }) => {
+  const dispatch = useAppDispatch(); // Add this line
+  
+>>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
   const [visibility, setVisibility] = useState<VisibilityType>({
     old: false,
     new: false,
@@ -33,6 +147,15 @@ const PasswordForm: React.FC = () => {
     confirmPassword: "",
   });
 
+<<<<<<< HEAD
+=======
+  const [isTouched, setIsTouched] = useState<TouchedType>({
+    old: false,
+    new: false,
+    confirm: false,
+  });
+
+>>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -47,7 +170,11 @@ const PasswordForm: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+<<<<<<< HEAD
     const { newPassword, confirmPassword } = formData;
+=======
+    const { oldPassword, newPassword, confirmPassword } = formData;
+>>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
 
     if (newPassword !== confirmPassword) {
       setErrorMessage("New passwords do not match.");
@@ -56,6 +183,7 @@ const PasswordForm: React.FC = () => {
     }
 
     try {
+<<<<<<< HEAD
       await dispatch(updatePassword({
         oldPassword: formData.oldPassword,
         newPassword: formData.newPassword
@@ -69,6 +197,23 @@ const PasswordForm: React.FC = () => {
     } catch (error) {
       console.error("Error updating password:", error);
       setErrorMessage(error as string || "We couldn't process your request at this time. Please try again later.");
+=======
+      // Use the Redux thunk instead of fetch
+      const resultAction = await dispatch(updatePassword({ oldPassword, newPassword }));
+      
+      if (updatePassword.fulfilled.match(resultAction)) {
+        setSuccessMessage("The password has been updated successfully.");
+        setErrorMessage("");
+        setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        setTimeout(() => setSuccessMessage(""), 4000);
+      } else if (updatePassword.rejected.match(resultAction)) {
+        setErrorMessage(resultAction.payload as string || "An error occurred.");
+        setSuccessMessage("");
+      }
+    } catch (error) {
+      console.error("Error updating password:", error);
+      setErrorMessage("We couldn't process your request at this time. Please try again later.");
+>>>>>>> 398db165a4e5dc277cd3a35b59882f68e4bb13d6
       setSuccessMessage("");
     }
   };
@@ -81,6 +226,9 @@ const PasswordForm: React.FC = () => {
     if (/[^A-Za-z0-9]/.test(password)) strength += 1;
     return strength;
   };
+
+
+
 
   const strength = getStrength(formData.newPassword);
 
