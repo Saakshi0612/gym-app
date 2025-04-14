@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-
+import { useDispatch } from "react-redux";
 import UnifiedUserProfileForm from "../components/userProfile/UnifiedUserProfileForm";
 import PasswordForm from "../components/userProfile/PasswordForm";
 import ProfileFeedbackSection from "../components/userProfile/ProfileFeedbackSection";
 import Sidebar from "../components/userProfile/Sidebar";
-
 import { useAppSelector } from "../store/store";
-
 import { UserRole } from "../types/components/UserProfileSettings.types";
 import { SidebarTab } from "../types/components/sidebar.types";
+import { updateUserProfile } from "../services/authSlice";
 
 type Props = {
   role: UserRole | undefined;
@@ -17,6 +16,7 @@ type Props = {
 
 const DynamicUserProfile: React.FC<Props> = ({ role }) => {
   const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [profileData, setProfileData] = useState<any>(null);
@@ -55,8 +55,10 @@ const DynamicUserProfile: React.FC<Props> = ({ role }) => {
     loadProfileData();
   }, [role, user]);
 
-  // Sync updated profile to localStorage
+  // Sync updated profile to localStorage and Redux
   const handleProfileUpdate = (updatedProfile: any) => {
+    // Dispatch updateUserProfile to update the Redux store
+    dispatch(updateUserProfile(updatedProfile));
     setProfileData(updatedProfile);
     localStorage.setItem(localStorageKey, JSON.stringify(updatedProfile));
   };

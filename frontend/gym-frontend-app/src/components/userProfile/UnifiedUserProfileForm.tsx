@@ -1,14 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux"; // import useDispatch
-import {
-  UserRole,
-  UserProfileData,
-  Certificate,
-  AdminProfileData,
-  CoachProfileData,
-  ClientProfileData,
-  UserProfileFormState,
-} from "../../types/components/UserProfileSettings.types";
+import { useDispatch } from "react-redux";
+import { UserRole, UserProfileData, Certificate, AdminProfileData, CoachProfileData, ClientProfileData, UserProfileFormState } from "../../types/components/UserProfileSettings.types";
 
 import UserProfileHeader from "./shared/UserProfileHeader";
 import TagsField from "./TagsField";
@@ -31,7 +23,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   role,
   profileData,
 }) => {
-  const dispatch = useDispatch(); // Initialize dispatch to update Redux state
+  const dispatch = useDispatch();
 
   const [formState, setFormState] = useState<UserProfileFormState>({
     userData: null,
@@ -44,13 +36,17 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     certificates: [],
     rating: 0,
     preferableActivity: "",
-    targets: "",  // Changed from targetGoal to targets
+    targets: "",
     showSuccess: false,
     saving: false,
   });
 
+  const [showSuccess, setShowSuccess] = useState(false);  // State for controlling the success alert visibility
+
   useEffect(() => {
-    const savedFormState = localStorage.getItem("userProfileFormState");
+    const savedFormState = sessionStorage.getItem("userProfileFormState");
+
+    // Initialize state only once during the first render
     if (savedFormState) {
       setFormState(JSON.parse(savedFormState));
     } else {
@@ -61,8 +57,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         avatarUrl: profileData.avatarUrl,
       };
 
-      setFormState((prev) => ({
-        ...prev,
+      setFormState({
+        ...formState,
         userData,
         firstName: profileData.firstName,
         lastName: profileData.lastName,
@@ -78,9 +74,9 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         rating: role === UserRole.COACH ? (profileData as CoachProfileData).rating : 0,
         preferableActivity:
           role === UserRole.CLIENT ? (profileData as ClientProfileData).preferableActivity : "",
-        targets: // Changed from targetGoal to targets
-          role === UserRole.CLIENT ? (profileData as ClientProfileData).targets : "", 
-      }));
+        targets:
+          role === UserRole.CLIENT ? (profileData as ClientProfileData).targets : "",
+      });
     }
   }, [role, profileData]);
 
@@ -109,26 +105,25 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     try {
       setFormState((prev) => ({ ...prev, saving: true }));
 
-      await new Promise((res) => setTimeout(res, 600)); // Simulate API
+      await new Promise((res) => setTimeout(res, 600));
 
-      toast.success("Changes saved!");
+      const updatedUserData = formState.userData
+        ? {
+            ...formState.userData,
+            name: `${formState.firstName} ${formState.lastName}`,
+          }
+        : null;
 
-      setFormState((prev) => ({
-        ...prev,
+      const updatedFormState: UserProfileFormState = {
+        ...formState,
         saving: false,
         showSuccess: true,
-        userData: prev.userData
-          ? {
-              ...prev.userData,
-              name: `${prev.firstName} ${prev.lastName}`,
-            }
-          : null,
-      }));
+        userData: updatedUserData,
+      };
 
-      // Save form state to localStorage after successful save
-      localStorage.setItem("userProfileFormState", JSON.stringify(formState));
+      setFormState(updatedFormState);
+      sessionStorage.setItem("userProfileFormState", JSON.stringify(updatedFormState));
 
-      // Dispatch the updated formState to Redux to update the global state
       const userPayload = {
         email: formState.userData?.email || "",
         role: formState.userData?.role || UserRole.CLIENT,
@@ -143,13 +138,21 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         preferableActivity: formState.preferableActivity,
         targets: formState.targets,
       };
+
       dispatch(updateUserProfile(userPayload));
+      toast.success("Changes saved!");
+
+      // Store success message in sessionStorage
+      sessionStorage.setItem("profileUpdateSuccess", "true");
+
+      // Set success flag to show success message
+      setShowSuccess(true);
 
       setTimeout(() => {
-        setFormState((prev) => ({ ...prev, showSuccess: false }));
+        setShowSuccess(false);
       }, 4000);
 
-      console.log("🔄 Data saved:", { ...formState });
+      console.log("✅ Data saved:", updatedFormState);
     } catch {
       toast.error("Error saving changes.");
       setFormState((prev) => ({ ...prev, saving: false }));
@@ -161,13 +164,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
   return (
     <>
-      {formState.showSuccess && (
+      {showSuccess && (
         <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
           <SuccessAlert
             message="Your profile has been updated successfully."
-            onClose={() =>
-              setFormState((prev) => ({ ...prev, showSuccess: false }))
-            }
+            onClose={() => setShowSuccess(false)}
           />
         </div>
       )}
@@ -285,12 +286,12 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             </div>
             <div className="mt-6">
               <DynamicSelect
-                label="Target Goals" // Updated to "Target Goals"
+                label="Target Goals"
                 placeholder="Select Goal"
-                options={options.targetOptions} // Ensure this matches the new options data
-                selected={formState.targets} // Updated to match "targets"
+                options={options.targetOptions}
+                selected={formState.targets}
                 onChange={(val) =>
-                  setFormState((prev) => ({ ...prev, targets: val })) // Updated to match "targets"
+                  setFormState((prev) => ({ ...prev, targets: val }))
                 }
               />
             </div>
