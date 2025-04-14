@@ -4,6 +4,9 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import CoachProfilePage from '../pages/user_pages/CoachProfilePages';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from '../services/authSlice';
 
 // Mock the JSON import
 vi.mock('../../assets/JSON/Coaches.json', () => ({
@@ -22,6 +25,17 @@ vi.mock('../../assets/JSON/Coaches.json', () => ({
   }
 }));
 
+// Create a mock store
+const createMockStore = (initialState = { auth: { isAuthenticated: false } }) => {
+  return configureStore({
+    reducer: {
+      auth: authReducer,
+      // Add other reducers as needed
+    },
+    preloadedState: initialState
+  });
+};
+
 describe('CoachProfilePage Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -30,12 +44,15 @@ describe('CoachProfilePage Component', () => {
   });
 
   it('displays loading spinner initially', () => {
+    const store = createMockStore();
     render(
-      <MemoryRouter initialEntries={['/coaches/1']}>
-        <Routes>
-          <Route path="/coaches/:id" element={<CoachProfilePage />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/coaches/1']}>
+          <Routes>
+            <Route path="/coaches/:id" element={<CoachProfilePage />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
     
     // Check for the loading spinner
@@ -44,12 +61,15 @@ describe('CoachProfilePage Component', () => {
   });
 
   it('renders page content after loading', async () => {
+    const store = createMockStore();
     const { container } = render(
-      <MemoryRouter initialEntries={['/coaches/1']}>
-        <Routes>
-          <Route path="/coaches/:id" element={<CoachProfilePage />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/coaches/1']}>
+          <Routes>
+            <Route path="/coaches/:id" element={<CoachProfilePage />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
     
     // Wait for loading to finish
@@ -64,12 +84,15 @@ describe('CoachProfilePage Component', () => {
   });
 
   it('displays error message when coach is not found', async () => {
+    const store = createMockStore();
     render(
-      <MemoryRouter initialEntries={['/coaches/999']}>
-        <Routes>
-          <Route path="/coaches/:id" element={<CoachProfilePage />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/coaches/999']}>
+          <Routes>
+            <Route path="/coaches/:id" element={<CoachProfilePage />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
     
     // Wait for error message to appear
