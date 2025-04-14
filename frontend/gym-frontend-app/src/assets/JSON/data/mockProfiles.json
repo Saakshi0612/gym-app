@@ -1,0 +1,46 @@
+{
+  "admin": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "admin@domain.com",
+    "role": "admin",
+    "avatarUrl": "/images/admin-avatar.jpg",
+    "phoneNumber": "+1234567890",
+    "currentPassword": "admin123"
+  },
+  "coach": {
+    "firstName": "Kristin",
+    "lastName": "Watson",
+    "email": "kristin_watson@nomail.com",
+    "role": "coach",
+    "avatarUrl": "https://randomuser.me/api/portraits/women/68.jpg",
+    "rating": 4.96,
+    "title": "Certified personal yoga trainer",
+    "about": "I have 8 years of experience helping individuals achieve their fitness goals.",
+    "tags": ["Yoga", "Personal workout", "Group workout"],
+    "certificates": [
+      {
+        "name": "Yoga Trainer Certificate",
+        "size": "1.2 MB",
+        "url": "/files/certificate-1.pdf"
+      },
+      {
+        "name": "Advanced Fitness Certificate",
+        "size": "2.0 MB",
+        "url": "/files/certificate-2.pdf"
+      }
+    ],
+    "currentPassword": "coach456"
+  },
+  "client": {
+    "firstName": "Emily",
+    "lastName": "Stone",
+    "email": "user@domain.com",
+    "role": "client",
+    "avatarUrl": "https://randomuser.me/api/portraits/women/44.jpg",
+    "phoneNumber": "+9876543210",
+    "preferableActivity": "Running",
+    "targetGoal": "Lose Weight",
+    "currentPassword": "user789"
+  }
+}

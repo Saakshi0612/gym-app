@@ -1,5 +1,5 @@
 // src/components/form/PasswordInput.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Input from '../common/Input';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 

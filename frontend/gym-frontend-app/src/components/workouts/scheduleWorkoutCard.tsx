@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Calendar } from "lucide-react";
-import CancelWorkoutModal from "./CancelWorkoutPopup";
-import WorkoutFeedbackModal from "./WorkoutFeebackModal";
+import CancelWorkoutModal from "./cancelWorkoutPopup";
+import WorkoutFeedbackModal from "./workoutFeebackModal";
 import Button from "../common/ButtonComponent";
 
 interface Workout {
@@ -11,6 +11,7 @@ interface Workout {
   time: string;
   date: string;
   workout_status: string;
+  imageUrl: string;
 }
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
@@ -39,12 +40,11 @@ export default function ScheduledWorkoutCard({
 }) {
   const currentStyle = statusStyles[workout.workout_status];
   const [isCancelOpen, setIsCancelOpen] = useState(false);
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false); 
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   return (
     <div className="p-5 text-primary-black border rounded-xl shadow-sm bg-white">
       <div className="flex justify-between items-center mb-2">
-        
         <p className="font-semibold text-lg">{workout.type_of_sport}</p>
 
         {currentStyle && (
@@ -104,6 +104,7 @@ export default function ScheduledWorkoutCard({
         workoutType={workout.type_of_sport}
         time={workout.time}
         date={workout.date}
+        imageUrl={workout.imageUrl}
       />
     </div>
   );

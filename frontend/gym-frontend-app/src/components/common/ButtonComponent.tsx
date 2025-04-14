@@ -20,7 +20,7 @@ export default function Button({
   className = '',
   ...props
 }: ButtonProps) {
-  const baseClasses = 'font-semibold py-3 px-4 rounded-md transition-colors';
+  const baseClasses = 'font-semibold py-3 px-4 rounded-md transition-colors cursor-pointer';
   const widthClass = fullWidth ? 'w-full' : '';
  
   // Fix the type issue with variant lookup

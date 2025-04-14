@@ -4,24 +4,22 @@ import Arrow from "../../assets/images/arrow.svg";
 import Underlined from "../../assets/images/fitnessg.svg";
 import DatePickerField from "../common/DatePickerField";
 import dropdownData from "../../assets/JSON/DropdownSelect.json";
-import CoachesData from "../../assets/JSON/Coaches.json";
 import { useWorkoutContext } from "../../context/WorkoutContext";
 import ShowWorkouts from "./showWorkouts";
 import DropdownField from "../common/Selection";
 import Button from "../common/ButtonComponent";
+import axios from "axios";
 
 const MainSection: React.FC = () => {
   const { setFilteredResults, setShowResults, showResults } =
     useWorkoutContext();
 
   const [filters, setFilters] = useState({
-    type: "",
-    time: "",
-    coach: "",
+    type: "All",
+    time: "All",
+    coach: "All",
     date: new Date(), // default value
   });
-
-  console.log(filters);
 
   const handleDropdownChange = (name: string, value: string) => {
     setFilters((prev) => ({
@@ -37,29 +35,34 @@ const MainSection: React.FC = () => {
     }));
   };
 
-  const handleSubmit = () => {
-    // const formattedDate = filters.date.toISOString().split("T")[0];
-    console.log("Data");
+  const handleSubmit = async () => {
+    try {
+      const { coaches } = (await axios.get("./Coaches.json")).data;
 
-    const results = CoachesData.coaches.filter(
-      (session) =>
-        (!filters.type || session.type_of_sport === filters.type) &&
-        // (!filters.time || session.time.includes(filters.time)) &&
-        (!filters.coach || session.name_of_coach === filters.coach)
-      // (!filters.date || session.date === formattedDate)
-    );
+      const formattedDate = filters.date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+      });
 
-    console.log(results);
+      const results = coaches.filter(
+        (session) =>
+          (filters.type === "All" || session.type_of_sport === filters.type) &&
+          (filters.time === "All" || session.time.includes(filters.time)) &&
+          (filters.coach === "All" ||
+            session.name_of_coach === filters.coach) &&
+          (!filters.date || session.date === formattedDate)
+      );
 
-    setFilteredResults(results);
-    setShowResults(true);
+      setFilteredResults(results);
+      setShowResults(true);
+    } catch (error) {
+      console.error("Error filtering coaches:", error);
+    }
   };
 
   return (
     <div>
-      <main>
-        <Header />
-
+      <main>       
         <div className="flex flex-col  lg:text-5xl md:text-4xl sm:text-3xl p-10 gap-4">
           <h1>
             Achieve your{" "}
@@ -80,7 +83,7 @@ const MainSection: React.FC = () => {
         <div className="text-base mt-2 px-4 md:px-10 space-y-5">
           <h2 className="text-gray-800 font-medium">Book workout</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end w-full">
-            <div className="w-full">
+            <div className="w-full z-60">
               <DropdownField
                 label="Type of Sport"
                 options={dropdownData.activityOptions}
@@ -91,14 +94,14 @@ const MainSection: React.FC = () => {
                 value={filters.type}
               />
             </div>
-            <div className="w-full">
+            <div className="w-full z-50">
               <DatePickerField
                 label="Workout Date"
                 value={filters.date}
                 onChange={handleDateChange}
               />
             </div>
-            <div className="w-full">
+            <div className="w-full z-40">
               <DropdownField
                 label="Time"
                 options={dropdownData.timeSlotOptions}
@@ -109,7 +112,7 @@ const MainSection: React.FC = () => {
                 value={filters.time}
               />
             </div>
-            <div className="w-full">
+            <div className="w-full z-30">
               <DropdownField
                 label="Coach"
                 options={dropdownData.coachNameOptions}
