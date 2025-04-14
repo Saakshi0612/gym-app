@@ -1,8 +1,7 @@
 import React, { useRef } from "react";
 import { Camera } from "lucide-react";
 import { StarIcon } from "@heroicons/react/24/solid";
-import { UserProfileHeaderProps,UserRole } from "../../../types/components/UserProfileSettings.types";
-
+import { UserProfileHeaderProps, UserRole } from "../../../types/components/UserProfileSettings.types";
 
 const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
   name,
@@ -32,11 +31,11 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
           <img
             src={avatarUrl}
             alt="Profile"
-            className="w-full h-full object-cover rounded-full border border-neutral-300"
+            className="w-full h-full object-cover rounded-full border border-neutral-400"
           />
           <button
             onClick={handleEditClick}
-            className="absolute bottom-0 right-0 bg-primary-white border border-neutral-300 rounded-full p-0.5 hover:bg-neutral-200 cursor-pointer"
+            className="absolute bottom-0 right-0 bg-primary-white border border-neutral-400 rounded-full p-0.5 hover:bg-neutral-200 cursor-pointer"
           >
             <Camera size={16} className="text-neutral-700" />
           </button>
@@ -54,7 +53,7 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-2">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3 flex-wrap">
-            <h2 className="text-base font-semibold">
+            <h2 className="text-base font-semibold text-primary-black">
               {name} <span className="text-sm text-neutral-500">({role})</span>
             </h2>
             {showRating && (
