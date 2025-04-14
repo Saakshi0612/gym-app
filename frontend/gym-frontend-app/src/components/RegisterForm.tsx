@@ -5,12 +5,11 @@ import { useAppDispatch, useAppSelector } from '../store/store';
 import { registerUser, clearError } from '../services/authSlice';
 import { QuoteSidebar } from "./common/QuoteBanner";
 import Input from "./common/Input";
-
 import AuthFooter from './auth/AuthFooter';
 import { RegistrationFormData } from "../types";
 import DropdownField from "./common/Selection";
-
 import SystemAlert from './SystemAlert';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import AuthLayout from "./layout/authLayout";
 
 
@@ -25,25 +24,24 @@ const TARGET_OPTIONS = [
 
 const ACTIVITY_OPTIONS = [
   { value: "yoga", label: "Yoga" },
-  { value: "weight-training", label: "Weight Training" },
-  { value: "cardio", label: "Cardio" },
-  { value: "pilates", label: "Pilates" },
+  { value: "climbing", label: "Climbing" },
+  { value: "strength training", label: "Strength training" },
   { value: "crossfit", label: "CrossFit" },
-  { value: "swimming", label: "Swimming" },
-  { value: "cycling", label: "Cycling" },
+  { value: "cardio Training", label: "Cardio Training" },
+  { value: "rehabilitation", label: "rehabilitation" },
 ];
 
-const TickSVG = () => (
-  <svg
-    className="inline absolute right-4 w-4 h-4 text-grey-500 float-right"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="3"
-    viewBox="0 0 24 24"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-  </svg>
-);
+// const TickSVG = () => (
+//   <svg
+//     className="inline absolute right-4 w-4 h-4 text-grey-500 float-right"
+//     fill="none"
+//     stroke="currentColor"
+//     strokeWidth="3"
+//     viewBox="0 0 24 24"
+//   >
+//     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+//   </svg>
+// );
 
 const RegistrationForm: React.FC = () => {
   const {
@@ -53,6 +51,7 @@ const RegistrationForm: React.FC = () => {
     setValue,
     trigger,
     watch,
+    reset,
   } = useForm<RegistrationFormData>({
     mode: "onTouched",
     defaultValues: {
@@ -66,6 +65,7 @@ const RegistrationForm: React.FC = () => {
   const { isLoading, error } = useAppSelector((state) => state.auth);
   const [showErrorAlert, setShowErrorAlert] = useState(true);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const targets = watch("targets");
   const preferableActivity = watch("preferableActivity");
 
@@ -75,41 +75,54 @@ const RegistrationForm: React.FC = () => {
 
     if (!isTargetValid || !isActivityValid) return;
 
-    const resultAction = await dispatch(registerUser(data));
+    const { targets, preferableActivity, ...rest } = data;
+    const payload = {
+      ...rest,
+      target: targets,
+      activity: preferableActivity,
+    };
+
+    const resultAction = await dispatch(registerUser(payload));
     if (registerUser.fulfilled.match(resultAction)) {
       setShowSuccessAlert(true);
-      reset(); // clear form fields
-    
-      // 👇 Navigate to login after short delay
+      reset();
+
       setTimeout(() => {
         setShowSuccessAlert(false);
         navigate("/login");
-      }, 2500); // Wait 2s before redirect
+      }, 2500);
     } else {
       setShowErrorAlert(true);
     }
   };
-   // Auto-dismiss error alert
+
   useEffect(() => {
     if (error && showErrorAlert) {
       const timer = setTimeout(() => {
         setShowErrorAlert(false);
         dispatch(clearError());
-      }, 5000);
+      }, 2500);
       return () => clearTimeout(timer);
     }
   }, [error, showErrorAlert, dispatch]);
 
-  // Auto-dismiss success alert
   useEffect(() => {
     if (showSuccessAlert) {
       const timer = setTimeout(() => {
         setShowSuccessAlert(false);
-        navigate('/login')
+        navigate('/login');
       }, 2000);
       return () => clearTimeout(timer);
     }
   }, [showSuccessAlert, navigate]);
+ const passwordToggleIcon = (
+    <div
+      onClick={() => setShowPassword(prev => !prev)}
+      className="cursor-pointer text-lg"
+    >
+      {showPassword ? <FaEyeSlash /> : <FaEye />}
+    </div>
+  );
   return (
     <AuthLayout
       sidebar={<QuoteSidebar />}
@@ -178,7 +191,7 @@ const RegistrationForm: React.FC = () => {
           <Input
             label="Password"
             name="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             placeholder="Enter your password"
             register={register("password", {
               required: "Password is required",
@@ -190,51 +203,57 @@ const RegistrationForm: React.FC = () => {
             })}
             error={errors.password?.message}
             helpText="At least one capital letter required"
+            rightElement={passwordToggleIcon}
           />
 
-          <div className="relative z-20">
-            <DropdownField
-              label="Your Target"
-              name="targets"
-              options={TARGET_OPTIONS.map(opt => ({
-                ...opt,
-                label: (
-                  <span className="flex justify-between items-center">
-                    {opt.label}
-                    {opt.value === targets && <TickSVG />}
-                  </span>
-                )
-              }))}
-              value={targets}
-              onChange={(val) => {
-                setValue("targets", val, { shouldValidate: true });
-                trigger("targets");
-              }}
-              error={errors.targets?.message}
-            />
-          </div>
+<div className="relative z-20">
+  <DropdownField
+    label="Your Target"
+    name="targets"
+    options={TARGET_OPTIONS.map((opt) => ({
+      value: opt.value,
+      label: (
+        <span className="flex justify-between items-center">
+          {opt.label}
+          {opt.value === targets }
+        </span>
+      ) as unknown as string, // 👈 Type-safe fix
+    }))}
+    value={targets}
+    onChange={(val) => {
+      setValue("targets", val, { shouldValidate: true });
+      trigger("targets");
+    }}
+    error={errors.targets?.message}
+  />
+</div>
 
-          <div className="relative z-10">
-            <DropdownField
-              label="Preferable Activity"
-              name="preferableActivity"
-              options={ACTIVITY_OPTIONS.map(opt => ({
-                ...opt,
-                label: (
-                  <span className="flex justify-between items-center">
-                    {opt.label}
-                    {opt.value === preferableActivity && <TickSVG />}
-                  </span>
-                )
-              }))}
-              value={preferableActivity}
-              onChange={(val) => {
-                setValue("preferableActivity", val, { shouldValidate: true });
-                trigger("preferableActivity");
-              }}
-              error={errors.preferableActivity?.message}
-            />
-          </div>
+<div className="relative z-10">
+  <DropdownField
+    label="Preferable Activity"
+    name="preferableActivity"
+    options={ACTIVITY_OPTIONS.map((opt) => ({
+      value: opt.value,
+      label: (
+        <div
+          className="flex justify-between items-center"
+          style={{ maxHeight: "400px", overflowY: "auto" }}
+        >
+          {opt.label}
+          {opt.value === preferableActivity}
+        </div>
+      ) as unknown as string,
+    }))}
+    value={preferableActivity}
+    onChange={(val) => {
+      setValue("preferableActivity", val, { shouldValidate: true });
+      trigger("preferableActivity");
+    }}
+    error={errors.preferableActivity?.message}
+  />
+</div>
+
+
 
           <button
             type="submit"
