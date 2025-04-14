@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
-import { UseFormRegister } from "react-hook-form";
+import { UseFormRegisterReturn } from "react-hook-form";
 import dropdownIcon from "../../assets/images/dropdown.svg";
 
 interface DropdownFieldProps {
   label: string;
   name: string;
   options: { value: string; label: string }[];
-  register?: ReturnType<UseFormRegister<any>>;
+  register?: UseFormRegisterReturn;
   error?: string;
-  onChange: (name: string) => void;
+  onChange: (val: string) => void;
   value: string;
 }
 
@@ -22,12 +22,9 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   value,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState("");
-  const [selectedLabel, setSelectedLabel] = useState("");
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleSelection = (optionValue: string, optionLabel: string) => {
+  const handleSelection = (optionValue: string) => {
     onChange(optionValue);
     setIsDropdownOpen(false);
   };
@@ -48,7 +45,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   }, []);
 
   return (
-    <div className="relative z-20" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef}>
       <fieldset className="border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white">
         <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px] ml-1 px-1 bg-white text-[#4B5563]">
           {label}
@@ -56,13 +53,15 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
         <div className="relative">
           <button
             type="button"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
             className="w-full p-2 pt-0 rounded bg-white flex justify-between items-center font-light"
+            aria-haspopup="listbox"
+            aria-expanded={isDropdownOpen}
           >
             {value || `Select ${label}`}
             <img
               src={dropdownIcon}
-              alt="Dropdown Icon"
+              alt="Toggle Dropdown"
               className={`w-5 h-5 transition-transform duration-100 ${
                 isDropdownOpen ? "rotate-180" : ""
               }`}
@@ -72,23 +71,28 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
           <input
             type="hidden"
             name={name}
-            value={selectedValue}
-            {...(register && register)}
+            value={value}
+            {...register}
           />
 
           {isDropdownOpen && (
-            <ul className="absolute w-full font-lexend bg-white border border-gray-200 rounded shadow-lg mt-1 z-10 max-h-60 overflow-y-auto">
-              {options.map(({ value, label: optionLabel }) => (
+            <ul
+              className="absolute w-full font-lexend bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-60 overflow-y-auto z-10"
+              role="listbox"
+            >
+              {options.map(({ value: optionValue, label: optionLabel }) => (
                 <li
-                  key={value}
+                  key={optionValue}
                   className="p-2 cursor-pointer hover:bg-[#F6FFE5] transition flex justify-between items-center"
-                  onClick={() => handleSelection(value, optionLabel)}
+                  onClick={() => handleSelection(optionValue)}
+                  role="option"
+                  aria-selected={value === optionValue}
                 >
                   <span>{optionLabel}</span>
-                  {value === selectedValue && (
+                  {value === optionValue && (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-green-500"
+                      className="h-4 w-4 text-gray-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

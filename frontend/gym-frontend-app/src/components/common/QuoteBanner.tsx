@@ -2,13 +2,13 @@ import img from "../../assets/sidebar.png"
 // src/components/common/QuoteBanner.tsx
 export const QuoteSidebar = () => {
     return (
-      <div className="relative h-[90vh] hidden lg:block lg:w-[45%] mt-[20px] p-[4px] rounded-md ">
+      <div className="relative h-[90vh] hidden lg:block lg:w-[45%] my-auto  rounded-md ">
        
         <div className="absolute inset-0">
           <img
             src= {img} // Replace with actual image path
             alt="Background"
-            className="h-full w-full object-cover rounded-2xl"
+            className="h-full w-full object-cover  rounded-2xl"
           />
           <div className="absolute inset-0 /30" /> {/* Overlay */}
         </div>

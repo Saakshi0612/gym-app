@@ -1,7 +1,5 @@
-// src/components/layout/AuthLayout.tsx
 import React from 'react';
 import { AuthLayoutProps } from '../../types';
-
 
 export default function AuthLayout({ children, sidebar, systemError }: AuthLayoutProps) {
   return (

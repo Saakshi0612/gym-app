@@ -9,7 +9,7 @@ import { SidebarTab } from "../types/components/sidebar.types";
 import { useAppSelector } from "../store/store";
 
 type Props = {
-  role: 'client' | 'coach' | 'admin' | undefined;
+  role: 'client'|'coach'|'admin'|undefined;
 };
 
 const DynamicUserProfile: React.FC<Props> = ({ role }) => {

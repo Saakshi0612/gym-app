@@ -1,12 +1,6 @@
 // src/App.tsx
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-  Outlet,
-} from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 
 import RegisterForm from "./components/RegisterForm";
 import LoginForm from "./components/LoginForm";
@@ -15,20 +9,28 @@ import CoachesPage from "./pages/user_pages/Coaches";
 import CoachProfilePage from "./pages/user_pages/CoachProfilePages";
 import MainSection from "./components/homepage/Mainsection";
 import ScheduledWorkoutPage from "./components/workouts/scheduledWorkoutPage";
+import Header from "./components/common/Header";
 import DynamicUserProfile from "./pages/UserProfile";
-
-
 
 // Protected route component using Outlet
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };
-
+  
+  
 // Main app content
 function AppContent() {
+  const { user} = useAppSelector(
+    (state) => state.auth
+  );
+  const role :'coach'|'client'| 'admin' | undefined= user?.role;
+  const location = useLocation();
+  const hideHeaderRoutes = ["/login", "/register"];
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
   return (
-    <Router>
+    <>
+      {!shouldHideHeader && <Header />}
       <Routes>
         <Route path="/" element={<MainSection />} />
         <Route path="/register" element={<RegisterForm />} />
@@ -36,17 +38,20 @@ function AppContent() {
         <Route path="/coaches" element={<CoachesPage />} />
         <Route path="/coaches/:id" element={<CoachProfilePage />} />
         <Route path="/workout" element={<ScheduledWorkoutPage />} />
-        <Route path="/my_account" element={<DynamicUserProfile role = {"coach"}/>} />
+     
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<MainSection />} />
+          <Route
+          path="/account"
+          element={<DynamicUserProfile role= {role} />}
+        />
           {/* Add other protected routes here as needed */}
         </Route>
       </Routes>
-    </Router>
+    </>
   );
 }
 
 export default AppContent;
-
