@@ -23,12 +23,19 @@ const CoachProfilePage: React.FC = () => {
   const [coach, setCoach] = useState<Coach | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date(2024, 6, 3)); // July 3, 2024
+  
+  // Set default date to today
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  // Track if user has actively selected a date
+  const [dateSelected, setDateSelected] = useState<boolean>(false);
+  
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [showConfirmCard, setShowConfirmCard] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('success');
   
   // Get authentication state from Redux
   const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -79,8 +86,27 @@ const CoachProfilePage: React.FC = () => {
   };
 
   const handleBookWorkoutClick = () => {
+    // Check if user has selected a date
+    if (!dateSelected) {
+      setAlertType('error');
+      setAlertMessage("Please select a date for your workout.");
+      setShowAlert(true);
+      
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 5000);
+      return;
+    }
+    
+    // Check if user has selected a time slot
     if (!selectedTimeSlot) {
-      alert("Please select a time slot before booking.");
+      setAlertType('error');
+      setAlertMessage("Please select a time slot before booking.");
+      setShowAlert(true);
+      
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 5000);
       return;
     }
     
@@ -97,6 +123,7 @@ const CoachProfilePage: React.FC = () => {
     setShowConfirmCard(false);
     
     // Show success alert
+    setAlertType('success');
     setAlertMessage(`Your workout with ${coach?.name_of_coach} has been booked successfully!`);
     setShowAlert(true);
     
@@ -132,10 +159,10 @@ const CoachProfilePage: React.FC = () => {
 
   return (
     <div className="p-4 min-h-screen bg-gray-50">
-      {/* Success Alert */}
+      {/* Alert Component */}
       {showAlert && (
         <SystemAlert 
-          type="success" 
+          type={alertType}
           message={alertMessage} 
           onDismiss={() => setShowAlert(false)} 
         />
@@ -185,6 +212,7 @@ const CoachProfilePage: React.FC = () => {
                 onTimeSlotSelect={handleTimeSlotSelect}
                 onDateChange={(date) => {
                   setSelectedDate(date);
+                  setDateSelected(true); // Mark that user has selected a date
                   console.log(`Date changed to: ${date.toDateString()}`);
                 }}
               />
