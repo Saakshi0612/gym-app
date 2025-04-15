@@ -21,7 +21,7 @@ const Input: React.FC<InputProps> = ({
         {label && (
           <label
             htmlFor={name}
-            className="absolute -top-2.5 left-3 px-1 bg-white text-sm font-lexend text-neutral-700"
+            className="absolute -top-2 left-3 px-1 bg-white text-[13px] font-lexend text-neutral-700"
           >
             {label}
           </label>
@@ -38,7 +38,7 @@ const Input: React.FC<InputProps> = ({
           } ${
             rightElement ? 'pr-11' : ''
           } focus:outline-none focus:ring-1 focus:ring-neutral-400 focus:border-gray-300
-          placeholder:text-neutral-600 text-gray-700 bg-white ${className}`}
+          placeholder:text-neutral-550 text-gray-700 bg-white text-[14px] ${className}`}
           {...rest}
         />
  
@@ -50,9 +50,9 @@ const Input: React.FC<InputProps> = ({
       </div>
  
       {error ? (
-        <p className="text-sm text-red-500 mt-1">{error}</p>
+        <p className="text-xs text-red-500 mt-1">{error}</p>
       ) : helpText ? (
-        <p className="text-sm text-neutral-600 mt-1 font-lexend">{helpText}</p>
+        <p className="text-xs text-neutral-600 mt-1 font-lexend ">{helpText}</p>
       ) : null}
     </div>
   );

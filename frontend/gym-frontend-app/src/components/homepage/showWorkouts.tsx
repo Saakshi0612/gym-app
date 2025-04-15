@@ -1,4 +1,3 @@
-// import React from "react";
 import { useWorkoutContext } from "../../context/WorkoutContext";
 import ShowError from "./searchError";
 import ShowCochesCard from "./showCoachCard";
