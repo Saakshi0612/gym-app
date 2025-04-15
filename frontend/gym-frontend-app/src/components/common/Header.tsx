@@ -2,19 +2,22 @@ import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
 import { RiFlashlightFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import BackgroundHeader from "../../assets/Base.jpg";
 import Button from "./ButtonComponent";
 import { useAppSelector } from "../../store/store";
+import { logout } from "../../services/authSlice";
 
 import notification from "../../assets/images/notification.svg";
 import profile from "../../assets/images/profile.svg";
-import accountIcon from "../../assets/images/account.svg"; // Make sure you have this icon
+import accountIcon from "../../assets/images/account.svg";
 import { useHeaderProps } from "../../helpers/UseHeaderProps";
 import UserNavigation from "./Profilepop";
 
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const { user, isAuthenticated, isLoading } = useAppSelector(
     (state) => state.auth
@@ -48,9 +51,8 @@ const Header: React.FC = () => {
   );
 
   const handleLogout = () => {
-    // Implement your logout logic here
-    // For example: dispatch(logout());
-    navigate("/login");
+    dispatch(logout());
+    navigate("/");
   };
 
   const handleAccountClick = () => {
@@ -82,7 +84,10 @@ const Header: React.FC = () => {
       
       <div className="flex items-center gap-2 py-2">
         <img src={notification} alt="Notifications" className="w-6 h-6" />
-        <div className="text-sm font-medium">Notifications</div>
+        <div>
+          <div className="text-sm font-medium">Notifications</div>
+          <div className="text-xs text-neutral-500">View your notifications</div>
+        </div>
       </div>
       
       <Button
@@ -167,14 +172,14 @@ const Header: React.FC = () => {
       {/* Overlay */}
       {menuOpen && (
         <div
-          className="fixed inset-0 bg-transparent backdrop-blur-sm z-20 md:hidden"
+          className="fixed inset-0 bg-transparent backdrop-blur-sm z-70 md:hidden"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white/80 backdrop-blur-xs shadow-lg p-6 transform transition-transform duration-300 z-30 ${
+        className={`fixed top-0 right-0 h-full w-64 bg-white/80 backdrop-blur-xs shadow-lg p-6 transform transition-transform duration-300 z-70 ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -184,7 +189,7 @@ const Header: React.FC = () => {
             ✕
           </button>
         </div>
-        
+
         <ul className="flex flex-col gap-4 text-lg">
           {navItems.map(({ label, path }) => (
             <li key={label}>
@@ -200,26 +205,7 @@ const Header: React.FC = () => {
           ))}
         </ul>
 
-        <div className="mt-6">
-          {!isAuthenticated ? (
-            <div className="flex flex-col gap-2">
-              <Button variant="secondary" onClick={() => {
-                onLoginClick();
-                setMenuOpen(false);
-              }}>
-                Log In
-              </Button>
-              <Button variant="secondary" onClick={() => {
-                onSignUpClick();
-                setMenuOpen(false);
-              }}>
-                Sign Up
-              </Button>
-            </div>
-          ) : (
-            <MobileUserMenu />
-          )}
-        </div>
+        {isAuthenticated && <MobileUserMenu />}
       </div>
     </>
   );

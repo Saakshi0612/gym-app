@@ -32,7 +32,6 @@ export default function LoginForm() {
     const resultAction = await dispatch(loginUser({ email, password }));
 
     if (loginUser.fulfilled.match(resultAction)) {
-      localStorage.setItem('user', JSON.stringify(resultAction.payload));
       setShowLoginSuccess(true);
     } else {
       setShowErrorAlert(true);
@@ -92,7 +91,7 @@ export default function LoginForm() {
         </>
       }
     >
-      <div className="max-w-md mx-auto w-full py-4">
+     <div className="max-w-md mx-auto w-full py-4">
         <h2 className="text-gray-700 mb-1 uppercase text-xs font-lexend">WELCOME BACK</h2>
         <h1 className="text-2xl font-lexend mb-6">Log In to Your Account</h1>
 
@@ -135,6 +134,7 @@ export default function LoginForm() {
           linkUrl="/register"
         />
       </div>
+
     </AuthLayout>
   );
 }

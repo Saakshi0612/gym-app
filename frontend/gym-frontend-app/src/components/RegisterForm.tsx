@@ -5,13 +5,12 @@ import { useAppDispatch, useAppSelector } from '../store/store';
 import { registerUser, clearError } from '../services/authSlice';
 import { QuoteSidebar } from "./common/QuoteBanner";
 import Input from "./common/Input";
-import AuthFooter from './auth/AuthFooter';
 import { RegistrationFormData } from "../types";
 import Dropdown from "./DropdownWrapper";
 import SystemAlert from './SystemAlert';
 
 import AuthLayout from "./layout/authLayout";
-
+import AuthFooter from "./auth/AuthFooter";
 
 const TARGET_OPTIONS = [
   { value: "lose-weight", label: "Lose Weight" },
@@ -254,23 +253,23 @@ const RegistrationForm: React.FC = () => {
   
 
 
-          <button
-            type="submit"
-            className="w-full bg-[#9EF300] hover:bg-lime-500 text-black font-medium py-3 rounded-md focus:outline-none"
-            disabled={isLoading}
-          >
-            {isLoading ? "Creating Account..." : "Create An Account"}
-          </button>
-        </form>
+        <button
+          type="submit"
+          className="w-full bg-[#9EF300] hover:bg-lime-500 text-black font-medium py-3 rounded-md focus:outline-none"
+          disabled={isLoading}
+        >
+          {isLoading ? "Creating Account..." : "Create An Account"}
+        </button>
+      </form>
 
-        <AuthFooter
-          message="Already have an account?"
-          linkText="LOGIN HERE"
-          linkUrl="/login"
-        />
-      </div>
-    </AuthLayout>
-  );
+      <AuthFooter
+        message="Already have an account?"
+        linkText="LOGIN HERE"
+        linkUrl="/login"
+      />
+    </div>
+  </AuthLayout>
+);
 };
 
 export default RegistrationForm;

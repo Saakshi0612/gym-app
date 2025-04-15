@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import {
   UserRole,
   UserProfileData,
@@ -18,7 +19,9 @@ import LabeledInput from "./shared/LabeledInput";
 import DynamicSelect from "./DynamicSelect";
 import { toast } from "sonner";
 
-import options from "../../assets/JSON/data/options.json";
+import options from "../../assets/JSON/DropdownSelect.json";
+import { updateUserProfile } from "../../services/authSlice";
+import { User } from "../../types/auth.types";
 
 interface UnifiedUserProfileFormProps {
   role: UserRole;
@@ -29,6 +32,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   role,
   profileData,
 }) => {
+  const dispatch = useDispatch();
+
   const [formState, setFormState] = useState<UserProfileFormState>({
     userData: null,
     firstName: "",
@@ -40,7 +45,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     certificates: [],
     rating: 0,
     preferableActivity: "",
-    targetGoal: "",
+    targets: "",
     showSuccess: false,
     saving: false,
   });
@@ -53,8 +58,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       avatarUrl: profileData.avatarUrl,
     };
 
-    setFormState((prev) => ({
-      ...prev,
+    setFormState({
+      ...formState,
       userData,
       firstName: profileData.firstName,
       lastName: profileData.lastName,
@@ -70,9 +75,9 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       rating: role === UserRole.COACH ? (profileData as CoachProfileData).rating : 0,
       preferableActivity:
         role === UserRole.CLIENT ? (profileData as ClientProfileData).preferableActivity : "",
-      targetGoal:
-        role === UserRole.CLIENT ? (profileData as ClientProfileData).targetGoal : "",
-    }));
+      targets:
+        role === UserRole.CLIENT ? (profileData as ClientProfileData).targets : "",
+    });
   }, [role, profileData]);
 
   const handleDrop = (files: FileList | null) => {
@@ -100,27 +105,48 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     try {
       setFormState((prev) => ({ ...prev, saving: true }));
 
-      await new Promise((res) => setTimeout(res, 600)); // Simulate API
+      await new Promise((res) => setTimeout(res, 600));
 
-      toast.success("Changes saved!");
+      const updatedUserData = formState.userData
+        ? {
+            ...formState.userData,
+            name: `${formState.firstName} ${formState.lastName}`,
+          }
+        : null;
 
-      setFormState((prev) => ({
-        ...prev,
+      const updatedFormState: UserProfileFormState = {
+        ...formState,
         saving: false,
         showSuccess: true,
-        userData: prev.userData
-          ? {
-              ...prev.userData,
-              name: `${prev.firstName} ${prev.lastName}`,
-            }
-          : null,
-      }));
+        userData: updatedUserData,
+      };
+
+      setFormState(updatedFormState);
+
+      const userPayload: User = {
+        email: formState.userData?.email || "",
+        firstName: formState.firstName,
+        lastName: formState.lastName,
+        role: formState.userData?.role || UserRole.CLIENT,
+        phoneNumber: formState.phoneNumber,
+        title: formState.title,
+        about: formState.about,
+        tags: formState.tags,
+        certificates: formState.certificates,
+        rating: formState.rating,
+        preferableActivity: formState.preferableActivity,
+        target: formState.targets,
+        avatarUrl: formState.userData?.avatarUrl || "",
+      };
+
+      dispatch(updateUserProfile(userPayload));
+      toast.success("Changes saved!");
 
       setTimeout(() => {
         setFormState((prev) => ({ ...prev, showSuccess: false }));
       }, 4000);
 
-      console.log("🔄 Data saved:", { ...formState });
+      console.log("✅ Data saved:", updatedFormState);
     } catch {
       toast.error("Error saving changes.");
       setFormState((prev) => ({ ...prev, saving: false }));
@@ -143,7 +169,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 w-full">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 w-full bg-primary-white rounded-lg">
         <UserProfileHeader
           {...formState.userData}
           onFileSelect={(file) => console.log("Selected file:", file)}
@@ -244,7 +270,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
               <DynamicSelect
                 label="Preferable Activity"
                 placeholder="Select Activity"
-                options={options.activities}
+                options={options.activityOptions}
                 selected={formState.preferableActivity}
                 onChange={(val) =>
                   setFormState((prev) => ({
@@ -256,12 +282,12 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             </div>
             <div className="mt-6">
               <DynamicSelect
-                label="Target Goal"
+                label="Target Goals"
                 placeholder="Select Goal"
-                options={options.goals}
-                selected={formState.targetGoal}
+                options={options.targetOptions}
+                selected={formState.targets}
                 onChange={(val) =>
-                  setFormState((prev) => ({ ...prev, targetGoal: val }))
+                  setFormState((prev) => ({ ...prev, targets: val }))
                 }
               />
             </div>
