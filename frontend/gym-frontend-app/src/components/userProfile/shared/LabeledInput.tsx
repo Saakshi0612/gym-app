@@ -46,6 +46,14 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
     }
   };
 
+  const handleBlur = () => {
+    // Perform validation on blur if a validation function is provided
+    if (validation) {
+      const errorMessage = validation(value);
+      setError(errorMessage);
+    }
+  };
+
   return (
     <div className="relative w-full mt-4">
       {/* Top floating label */}
@@ -63,6 +71,7 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
           rows={rows}
           value={value}
           onChange={handleChange}
+          onBlur={handleBlur}
           className={textAreaStyles}
         />
       ) : (
@@ -71,6 +80,7 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
           type="text"
           value={value}
           onChange={handleChange}
+          onBlur={handleBlur}
           className={inputStyles}
         />
       )}
@@ -84,7 +94,26 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
       )}
 
       {/* Display error message if validation fails */}
-      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+      {error && (
+        <div className="mt-1">
+          <p className="text-red-600 text-xs">{error}</p>
+          {error === "Name can only contain letters, spaces, and hyphens" && (
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Example: "John Smith" or "Jean-Pierre"
+            </p>
+          )}
+          {error === "Name cannot contain consecutive spaces or hyphens" && (
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Example: "John Smith" (not "John  Smith" or "Jean--Pierre")
+            </p>
+          )}
+          {error === "Name cannot start or end with a space or hyphen" && (
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Example: "John Smith" (not " John Smith" or "John Smith ")
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

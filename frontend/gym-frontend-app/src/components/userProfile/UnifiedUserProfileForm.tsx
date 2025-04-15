@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import options from "../../assets/JSON/DropdownSelect.json";
 import { updateUserProfile } from "../../services/authSlice";
 import { User } from "../../types/auth.types";
+import { validateName } from '../../utils/validation';
 
 interface UnifiedUserProfileFormProps {
   role: UserRole;
@@ -109,6 +110,20 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
   const handleSave = async () => {
     try {
+      // Validate first name before saving
+      const firstNameError = validateName(formState.firstName);
+      if (firstNameError) {
+        toast.error(firstNameError);
+        return;
+      }
+
+      // Validate last name before saving
+      const lastNameError = validateName(formState.lastName);
+      if (lastNameError) {
+        toast.error(lastNameError);
+        return;
+      }
+
       setFormState((prev) => ({ ...prev, saving: true }));
 
       await new Promise((res) => setTimeout(res, 600));
@@ -193,6 +208,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             onChange={(val) =>
               setFormState((prev) => ({ ...prev, firstName: val }))
             }
+            validation={validateName}
           />
           <LabeledInput
             id="lastName"
@@ -202,6 +218,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             onChange={(val) =>
               setFormState((prev) => ({ ...prev, lastName: val }))
             }
+            validation={validateName}
           />
         </div>
 

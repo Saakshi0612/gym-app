@@ -1,15 +1,26 @@
-export const validateName = (name: string): { isValid: boolean; error?: string } => {
-  const nameRegex = /^[a-zA-Z\s]{2,50}$/;
-  if (!name) {
-    return { isValid: false, error: "Name is required." };
+export const validateName = (value: string): string | null => {
+  // Check if the name contains only letters, spaces, and hyphens
+  const nameRegex = /^[A-Za-z\s-]{2,50}$/;
+  
+  if (!value) {
+    return "Name is required";
   }
-  if (!nameRegex.test(name)) {
-    return { 
-      isValid: false, 
-      error: "Please enter a valid name. Only alphabetic characters and spaces are allowed." 
-    };
+  
+  if (!nameRegex.test(value)) {
+    return "Name can only contain letters, spaces, and hyphens";
   }
-  return { isValid: true };
+  
+  // Check for consecutive spaces or hyphens
+  if (/\s{2,}|-{2,}/.test(value)) {
+    return "Name cannot contain consecutive spaces or hyphens";
+  }
+  
+  // Check if name starts or ends with space or hyphen
+  if (/^[\s-]|[\s-]$/.test(value)) {
+    return "Name cannot start or end with a space or hyphen";
+  }
+  
+  return null;
 };
 
 export const validateEmail = (email: string): { isValid: boolean; error?: string } => {

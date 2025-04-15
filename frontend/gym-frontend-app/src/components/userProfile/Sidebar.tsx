@@ -31,8 +31,14 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const handleLogout = () => {
+    // Clear any stored profile drafts
+    localStorage.removeItem('gym_app_profile_draft');
+    
+    // Dispatch logout action to clear auth state
     dispatch(logout());
-    navigate("/");
+    
+    // Redirect to login page
+    navigate("/login");
   };
 
   return (
@@ -57,6 +63,14 @@ const Sidebar: React.FC<SidebarProps> = ({
               )}
             </button>
           ))}
+          
+          {/* Log Out Button - Mobile Only */}
+          <button
+            onClick={handleLogout}
+            className="ml-auto text-xs px-3 py-2.5 whitespace-nowrap text-red-600 font-medium"
+          >
+            Log Out
+          </button>
         </div>
       </div>
 
