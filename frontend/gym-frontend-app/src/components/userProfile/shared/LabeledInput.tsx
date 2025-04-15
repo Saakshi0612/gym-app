@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 
 interface LabeledInputProps {
   id: string;
@@ -9,8 +9,34 @@ interface LabeledInputProps {
   type?: "input" | "textarea";
   hint?: string;
   rows?: number;
-  validation?: (value: string) => string | null; // Add validation function
+  validation?: (value: string) => string | null;
 }
+
+// Memoized error message component to prevent unnecessary re-renders
+const ErrorMessage = memo(({ error }: { error: string }) => {
+  return (
+    <div className="mt-1">
+      <p className="text-red-600 text-xs">{error}</p>
+      {error === "Name can only contain letters, spaces, and hyphens" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Example: "John Smith" or "Jean-Pierre"
+        </p>
+      )}
+      {error === "Name cannot contain consecutive spaces or hyphens" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Example: "John Smith" (not "John  Smith" or "Jean--Pierre")
+        </p>
+      )}
+      {error === "Name cannot start or end with a space or hyphen" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Example: "John Smith" (not " John Smith" or "John Smith ")
+        </p>
+      )}
+    </div>
+  );
+});
+
+ErrorMessage.displayName = 'ErrorMessage';
 
 const LabeledInput: React.FC<LabeledInputProps> = ({
   id,
@@ -25,34 +51,38 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
 
-  const sharedClassNames =
-    "w-full border border-[var(--color-neutral-400)] rounded-md px-3 text-body text-[0.875rem] focus:outline-none h-16";
+  // Pre-compute styles based on error state
+  const inputStyles = `w-full border rounded-md px-3 text-body text-[0.875rem] focus:outline-none h-16 ${
+    error 
+      ? "border-red-500 focus:ring-2 focus:ring-red-500" 
+      : "border-[var(--color-neutral-400)] focus:ring-2 focus:ring-[var(--color-semantic-blue)]"
+  }`;
 
-  const inputStyles =
-    sharedClassNames + " focus:ring-2 focus:ring-[var(--color-semantic-blue)]";
+  const textAreaStyles = `w-full border rounded-md px-3 text-body text-[0.875rem] focus:outline-none h-16 resize-none pt-3 pb-2 ${
+    error 
+      ? "border-red-500 focus:ring-2 focus:ring-red-500" 
+      : "border-[var(--color-neutral-400)] focus:ring-2 focus:ring-[var(--color-primary-green)]"
+  }`;
 
-  const textAreaStyles =
-    sharedClassNames +
-    " resize-none pt-3 pb-2 focus:ring-2 focus:ring-[var(--color-primary-green)]";
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
 
     // Perform validation if a validation function is provided
     if (validation) {
       const errorMessage = validation(newValue);
-      setError(errorMessage); // Set error message
+      setError(errorMessage);
     }
-  };
+  }, [onChange, validation]);
 
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     // Perform validation on blur if a validation function is provided
     if (validation) {
       const errorMessage = validation(value);
       setError(errorMessage);
     }
-  };
+  }, [validation, value]);
 
   return (
     <div className="relative w-full mt-4">
@@ -94,28 +124,10 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
       )}
 
       {/* Display error message if validation fails */}
-      {error && (
-        <div className="mt-1">
-          <p className="text-red-600 text-xs">{error}</p>
-          {error === "Name can only contain letters, spaces, and hyphens" && (
-            <p className="text-xs text-neutral-500 mt-0.5">
-              Example: "John Smith" or "Jean-Pierre"
-            </p>
-          )}
-          {error === "Name cannot contain consecutive spaces or hyphens" && (
-            <p className="text-xs text-neutral-500 mt-0.5">
-              Example: "John Smith" (not "John  Smith" or "Jean--Pierre")
-            </p>
-          )}
-          {error === "Name cannot start or end with a space or hyphen" && (
-            <p className="text-xs text-neutral-500 mt-0.5">
-              Example: "John Smith" (not " John Smith" or "John Smith ")
-            </p>
-          )}
-        </div>
-      )}
+      {error && <ErrorMessage error={error} />}
     </div>
   );
 };
 
-export default LabeledInput;
+// Memoize the entire component to prevent unnecessary re-renders
+export default memo(LabeledInput);

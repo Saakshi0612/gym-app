@@ -1,17 +1,51 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, memo, lazy, Suspense } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { UserRole } from "../types/components/UserProfileSettings.types";
 import { SidebarTab } from "../types/components/sidebar.types";
 import Sidebar from '../components/userProfile/Sidebar';
-import UnifiedUserProfileForm from '../components/userProfile/UnifiedUserProfileForm';
-import PasswordForm from '../components/userProfile/PasswordForm';
-import ProfileFeedbackSection from '../components/userProfile/ProfileFeedbackSection';
 import { AdminProfileData, CoachProfileData, ClientProfileData } from "../types/components/UserProfileSettings.types";
 import { toast } from "sonner";
 
+// Lazy load components that aren't immediately needed
+const UnifiedUserProfileForm = lazy(() => import('../components/userProfile/UnifiedUserProfileForm'));
+const PasswordForm = lazy(() => import('../components/userProfile/PasswordForm'));
+const ProfileFeedbackSection = lazy(() => import('../components/userProfile/ProfileFeedbackSection'));
+
+// Constants
 const AUTOSAVE_DELAY = 2000; // 2 seconds delay for autosave
 const PROFILE_STORAGE_KEY = 'gym_app_profile_draft';
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-full">
+    <div className="animate-pulse flex space-x-4">
+      <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+      <div className="flex-1 space-y-4 py-1">
+        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Error component
+const ErrorDisplay = memo(({ error, onRetry }: { error: string, onRetry: () => void }) => (
+  <div className="flex flex-col items-center justify-center h-full text-red-600">
+    <p>{error}</p>
+    <button 
+      onClick={onRetry} 
+      className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+    >
+      Refresh Page
+    </button>
+  </div>
+));
+
+ErrorDisplay.displayName = 'ErrorDisplay';
 
 const DynamicUserProfile = () => {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -136,7 +170,7 @@ const DynamicUserProfile = () => {
     setIsDirty(true);
   }, []);
 
-  // Autosave effect
+  // Autosave effect with debounce
   useEffect(() => {
     if (!isDirty || !profileData) return;
 
@@ -167,21 +201,11 @@ const DynamicUserProfile = () => {
   // Memoize the tab content
   const tabContent = useMemo(() => {
     if (isLoading) {
-      return <div className="flex items-center justify-center h-full">Loading profile data...</div>;
+      return <LoadingFallback />;
     }
 
     if (error) {
-      return (
-        <div className="flex flex-col items-center justify-center h-full text-red-600">
-          <p>{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
-          >
-            Refresh Page
-          </button>
-        </div>
-      );
+      return <ErrorDisplay error={error} onRetry={() => window.location.reload()} />;
     }
 
     if (!profileData || !user) return null;
@@ -189,18 +213,28 @@ const DynamicUserProfile = () => {
     switch (activeTab) {
       case SidebarTab.GENERAL_INFO:
         return (
-          <UnifiedUserProfileForm
-            role={profileData.role}
-            profileData={profileData}
-            onChange={handleProfileChange}
-            onSaveSuccess={handleSuccessfulSave}
-            lastSaved={lastSaved}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <UnifiedUserProfileForm
+              role={profileData.role}
+              profileData={profileData}
+              onChange={handleProfileChange}
+              onSaveSuccess={handleSuccessfulSave}
+              lastSaved={lastSaved}
+            />
+          </Suspense>
         );
       case SidebarTab.CHANGE_PASSWORD:
-        return <PasswordForm />;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <PasswordForm />
+          </Suspense>
+        );
       case SidebarTab.CLIENT_FEEDBACK:
-        return user.role === UserRole.COACH ? <ProfileFeedbackSection /> : null;
+        return user.role === UserRole.COACH ? (
+          <Suspense fallback={<LoadingFallback />}>
+            <ProfileFeedbackSection />
+          </Suspense>
+        ) : null;
       default:
         return null;
     }
@@ -241,4 +275,4 @@ const DynamicUserProfile = () => {
   );
 };
 
-export default DynamicUserProfile;
+export default memo(DynamicUserProfile);

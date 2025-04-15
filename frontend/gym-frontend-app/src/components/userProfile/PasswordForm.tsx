@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { updatePassword } from '../../services/authSlice';
 import { FormDataType, VisibilityType } from "../../types/components/passwordFormTypes";
+import { validatePassword } from "../../utils/validation";
 
 const PasswordForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,22 +25,51 @@ const PasswordForm: React.FC = () => {
 
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({
+    oldPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
 
   const toggleVisibility = (field: keyof VisibilityType) => {
     setVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  const validateField = (name: string, value: string) => {
+    if (name === "oldPassword" || name === "newPassword") {
+      const validation = validatePassword(value);
+      return !validation.isValid;
+    }
+    if (name === "confirmPassword") {
+      return value !== formData.newPassword;
+    }
+    return false;
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Validate field on change
+    const hasError = validateField(name, value);
+    setFieldErrors(prev => ({ ...prev, [name]: hasError }));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const { oldPassword, newPassword, confirmPassword } = formData;
 
-    if (newPassword !== confirmPassword) {
-      setErrorMessage("New passwords do not match.");
+    // Validate all fields
+    const newFieldErrors = {
+      oldPassword: validateField("oldPassword", oldPassword),
+      newPassword: validateField("newPassword", newPassword),
+      confirmPassword: validateField("confirmPassword", confirmPassword),
+    };
+    setFieldErrors(newFieldErrors);
+
+    // Check if any field has errors
+    if (Object.values(newFieldErrors).some(hasError => hasError)) {
+      setErrorMessage("Please fix the errors in the form before submitting.");
       setSuccessMessage("");
       return;
     }
@@ -51,6 +81,11 @@ const PasswordForm: React.FC = () => {
         setSuccessMessage("The password has been updated successfully.");
         setErrorMessage("");
         setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        setFieldErrors({
+          oldPassword: false,
+          newPassword: false,
+          confirmPassword: false,
+        });
         setTimeout(() => setSuccessMessage(""), 4000);
       } else if (updatePassword.rejected.match(resultAction)) {
         setErrorMessage(resultAction.payload as string || "An error occurred.");
@@ -151,6 +186,7 @@ const PasswordForm: React.FC = () => {
           ].map(({ label, field, vis }) => {
             const isNew = field === "newPassword";
             const value = formData[field as keyof FormDataType];
+            const hasError = fieldErrors[field];
 
             return (
               <div className="relative space-y-2" key={field}>
@@ -168,7 +204,11 @@ const PasswordForm: React.FC = () => {
                     value={value}
                     onChange={handleChange}
                     autoComplete="new-password"
-                    className="w-full h-16 px-4 pr-14 text-base text-[#323A3A] placeholder:text-gray-400 border border-[#DADADA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ef300] bg-white"
+                    className={`w-full h-16 px-4 pr-14 text-base text-[#323A3A] placeholder:text-gray-400 border rounded-lg focus:outline-none focus:ring-2 bg-white ${
+                      hasError 
+                        ? "border-red-500 focus:ring-red-500" 
+                        : "border-[#DADADA] focus:ring-[#9ef300]"
+                    }`}
                     required
                     minLength={8}
                   />
@@ -205,7 +245,7 @@ const PasswordForm: React.FC = () => {
                 )}
 
                 <p className="text-xs text-[#666] pt-1">
-                  At least one capital letter required
+                  Password must be 8-16 characters long and include uppercase letters, lowercase letters, numbers, and special characters
                 </p>
               </div>
             );

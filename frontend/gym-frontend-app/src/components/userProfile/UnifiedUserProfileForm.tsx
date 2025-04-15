@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import {
   UserRole,
@@ -40,6 +40,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   lastSaved,
 }) => {
   const dispatch = useDispatch();
+  const initialFormStateRef = useRef<UserProfileFormState | null>(null);
 
   const [formState, setFormState] = useState<UserProfileFormState>({
     userData: null,
@@ -57,6 +58,9 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     saving: false,
   });
 
+  // Track if form has been modified
+  const [isDirty, setIsDirty] = useState(false);
+
   useEffect(() => {
     const userData: UserProfileData = {
       name: `${profileData.firstName} ${profileData.lastName}`,
@@ -65,7 +69,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       avatarUrl: profileData.avatarUrl,
     };
 
-    setFormState({
+    const newFormState = {
       ...formState,
       userData,
       firstName: profileData.firstName,
@@ -84,8 +88,31 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         role === UserRole.CLIENT ? (profileData as ClientProfileData).preferableActivity : "",
       targets:
         role === UserRole.CLIENT ? (profileData as ClientProfileData).targets : "",
-    });
+    };
+
+    setFormState(newFormState);
+    initialFormStateRef.current = newFormState;
+    setIsDirty(false);
   }, [role, profileData]);
+
+  // Check if form has been modified
+  useEffect(() => {
+    if (!initialFormStateRef.current) return;
+    
+    const hasChanges = 
+      formState.firstName !== initialFormStateRef.current.firstName ||
+      formState.lastName !== initialFormStateRef.current.lastName ||
+      formState.phoneNumber !== initialFormStateRef.current.phoneNumber ||
+      formState.title !== initialFormStateRef.current.title ||
+      formState.about !== initialFormStateRef.current.about ||
+      formState.preferableActivity !== initialFormStateRef.current.preferableActivity ||
+      formState.targets !== initialFormStateRef.current.targets ||
+      formState.userData?.avatarUrl !== initialFormStateRef.current.userData?.avatarUrl ||
+      JSON.stringify(formState.tags) !== JSON.stringify(initialFormStateRef.current.tags) ||
+      JSON.stringify(formState.certificates) !== JSON.stringify(initialFormStateRef.current.certificates);
+    
+    setIsDirty(hasChanges);
+  }, [formState]);
 
   const handleDrop = (files: FileList | null) => {
     if (!files) return;
@@ -106,6 +133,19 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       ...prev,
       certificates: prev.certificates.filter((_, i) => i !== index),
     }));
+  };
+
+  const handleProfilePhotoChange = (file: File | null) => {
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setFormState((prev) => ({
+        ...prev,
+        userData: prev.userData ? {
+          ...prev.userData,
+          avatarUrl: imageUrl
+        } : null
+      }));
+    }
   };
 
   const handleSave = async () => {
@@ -143,6 +183,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       };
 
       setFormState(updatedFormState);
+      initialFormStateRef.current = updatedFormState;
+      setIsDirty(false);
 
       const userPayload: User = {
         email: formState.userData?.email || "",
@@ -195,7 +237,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 w-full bg-primary-white rounded-lg">
         <UserProfileHeader
           {...formState.userData}
-          onFileSelect={(file) => console.log("Selected file:", file)}
+          onFileSelect={handleProfilePhotoChange}
           rating={role === UserRole.COACH ? formState.rating : 0}
         />
 
@@ -320,7 +362,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         )}
 
         <div className="mt-8">
-          <ProfileSaveButton saving={formState.saving} onClick={handleSave} />
+          <ProfileSaveButton 
+            saving={formState.saving} 
+            onClick={handleSave} 
+            disabled={!isDirty}
+          />
         </div>
       </div>
     </>

@@ -63,6 +63,37 @@ export const validatePassword = (password: string): { isValid: boolean; error?: 
   return { isValid: true };
 };
 
+export const validateFileSize = (file: File, maxSizeMB: number = 2): string | null => {
+  const maxSizeBytes = maxSizeMB * 1024 * 1024; // Convert MB to bytes
+  
+  if (file.size > maxSizeBytes) {
+    return `Profile photo must be less than ${maxSizeMB}MB. Please choose a smaller image.`;
+  }
+  
+  return null;
+};
+
+export const validateFileType = (file: File): string | null => {
+  // List of allowed image MIME types
+  const allowedTypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml'
+  ];
+  
+  console.log('File type:', file.type); // Debug log
+  
+  // Check if file type is empty or not in allowed types
+  if (!file.type || !allowedTypes.includes(file.type.toLowerCase())) {
+    return "Only image files (JPG, PNG, GIF, WEBP, SVG) are allowed";
+  }
+  
+  return null;
+};
+
 export const ACTIVITY_OPTIONS = [
   "Yoga",
   "Climbing",
