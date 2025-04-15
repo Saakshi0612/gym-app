@@ -16,6 +16,8 @@ interface WorkoutContextProps {
   setFilteredResults: React.Dispatch<
     React.SetStateAction<CoachDataInterface[]>
   >;
+  allResults: CoachDataInterface[];
+  setAllResults: React.Dispatch<React.SetStateAction<CoachDataInterface[]>>;
   showResults: boolean;
   setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -38,6 +40,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({
   const [filteredResults, setFilteredResults] = useState<CoachDataInterface[]>(
     []
   );
+
+  const [allResults, setAllResults] = useState<CoachDataInterface[]>([]); // <--- NEW state
+
   const [showResults, setShowResults] = useState(false);
 
   return (
@@ -47,6 +52,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({
         setFilters,
         filteredResults,
         setFilteredResults,
+        allResults,
+        setAllResults,
         showResults,
         setShowResults,
       }}

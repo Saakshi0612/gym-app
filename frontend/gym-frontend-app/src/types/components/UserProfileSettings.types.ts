@@ -122,7 +122,8 @@ export type ClientProfileData = BaseUserProfile & {
   role: UserRole.CLIENT;
   phoneNumber: string;
   preferableActivity: string;
-  targetGoal: string;
+  targets: string;
+  avatarUrl: string;
 };
 
 // Unified Mock Data Structure
@@ -149,7 +150,7 @@ export type UserProfileFormState = {
   certificates: Certificate[];
   rating: number;
   preferableActivity: string;
-  targetGoal: string;
+  targets: string;
   showSuccess: boolean;
   saving: boolean;
 };

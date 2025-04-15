@@ -23,12 +23,23 @@ const ProfileFeedbackSection: React.FC = () => {
   useEffect(() => {
     const fetchFeedbacks = async () => {
       try {
-        const response = await fetch('/src/assets/JSON/data/mockFeedbacks.json'); // Update path if needed
+        const response = await fetch('/mockFeedbacks.json');
         if (!response.ok) throw new Error('Failed to load feedbacks');
         const data = await response.json();
         setFeedbacks(data);
       } catch (error) {
         console.error('Error loading feedbacks:', error);
+        // Set some default feedbacks in case of error
+        setFeedbacks([
+          {
+            id: "1",
+            name: "Amanda",
+            date: "6/8/2022",
+            rating: 5,
+            review: "Great instructor who really knows her stuff. The classes are challenging but rewarding.",
+            avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg"
+          }
+        ]);
       } finally {
         setLoading(false);
       }
@@ -64,7 +75,7 @@ const ProfileFeedbackSection: React.FC = () => {
   return (
     <div
       ref={sectionRef}
-      className="flex flex-col mt-16 sm:mt-0 min-h-[calc(100vh-100px)] w-full px-4 md:px-8 lg:px-16 pb-8 relative overflow-x-hidden"
+      className="flex flex-col mt-4 md:mt-0 w-full overflow-x-hidden"
     >
       {loading ? (
         <div className="flex justify-center items-center py-8">

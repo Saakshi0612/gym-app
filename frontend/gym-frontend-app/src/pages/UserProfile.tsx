@@ -1,142 +1,241 @@
-import React, { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useDispatch } from "react-redux";
-import UnifiedUserProfileForm from "../components/userProfile/UnifiedUserProfileForm";
-import PasswordForm from "../components/userProfile/PasswordForm";
-import ProfileFeedbackSection from "../components/userProfile/ProfileFeedbackSection";
-import Sidebar from "../components/userProfile/Sidebar";
-import { useAppSelector } from "../store/store";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../store/store";
 import { UserRole } from "../types/components/UserProfileSettings.types";
 import { SidebarTab } from "../types/components/sidebar.types";
-import { updateUserProfile } from "../services/authSlice";
+import Sidebar from '../components/userProfile/Sidebar';
+import UnifiedUserProfileForm from '../components/userProfile/UnifiedUserProfileForm';
+import PasswordForm from '../components/userProfile/PasswordForm';
+import ProfileFeedbackSection from '../components/userProfile/ProfileFeedbackSection';
+import { AdminProfileData, CoachProfileData, ClientProfileData } from "../types/components/UserProfileSettings.types";
+import { toast } from "sonner";
 
-type Props = {
-  role: UserRole | undefined;
-};
+const AUTOSAVE_DELAY = 2000; // 2 seconds delay for autosave
+const PROFILE_STORAGE_KEY = 'gym_app_profile_draft';
 
-const DynamicUserProfile: React.FC<Props> = ({ role }) => {
-  const { user } = useAppSelector((state) => state.auth);
-  const dispatch = useDispatch();
-
-  const [loading, setLoading] = useState<boolean>(true);
-  const [profileData, setProfileData] = useState<any>(null);
+const DynamicUserProfile = () => {
+  const user = useSelector((state: RootState) => state.auth.user);
   const [activeTab, setActiveTab] = useState<SidebarTab>(SidebarTab.GENERAL_INFO);
+  const [profileData, setProfileData] = useState<AdminProfileData | CoachProfileData | ClientProfileData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const localStorageKey = `user-profile-${role?.toLowerCase()}`;
-
-  // Fetch profile data from localStorage or fallback to Redux store
-  useEffect(() => {
-    const loadProfileData = async () => {
-      setLoading(true);
-      try {
-        const localData = localStorage.getItem(localStorageKey);
-
-        if (localData) {
-          setProfileData(JSON.parse(localData));
-        } else if (user) {
-          const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
-          const profileFromStore = {
-            ...user,
-            fullName,
-            avatarUrl:
-              user.avatarUrl ||
-              "https://t4.ftcdn.net/jpg/02/62/46/55/240_F_262465578_xxIWQunF7zDbFpJDzSiYWJBwzMzPuEFh.jpg"
-          };
-          setProfileData(profileFromStore);
-          localStorage.setItem(localStorageKey, JSON.stringify(profileFromStore));
+  // Load saved draft from localStorage
+  const loadSavedDraft = useCallback(() => {
+    try {
+      const savedDraft = localStorage.getItem(PROFILE_STORAGE_KEY);
+      if (savedDraft) {
+        const parsedDraft = JSON.parse(savedDraft);
+        const savedTime = new Date(parsedDraft.timestamp);
+        const now = new Date();
+        const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
+        
+        // Only restore draft if it's less than 24 hours old
+        if (hoursDiff < 24) {
+          setProfileData(parsedDraft.data);
+          setLastSaved(savedTime);
+          toast.info("Restored your last unsaved changes");
+          return true;
+        } else {
+          localStorage.removeItem(PROFILE_STORAGE_KEY);
         }
-      } catch (error) {
-        console.error("Error loading profile data:", error);
-      } finally {
-        setLoading(false);
       }
-    };
+      return false;
+    } catch (err) {
+      console.error('Error loading draft:', err);
+      return false;
+    }
+  }, []);
 
-    loadProfileData();
-  }, [role, user]);
+  // Save draft to localStorage
+  const saveDraft = useCallback((data: AdminProfileData | CoachProfileData | ClientProfileData) => {
+    try {
+      const draftData = {
+        data,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(draftData));
+      setLastSaved(new Date());
+    } catch (err) {
+      console.error('Error saving draft:', err);
+    }
+  }, []);
 
-  // Sync updated profile to localStorage and Redux
-  const handleProfileUpdate = (updatedProfile: any) => {
-    // Dispatch updateUserProfile to update the Redux store
-    dispatch(updateUserProfile(updatedProfile));
-    setProfileData(updatedProfile);
-    localStorage.setItem(localStorageKey, JSON.stringify(updatedProfile));
-  };
+  // Generate profile data with error handling
+  const generateProfileData = useCallback(() => {
+    if (!user) return null;
 
-  const renderTabContent = (): JSX.Element | null => {
+    try {
+      const baseProfile = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl || '',
+      };
+
+      switch (user.role) {
+        case UserRole.ADMIN:
+          return {
+            ...baseProfile,
+            phoneNumber: user.phoneNumber || '',
+          } as AdminProfileData;
+        case UserRole.COACH:
+          return {
+            ...baseProfile,
+            title: user.title || '',
+            about: user.about || '',
+            tags: user.tags || [],
+            certificates: user.certificates || [],
+            rating: user.rating || 0,
+          } as CoachProfileData;
+        case UserRole.CLIENT:
+          return {
+            ...baseProfile,
+            phoneNumber: user.phoneNumber || '',
+            preferableActivity: user.preferableActivity || user.activity || '',
+            targets: user.target || '',
+            avatarUrl: user.avatarUrl || '',
+          } as ClientProfileData;
+        default:
+          return null;
+      }
+    } catch (error) {
+      console.error('Error generating profile data:', error);
+      setError('Error generating profile data. Please refresh the page.');
+      return null;
+    }
+  }, [user]);
+
+  // Initialize profile data
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const hasDraft = loadSavedDraft();
+      if (!hasDraft) {
+        const newProfileData = generateProfileData();
+        if (newProfileData) {
+          setProfileData(newProfileData);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+      setError('Error loading profile data. Please refresh the page.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [generateProfileData, loadSavedDraft]);
+
+  // Handle profile data changes
+  const handleProfileChange = useCallback((newData: AdminProfileData | CoachProfileData | ClientProfileData) => {
+    setProfileData(newData);
+    setIsDirty(true);
+  }, []);
+
+  // Autosave effect
+  useEffect(() => {
+    if (!isDirty || !profileData) return;
+
+    const timer = setTimeout(() => {
+      saveDraft(profileData);
+      setIsDirty(false);
+    }, AUTOSAVE_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [isDirty, profileData, saveDraft]);
+
+  // Clear draft on successful save
+  const handleSuccessfulSave = useCallback(() => {
+    localStorage.removeItem(PROFILE_STORAGE_KEY);
+    setIsDirty(false);
+    setLastSaved(null);
+  }, []);
+
+  // Handle tab changes with unsaved changes warning
+  const handleTabChange = useCallback((newTab: SidebarTab) => {
+    if (isDirty) {
+      const proceed = window.confirm('You have unsaved changes. Are you sure you want to leave this tab?');
+      if (!proceed) return;
+    }
+    setActiveTab(newTab);
+  }, [isDirty]);
+
+  // Memoize the tab content
+  const tabContent = useMemo(() => {
+    if (isLoading) {
+      return <div className="flex items-center justify-center h-full">Loading profile data...</div>;
+    }
+
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-red-600">
+          <p>{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+          >
+            Refresh Page
+          </button>
+        </div>
+      );
+    }
+
+    if (!profileData || !user) return null;
+
     switch (activeTab) {
       case SidebarTab.GENERAL_INFO:
         return (
           <UnifiedUserProfileForm
-            role={role as UserRole}
+            role={profileData.role}
             profileData={profileData}
-            onProfileUpdate={handleProfileUpdate}
+            onChange={handleProfileChange}
+            onSaveSuccess={handleSuccessfulSave}
+            lastSaved={lastSaved}
           />
         );
       case SidebarTab.CHANGE_PASSWORD:
-        return (
-          <PasswordForm
-            user={{ currentPassword: profileData?.currentPassword ?? "" }}
-          />
-        );
+        return <PasswordForm />;
       case SidebarTab.CLIENT_FEEDBACK:
-        return role === UserRole.COACH ? <ProfileFeedbackSection /> : null;
+        return user.role === UserRole.COACH ? <ProfileFeedbackSection /> : null;
       default:
         return null;
     }
-  };
+  }, [activeTab, profileData, user, isLoading, error, handleProfileChange, handleSuccessfulSave, lastSaved]);
 
-  if (loading) {
-    return (
-      <motion.div
-        className="flex items-center justify-center min-h-screen text-body"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        Loading {role} data...
-      </motion.div>
-    );
-  }
+  // Memoize sidebar props
+  const sidebarProps = useMemo(() => ({
+    position: user?.role as UserRole,
+    activeTab,
+    setActiveTab: handleTabChange,
+    isDirty
+  }), [user?.role, activeTab, handleTabChange, isDirty]);
 
-  if (!profileData) {
-    return (
-      <motion.div
-        className="flex items-center justify-center min-h-screen text-semantic-red"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        No profile data found for "{role}"
-      </motion.div>
-    );
-  }
+  // Warn user before leaving page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-white">
-      {/* Sidebar */}
-      <aside className="w-full lg:w-[250px] bg-white border-b lg:border-b-0 lg:border-r border-neutral-200">
-        <Sidebar
-          position={role as UserRole}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          user={user}
-        />
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 px-4 sm:px-6 md:px-8 lg:px-10 py-6 overflow-y-auto">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-          >
-            {renderTabContent()}
-          </motion.div>
-        </AnimatePresence>
+    <div className="flex flex-col md:flex-row min-h-screen bg-primary-white">
+      <div className="w-full md:w-64 md:min-h-screen md:border-r border-neutral-200 flex-shrink-0">
+        <Sidebar {...sidebarProps} />
+      </div>
+      <main className="flex-1 px-4 md:px-8 py-6 md:py-8 overflow-auto">
+        <div className="max-w-4xl">
+          {tabContent}
+        </div>
       </main>
     </div>
   );
