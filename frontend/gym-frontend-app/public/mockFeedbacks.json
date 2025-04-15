@@ -1,0 +1,83 @@
+[
+    {
+      "id": "1",
+      "name": "Amanda",
+      "date": "6/8/2022",
+      "rating": 5,
+      "review": "I've been attending classes with Kristin Watson for six months, and the transformation in my flexibility and overall well-being has been incredible. Her calm demeanor and expert guidance make each session a refreshing experience. Highly recommend for anyone looking to enhance their yoga practice!",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/44.jpg"
+    },
+    {
+      "id": "2",
+      "name": "Esther",
+      "date": "2/23/2024",
+      "rating": 5,
+      "review": "Kristin Watson is a fantastic instructor who makes every class enjoyable and challenging. Her attention to detail and personalized adjustments have helped me improve my form and find greater balance in my practice. The positive energy she brings to each session is truly uplifting!",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/68.jpg"
+    },
+    {
+      "id": "3",
+      "name": "Jenny",
+      "date": "9/15/2023",
+      "rating": 1,
+      "review": "I've tried several yoga classes before, but Kristin Watson stands out for her ability to create a supportive and inclusive environment. She offers modifications for all levels and always encourage us to listen to our bodies. I leave each class feeling rejuvenated and centered.",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/65.jpg"
+    },
+    {
+      "id": "4",
+      "name": "Sarah",
+      "date": "5/20/2023",
+      "rating": 4,
+      "review": "Great instructor who really knows her stuff. The classes are challenging but rewarding.",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/33.jpg"
+    },
+    {
+      "id": "10",
+      "name": "Jenny",
+      "date": "9/15/2023",
+      "rating": 1,
+      "review": "I've tried several yoga classes before, but Kristin Watson stands out for her ability to create a supportive and inclusive environment. She offers modifications for all levels and always encourage us to listen to our bodies. I leave each class feeling rejuvenated and centered.",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/65.jpg"
+    },
+    {
+      "id": "13",
+      "name": "Jenny",
+      "date": "9/15/2023",
+      "rating": 1,
+      "review": "I've tried several yoga classes before, but Kristin Watson stands out for her ability to create a supportive and inclusive environment. She offers modifications for all levels and always encourage us to listen to our bodies. I leave each class feeling rejuvenated and centered.",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/65.jpg"
+    },
+    {
+      "id": "5",
+      "name": "Jenny",
+      "date": "9/15/2023",
+      "rating": 1,
+      "review": "I've tried several yoga classes before, but Kristin Watson stands out for her ability to create a supportive and inclusive environment. She offers modifications for all levels and always encourage us to listen to our bodies. I leave each class feeling rejuvenated and centered.",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/65.jpg"
+    },
+    {
+      "id": "6",
+      "name": "Jenny",
+      "date": "9/15/2023",
+      "rating": 1,
+      "review": "I've tried several yoga classes before, but Kristin Watson stands out for her ability to create a supportive and inclusive environment. She offers modifications for all levels and always encourage us to listen to our bodies. I leave each class feeling rejuvenated and centered.",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/65.jpg"
+    },
+    {
+      "id": "7",
+      "name": "Jenny",
+      "date": "9/15/2023",
+      "rating": 1,
+      "review": "I've tried several yoga classes before, but Kristin Watson stands out for her ability to create a supportive and inclusive environment. She offers modifications for all levels and always encourage us to listen to our bodies. I leave each class feeling rejuvenated and centered.",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/65.jpg"
+    },
+    {
+      "id": "8",
+      "name": "Jenny",
+      "date": "9/15/2023",
+      "rating": 1,
+      "review": "I've tried several yoga classes before, but Kristin Watson stands out for her ability to create a supportive and inclusive environment. She offers modifications for all levels and always encourage us to listen to our bodies. I leave each class feeling rejuvenated and centered.",
+      "avatarUrl": "https://randomuser.me/api/portraits/women/65.jpg"
+    }
+  ]
+  

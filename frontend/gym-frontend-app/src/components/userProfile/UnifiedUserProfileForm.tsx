@@ -26,11 +26,17 @@ import { User } from "../../types/auth.types";
 interface UnifiedUserProfileFormProps {
   role: UserRole;
   profileData: AdminProfileData | CoachProfileData | ClientProfileData;
+  onChange: (newData: AdminProfileData | CoachProfileData | ClientProfileData) => void;
+  onSaveSuccess: () => void;
+  lastSaved: Date | null;
 }
 
 const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   role,
   profileData,
+  onChange,
+  onSaveSuccess,
+  lastSaved,
 }) => {
   const dispatch = useDispatch();
 
@@ -147,6 +153,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       }, 4000);
 
       console.log("✅ Data saved:", updatedFormState);
+
+      onSaveSuccess();
     } catch {
       toast.error("Error saving changes.");
       setFormState((prev) => ({ ...prev, saving: false }));
