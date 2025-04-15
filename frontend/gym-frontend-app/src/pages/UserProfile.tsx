@@ -81,7 +81,7 @@ const DynamicUserProfile = () => {
       console.error('Error loading draft:', err);
       return false;
     }
-  }, []);
+  }, []); 
 
   // Save draft to localStorage
   const saveDraft = useCallback((data: AdminProfileData | CoachProfileData | ClientProfileData) => {
