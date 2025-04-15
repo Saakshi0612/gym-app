@@ -22,13 +22,18 @@ const Sidebar: React.FC<SidebarProps> = ({
     [isAdmin]
   );
 
-  const tabs = [
-    { id: SidebarTab.GENERAL_INFO, label: 'General Information' },
-    ...(position === UserRole.COACH
-      ? [{ id: SidebarTab.CLIENT_FEEDBACK, label: 'Client Feedback' }]
-      : []),
-    { id: SidebarTab.CHANGE_PASSWORD, label: 'Change Password' },
-  ];
+  const tabs = useMemo(() => {
+    const baseTabs = [
+      { id: SidebarTab.GENERAL_INFO, label: 'General Information' },
+      { id: SidebarTab.CHANGE_PASSWORD, label: 'Change Password' },
+    ];
+
+    if (position === UserRole.COACH) {
+      baseTabs.splice(1, 0, { id: SidebarTab.CLIENT_FEEDBACK, label: 'Client Feedback' });
+    }
+
+    return baseTabs;
+  }, [position]);
 
   const handleLogout = () => {
     // Clear any stored profile drafts
@@ -45,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     <div className="md:h-screen flex flex-col">
       {/* Mobile Top Navbar (Non-Sticky) */}
       <div className="lg:hidden w-full bg-primary-white font-['Lexend'] shadow-sm mb-2">
-        <div className="grid grid-cols-3 gap-0">
+        <div className={`grid ${position === UserRole.COACH ? 'grid-cols-3' : 'grid-cols-2'} gap-0`}>
           {/* General Information Tab */}
           <button
             onClick={() => setActiveTab(SidebarTab.GENERAL_INFO)}
@@ -63,7 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </button>
           
           {/* Client Feedback Tab (Coach Only) */}
-          {position === UserRole.COACH ? (
+          {position === UserRole.COACH && (
             <button
               onClick={() => setActiveTab(SidebarTab.CLIENT_FEEDBACK)}
               className={`relative text-xs px-1 py-3 whitespace-nowrap transition-all duration-200 ease-out ${
@@ -78,8 +83,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 />
               )}
             </button>
-          ) : (
-            <div></div> // Empty div to maintain grid layout
           )}
           
           {/* Change Password Tab */}
@@ -107,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             {tabs.map((tab) => (
               <div key={tab.id} className="relative flex items-center">
                 <button
-                  className={`w-full text-left px-6 py-5 text-base font-light transition-all duration-200 ease-out relative ${
+                  className={`w-full text-left px-6 py-3 text-base font-light transition-all duration-200 ease-out relative ${
                     activeTab === tab.id ? "font-medium text-primary-black bg-neutral-100" : "text-neutral-700 hover:bg-neutral-50"
                   }`}
                   onClick={() => setActiveTab(tab.id)}

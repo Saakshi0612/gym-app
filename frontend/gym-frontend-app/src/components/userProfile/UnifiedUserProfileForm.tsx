@@ -212,7 +212,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       console.log("✅ Data saved:", updatedFormState);
 
       onSaveSuccess();
-    } catch {
+    } catch (error) {
       toast.error("Error saving changes.");
       setFormState((prev) => ({ ...prev, saving: false }));
     }
@@ -234,7 +234,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 w-full bg-primary-white rounded-lg">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg">
         <UserProfileHeader
           {...formState.userData}
           onFileSelect={handleProfilePhotoChange}
