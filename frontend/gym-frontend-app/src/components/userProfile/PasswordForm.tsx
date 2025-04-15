@@ -9,7 +9,7 @@ import { FormDataType, VisibilityType } from "../../types/components/passwordFor
 const PasswordForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const isLoading = useSelector((state: RootState) => state.auth.isLoading);
-
+  
   const [visibility, setVisibility] = useState<VisibilityType>({
     old: false,
     new: false,
@@ -92,145 +92,137 @@ const PasswordForm: React.FC = () => {
           }
         `}
       </style>
-      <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Change Password</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Current Password
-            </label>
-            <div className="relative">
-              <input
-                type={visibility.old ? "text" : "password"}
-                id="oldPassword"
-                name="oldPassword"
-                value={formData.oldPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => toggleVisibility("old")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {visibility.old ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-          </div>
 
-          <div className="relative">
-            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
-            </label>
-            <div className="relative">
-              <input
-                type={visibility.new ? "text" : "password"}
-                id="newPassword"
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => toggleVisibility("new")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {visibility.new ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-          </div>
-
-          <div className="relative">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm New Password
-            </label>
-            <div className="relative">
-              <input
-                type={visibility.confirm ? "text" : "password"}
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => toggleVisibility("confirm")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {visibility.confirm ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-          </div>
-
-          {formData.newPassword && (
-            <div className="mt-2">
-              <div className="flex gap-1">
-                {[...Array(4)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-1 flex-1 rounded ${
-                      i < strength
-                        ? strength === 1
-                          ? "bg-red-500"
-                          : strength === 2
-                          ? "bg-yellow-500"
-                          : strength === 3
-                          ? "bg-blue-500"
-                          : "bg-green-500"
-                        : "bg-gray-200"
-                    }`}
-                  />
-                ))}
+      <form
+        className="w-full max-w-lg mx-auto md:ml-16 space-y-8 flex flex-col justify-center px-0 md:px-4 mt-0 md:mt-8"
+        onSubmit={handleSubmit}
+      >
+        {/* Toasts */}
+        <AnimatePresence>
+          {successMessage && (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-8 left-4 right-4 md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 bg-[#E6FFE1] border-l-4 border-[#9ef300] p-4 rounded-md shadow flex items-start gap-4 z-50"
+            >
+              <div className="bg-[#9ef300] text-white rounded-full p-1">
+                <Check size={16} strokeWidth={3} />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {strength === 0 && "Very weak"}
-                {strength === 1 && "Weak"}
-                {strength === 2 && "Medium"}
-                {strength === 3 && "Strong"}
-                {strength === 4 && "Very strong"}
-              </p>
-            </div>
+              <div className="flex flex-col text-sm text-[#323A3A]">
+                <strong>Success</strong>
+                <span>{successMessage}</span>
+              </div>
+              <button type="button" onClick={() => setSuccessMessage("")}>
+                <X size={16} strokeWidth={3} />
+              </button>
+            </motion.div>
           )}
 
-          <AnimatePresence>
-            {successMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-md"
-              >
-                <Check size={20} />
-                <p>{successMessage}</p>
-              </motion.div>
-            )}
-            {errorMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-md"
-              >
-                <X size={20} />
-                <p>{errorMessage}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {errorMessage && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-8 left-4 right-4 md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 bg-[#FFF1F1] border-l-4 border-red-500 p-4 rounded-md shadow flex items-start gap-4 z-50"
+            >
+              <div className="bg-red-500 text-white rounded-full p-1">
+                <X size={16} strokeWidth={3} />
+              </div>
+              <div className="flex flex-col text-sm text-[#323A3A]">
+                <strong>Error</strong>
+                <span>{errorMessage}</span>
+              </div>
+              <button type="button" onClick={() => setErrorMessage("")}>
+                <X size={16} strokeWidth={3} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
+        {/* Password Fields Container */}
+        <div className="px-4 md:px-0">
+          {[
+            { label: "Old Password", field: "oldPassword", vis: "old" },
+            { label: "New Password", field: "newPassword", vis: "new" },
+            { label: "Confirm New Password", field: "confirmPassword", vis: "confirm" },
+          ].map(({ label, field, vis }) => {
+            const isNew = field === "newPassword";
+            const value = formData[field as keyof FormDataType];
+
+            return (
+              <div className="relative space-y-2" key={field}>
+                <label
+                  htmlFor={field}
+                  className="absolute -top-3 left-3 bg-white px-1 text-sm text-[#323A3A] z-10"
+                >
+                  {label}
+                </label>
+                <div className="relative mt-4">
+                  <input
+                    id={field}
+                    name={field}
+                    type={visibility[vis as keyof VisibilityType] ? "text" : "password"}
+                    value={value}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                    className="w-full h-16 px-4 pr-14 text-base text-[#323A3A] placeholder:text-gray-400 border border-[#DADADA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ef300] bg-white"
+                    required
+                    minLength={8}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 h-16 w-10 flex items-center justify-center text-[#666] hover:text-[#000]"
+                    onClick={() => toggleVisibility(vis as keyof VisibilityType)}
+                    aria-label={`Toggle ${label} visibility`}
+                  >
+                    {visibility[vis as keyof VisibilityType] ? (
+                      <EyeOff size={24} strokeWidth={2.5} />
+                    ) : (
+                      <Eye size={24} strokeWidth={2.5} />
+                    )}
+                  </button>
+                </div>
+
+                {isNew && (
+                  <div className="w-full h-2 rounded bg-gray-200 mt-2">
+                    <motion.div
+                      className={`h-2 rounded transition-all ${
+                        strength === 1
+                          ? "bg-red-500 w-1/4"
+                          : strength === 2
+                          ? "bg-yellow-500 w-2/4"
+                          : strength === 3
+                          ? "bg-[#C6F500] w-3/4"
+                          : strength >= 4
+                          ? "bg-[#9ef300] w-full"
+                          : "bg-gray-200 w-0"
+                      }`}
+                    />
+                  </div>
+                )}
+
+                <p className="text-xs text-[#666] pt-1">
+                  At least one capital letter required
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Submit Button */}
+        <div className="w-full text-center md:text-right px-4 md:px-0">
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-[#9ef300] hover:bg-lime-500 text-[#323A3A] text-base px-8 py-3 rounded-lg font-semibold transition-all disabled:opacity-50"
           >
-            {isLoading ? "Updating..." : "Update Password"}
+            {isLoading ? "Updating..." : "Save Changes"}
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </>
   );
 };
