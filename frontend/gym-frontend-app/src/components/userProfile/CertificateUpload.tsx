@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { CertificateUploadProps } from "../../types/components/UserProfileSettings.types";
-import { Download, Trash2, FileText } from "lucide-react";
+import { Download, Trash2, FileText, Upload } from "lucide-react";
+import { motion } from "framer-motion";
 
 const MAX_SIZE_MB = 5;
 const MAX_FILES = 5;
@@ -14,6 +15,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
   const dropRef = useRef<HTMLDivElement>(null);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     if (uploadingIndex !== null) {
@@ -24,9 +26,9 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
             setUploadingIndex(null);
             return 0;
           }
-          return prev + 10;
+          return prev + 5;
         });
-      }, 200);
+      }, 100);
       return () => clearInterval(interval);
     }
   }, [uploadingIndex]);
@@ -52,12 +54,19 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    setIsDragging(false);
     handleFileDrop(e.dataTransfer.files);
     e.dataTransfer.clearData();
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
   };
 
   return (
@@ -68,35 +77,52 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
       </h3>
 
       {/* Drag & Drop Area */}
-      <div
+      <motion.div
         ref={dropRef}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        className="border border-dashed border-[var(--color-neutral-300)] rounded-md p-6 text-center"
+        onDragLeave={handleDragLeave}
+        className={`border border-dashed rounded-md p-6 text-center transition-all duration-300 ${
+          isDragging 
+            ? "border-primary-green bg-green-50" 
+            : "border-[var(--color-neutral-300)]"
+        }`}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
       >
-        <p className="text-caption font-semibold text-[var(--color-neutral-700)]">
-          Drag & drop file here
-        </p>
-        <p className="text-caption-2 text-[var(--color-neutral-500)] my-1">or</p>
-        <label>
-          <input
-            type="file"
-            multiple
-            accept="application/pdf"
-            hidden
-            onChange={(e) => handleFileDrop(e.target.files)}
-          />
-          <div className="inline-block px-4 py-2 border border-[var(--color-neutral-400)] rounded-md text-caption text-[var(--color-neutral-800)] cursor-pointer hover:bg-[var(--color-neutral-100)]">
-            Select File
-          </div>
-        </label>
-      </div>
+        <motion.div
+          animate={{ y: isDragging ? -5 : 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex flex-col items-center justify-center"
+        >
+          <Upload size={24} className={`mb-2 ${isDragging ? "text-primary-green" : "text-[var(--color-neutral-500)]"}`} />
+          <p className="text-caption font-semibold text-[var(--color-neutral-700)]">
+            Drag & drop file here
+          </p>
+          <p className="text-caption-2 text-[var(--color-neutral-500)] my-1">or</p>
+          <label>
+            <input
+              type="file"
+              multiple
+              accept="application/pdf"
+              hidden
+              onChange={(e) => handleFileDrop(e.target.files)}
+            />
+            <div className="inline-block px-4 py-2 border border-[var(--color-neutral-400)] rounded-md text-caption text-[var(--color-neutral-800)] cursor-pointer hover:bg-[var(--color-neutral-100)] transition-all duration-200">
+              Select File
+            </div>
+          </label>
+        </motion.div>
+      </motion.div>
 
       {/* Uploaded Certificates */}
       <div className="divide-y divide-[var(--color-neutral-200)]">
         {certificates.map((file, index) => (
-          <div
+          <motion.div
             key={index}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
             className="flex items-center justify-between px-2 py-3 gap-3"
           >
             <div className="flex items-center gap-2 overflow-hidden w-full">
@@ -111,15 +137,30 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
 
             <div className="flex items-center gap-3 flex-shrink-0">
               {uploadingIndex === index ? (
-                <div className="w-20 h-1 bg-[var(--color-neutral-200)] rounded-full overflow-hidden">
-                  <div
-                    className="bg-[var(--color-semantic-green)] h-full transition-all duration-200"
-                    style={{ width: `${progress}%` }}
+                <div className="w-24 h-1.5 bg-[var(--color-neutral-200)] rounded-full overflow-hidden relative">
+                  <motion.div
+                    className="bg-primary-green h-full rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.1 }}
+                  />
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                    animate={{
+                      x: ["0%", "100%"],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
                   />
                 </div>
               ) : (
                 <>
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => onDownload(file.url)}
                     title="Download"
                   >
@@ -127,8 +168,10 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
                       size={16}
                       className="text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-900)]"
                     />
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => onRemove(index)}
                     title="Remove"
                   >
@@ -136,11 +179,11 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
                       size={16}
                       className="text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-900)]"
                     />
-                  </button>
+                  </motion.button>
                 </>
               )}
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

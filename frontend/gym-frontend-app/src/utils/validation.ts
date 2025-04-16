@@ -1,15 +1,30 @@
-export const validateName = (name: string): { isValid: boolean; error?: string } => {
-  const nameRegex = /^[a-zA-Z\s]{2,50}$/;
-  if (!name) {
-    return { isValid: false, error: "Name is required." };
+export const validateName = (value: string): string | null => {
+  if (!value) {
+    return "Name is required";
   }
-  if (!nameRegex.test(name)) {
-    return { 
-      isValid: false, 
-      error: "Please enter a valid name. Only alphabetic characters and spaces are allowed." 
-    };
+
+  if (value.length > 50) {
+    return "Name cannot exceed 50 characters";
   }
-  return { isValid: true };
+  
+  // Check if the name contains only letters, spaces, and hyphens
+  const nameRegex = /^[A-Za-z\s-]+$/;
+  
+  if (!nameRegex.test(value)) {
+    return "Name can only contain letters, spaces, and hyphens";
+  }
+  
+  // Check for consecutive spaces or hyphens
+  if (/\s{2,}|-{2,}/.test(value)) {
+    return "Name cannot contain consecutive spaces or hyphens";
+  }
+  
+  // Check if name starts or ends with space or hyphen
+  if (/^[\s-]|[\s-]$/.test(value)) {
+    return "Name cannot start or end with a space or hyphen";
+  }
+  
+  return null;
 };
 
 export const validateEmail = (email: string): { isValid: boolean; error?: string } => {
@@ -50,6 +65,37 @@ export const validatePassword = (password: string): { isValid: boolean; error?: 
   }
 
   return { isValid: true };
+};
+
+export const validateFileSize = (file: File, maxSizeMB: number = 2): string | null => {
+  const maxSizeBytes = maxSizeMB * 1024 * 1024; // Convert MB to bytes
+  
+  if (file.size > maxSizeBytes) {
+    return `Profile photo must be less than ${maxSizeMB}MB. Please choose a smaller image.`;
+  }
+  
+  return null;
+};
+
+export const validateFileType = (file: File): string | null => {
+  // List of allowed image MIME types
+  const allowedTypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml'
+  ];
+  
+  console.log('File type:', file.type); // Debug log
+  
+  // Check if file type is empty or not in allowed types
+  if (!file.type || !allowedTypes.includes(file.type.toLowerCase())) {
+    return "Only image files (JPG, PNG, GIF, WEBP, SVG) are allowed";
+  }
+  
+  return null;
 };
 
 export const ACTIVITY_OPTIONS = [

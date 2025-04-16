@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 
 interface LabeledInputProps {
   id: string;
@@ -9,8 +9,39 @@ interface LabeledInputProps {
   type?: "input" | "textarea";
   hint?: string;
   rows?: number;
-  validation?: (value: string) => string | null; // Add validation function
+  validation?: (value: string) => string | null;
 }
+
+// Memoized error message component to prevent unnecessary re-renders
+const ErrorMessage = memo(({ error }: { error: string }) => {
+  return (
+    <div className="mt-1">
+      <p className="text-red-600 text-xs">{error}</p>
+      {error === "Name can only contain letters, spaces, and hyphens" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Example: "John Smith" or "Jean-Pierre"
+        </p>
+      )}
+      {error === "Name cannot contain consecutive spaces or hyphens" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Example: "John Smith" (not "John  Smith" or "Jean--Pierre")
+        </p>
+      )}
+      {error === "Name cannot start or end with a space or hyphen" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Example: "John Smith" (not " John Smith" or "John Smith ")
+        </p>
+      )}
+      {error === "Name is required" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Please enter your name
+        </p>
+      )}
+    </div>
+  );
+});
+
+ErrorMessage.displayName = 'ErrorMessage';
 
 const LabeledInput: React.FC<LabeledInputProps> = ({
   id,
@@ -25,33 +56,42 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
 
-  const sharedClassNames =
-    "w-full border border-[var(--color-neutral-400)] rounded-md px-3 text-body text-[0.875rem] focus:outline-none h-16";
+  const sharedClassNames = "w-full px-3 py-2 text-base font-light transition-all duration-200 ease-out rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-green";
+  
+  const inputStyles = error
+    ? `${sharedClassNames} border border-semantic-red focus:border-semantic-red focus:ring-semantic-red bg-white`
+    : `${sharedClassNames} border border-neutral-400 focus:border-primary-green focus:ring-primary-green bg-white`;
+  
+  const textAreaStyles = error
+    ? `${sharedClassNames} border border-semantic-red focus:border-semantic-red focus:ring-semantic-red bg-white min-h-[120px] resize-y`
+    : `${sharedClassNames} border border-neutral-400 focus:border-primary-green focus:ring-primary-green bg-white min-h-[120px] resize-y`;
 
-  const inputStyles =
-    sharedClassNames + " focus:ring-2 focus:ring-[var(--color-semantic-blue)]";
-
-  const textAreaStyles =
-    sharedClassNames +
-    " resize-none pt-3 pb-2 focus:ring-2 focus:ring-[var(--color-primary-green)]";
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
 
     // Perform validation if a validation function is provided
     if (validation) {
       const errorMessage = validation(newValue);
-      setError(errorMessage); // Set error message
+      setError(errorMessage);
     }
-  };
+  }, [onChange, validation]);
+
+  const handleBlur = useCallback(() => {
+    // Perform validation on blur if a validation function is provided
+    if (validation) {
+      const errorMessage = validation(value);
+      setError(errorMessage);
+    }
+  }, [validation, value]);
 
   return (
     <div className="relative w-full mt-4">
       {/* Top floating label */}
       <label
         htmlFor={id}
-        className="absolute -top-2 left-3 bg-[var(--color-primary-white)] px-1 text-caption z-10"
+        className="block text-sm font-medium text-neutral-700 mb-1"
       >
         {label}
       </label>
@@ -63,6 +103,7 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
           rows={rows}
           value={value}
           onChange={handleChange}
+          onBlur={handleBlur}
           className={textAreaStyles}
         />
       ) : (
@@ -71,6 +112,7 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
           type="text"
           value={value}
           onChange={handleChange}
+          onBlur={handleBlur}
           className={inputStyles}
         />
       )}
@@ -84,9 +126,12 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
       )}
 
       {/* Display error message if validation fails */}
-      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+      {error && (
+        <p className="mt-1 text-sm text-semantic-red">{error}</p>
+      )}
     </div>
   );
 };
 
-export default LabeledInput;
+// Memoize the entire component to prevent unnecessary re-renders
+export default memo(LabeledInput);

@@ -75,7 +75,7 @@ const ProfileFeedbackSection: React.FC = () => {
   return (
     <div
       ref={sectionRef}
-      className="flex flex-col mt-4 md:mt-0 w-full overflow-x-hidden"
+      className="flex flex-col mt-4 md:mt-0 w-full overflow-hidden"
     >
       {loading ? (
         <div className="flex justify-center items-center py-8">
