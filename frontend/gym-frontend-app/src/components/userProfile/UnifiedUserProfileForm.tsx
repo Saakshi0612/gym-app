@@ -17,7 +17,6 @@ import ProfileSaveButton from "./shared/ProfileSaveButton";
 import SuccessAlert from "./shared/SuccessAlert";
 import LabeledInput from "./shared/LabeledInput";
 import DynamicSelect from "./DynamicSelect";
-import { toast } from "sonner";
 
 import options from "../../assets/JSON/DropdownSelect.json";
 import { updateUserProfile } from "../../services/authSlice";
@@ -153,14 +152,14 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       // Validate first name before saving
       const firstNameError = validateName(formState.firstName);
       if (firstNameError) {
-        toast.error(firstNameError);
+        setFormState(prev => ({ ...prev, error: firstNameError }));
         return;
       }
 
       // Validate last name before saving
       const lastNameError = validateName(formState.lastName);
       if (lastNameError) {
-        toast.error(lastNameError);
+        setFormState(prev => ({ ...prev, error: lastNameError }));
         return;
       }
 
@@ -203,7 +202,6 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       };
 
       dispatch(updateUserProfile(userPayload));
-      toast.success("Changes saved!");
 
       setTimeout(() => {
         setFormState((prev) => ({ ...prev, showSuccess: false }));
@@ -213,7 +211,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
       onSaveSuccess();
     } catch (error) {
-      toast.error("Error saving changes.");
+      setFormState(prev => ({ ...prev, error: "Error saving changes." }));
       setFormState((prev) => ({ ...prev, saving: false }));
     }
   };
@@ -229,6 +227,16 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             message="Your profile has been updated successfully."
             onClose={() =>
               setFormState((prev) => ({ ...prev, showSuccess: false }))
+            }
+          />
+        </div>
+      )}
+      {formState.error && (
+        <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
+          <SuccessAlert
+            message={formState.error}
+            onClose={() =>
+              setFormState((prev) => ({ ...prev, error: null }))
             }
           />
         </div>

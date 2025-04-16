@@ -111,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <div key={tab.id} className="relative flex items-center">
                 <button
                   className={`w-full text-left px-6 py-3 text-base font-light transition-all duration-200 ease-out relative ${
-                    activeTab === tab.id ? "font-medium text-primary-black bg-neutral-100" : "text-neutral-700 hover:bg-neutral-50"
+                    activeTab === tab.id ? "font-medium text-primary-black bg-neutral-200" : "text-neutral-700 hover:bg-neutral-200"
                   }`}
                   onClick={() => setActiveTab(tab.id)}
                 >
@@ -131,7 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="hidden lg:block px-4 py-6">
             <button 
               onClick={handleLogout}
-              className="w-24 px-3 py-2.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-all duration-200 ease-in-out"
+              className="w-24 px-3 py-2.5 text-sm font-medium text-neutral-700 bg-primary-white border border-neutral-400 rounded-lg hover:bg-neutral-200 transition-all duration-200 ease-in-out"
             >
               Log Out
             </button>

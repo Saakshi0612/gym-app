@@ -63,16 +63,10 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
   const selectedLabel = options.find((opt) => opt.value === selected)?.label || "";
 
   return (
-    <div
-      ref={wrapperRef}
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      className="relative w-full select-none"
-    >
-      {/* Label */}
+    <div className="relative">
       <label
         htmlFor={id}
-        className="absolute -top-2 left-3 z-10 bg-[var(--color-primary-white)] px-1 text-caption text-neutral-600 pointer-events-none"
+        className="absolute -top-2 left-3 z-10 bg-primary-white px-1 text-caption text-neutral-600 pointer-events-none"
       >
         {label}
       </label>
@@ -81,14 +75,14 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
       <div
         id={id}
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center justify-between w-full px-3 py-3 text-body border border-[var(--color-neutral-400)] rounded-md cursor-pointer"
+        className="flex items-center justify-between w-full px-3 py-3 text-body border border-neutral-400 rounded-md cursor-pointer hover:border-primary-green focus:border-primary-green focus:ring-1 focus:ring-primary-green"
       >
-        <span className={selected ? "text-[var(--color-neutral-900)]" : "text-[var(--color-neutral-400)]"}>
+        <span className={selected ? "text-primary-black" : "text-neutral-400"}>
           {selectedLabel || "Select an option"}
         </span>
         <ChevronDown
           size={20}
-          className={`text-[var(--color-neutral-600)] transition-transform duration-300 ${
+          className={`text-neutral-600 transition-transform duration-300 ${
             isOpen ? "rotate-180" : "rotate-0"
           }`}
         />
@@ -96,7 +90,7 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
 
       {/* Dropdown */}
       <ul
-        className={`absolute z-20 w-full mt-1 bg-white rounded-md border border-[var(--color-neutral-400)] shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${
+        className={`absolute z-20 w-full mt-1 bg-primary-white rounded-md border border-neutral-400 shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${
           isOpen ? "opacity-100 translate-y-1 scale-100" : "opacity-0 -translate-y-2 scale-95 pointer-events-none"
         }`}
       >
@@ -105,8 +99,8 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
             key={option.value}
             className={`px-4 py-3 text-sm md:text-base cursor-pointer transition-colors duration-150 ${
               index === highlightedIndex
-                ? "bg-[var(--color-primary-green)] text-[var(--color-primary-black)]"
-                : "text-[var(--color-neutral-700)] hover:bg-[var(--color-green-100)]"
+                ? "bg-primary-green text-primary-black"
+                : "text-neutral-700 hover:bg-green-100"
             }`}
             onMouseDown={() => {
               onChange(option.value);

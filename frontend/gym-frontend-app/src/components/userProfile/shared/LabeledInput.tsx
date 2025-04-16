@@ -51,18 +51,15 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
 
-  // Pre-compute styles based on error state
-  const inputStyles = `w-full border rounded-md px-3 text-body text-[0.875rem] focus:outline-none h-16 ${
-    error 
-      ? "border-red-500 focus:ring-2 focus:ring-red-500" 
-      : "border-[var(--color-neutral-400)] focus:ring-2 focus:ring-[var(--color-semantic-blue)]"
-  }`;
-
-  const textAreaStyles = `w-full border rounded-md px-3 text-body text-[0.875rem] focus:outline-none h-16 resize-none pt-3 pb-2 ${
-    error 
-      ? "border-red-500 focus:ring-2 focus:ring-red-500" 
-      : "border-[var(--color-neutral-400)] focus:ring-2 focus:ring-[var(--color-primary-green)]"
-  }`;
+  const sharedClassNames = "w-full px-3 py-2 text-base font-light transition-all duration-200 ease-out rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-green";
+  
+  const inputStyles = error
+    ? `${sharedClassNames} border border-semantic-red focus:border-semantic-red focus:ring-semantic-red bg-white`
+    : `${sharedClassNames} border border-neutral-400 focus:border-primary-green focus:ring-primary-green bg-white`;
+  
+  const textAreaStyles = error
+    ? `${sharedClassNames} border border-semantic-red focus:border-semantic-red focus:ring-semantic-red bg-white min-h-[120px] resize-y`
+    : `${sharedClassNames} border border-neutral-400 focus:border-primary-green focus:ring-primary-green bg-white min-h-[120px] resize-y`;
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -89,7 +86,7 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
       {/* Top floating label */}
       <label
         htmlFor={id}
-        className="absolute -top-2 left-3 bg-[var(--color-primary-white)] px-1 text-caption z-10"
+        className="block text-sm font-medium text-neutral-700 mb-1"
       >
         {label}
       </label>
@@ -124,7 +121,9 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
       )}
 
       {/* Display error message if validation fails */}
-      {error && <ErrorMessage error={error} />}
+      {error && (
+        <p className="mt-1 text-sm text-semantic-red">{error}</p>
+      )}
     </div>
   );
 };

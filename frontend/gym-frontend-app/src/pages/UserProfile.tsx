@@ -5,7 +5,7 @@ import { UserRole } from "../types/components/UserProfileSettings.types";
 import { SidebarTab } from "../types/components/sidebar.types";
 import Sidebar from '../components/userProfile/Sidebar';
 import { AdminProfileData, CoachProfileData, ClientProfileData } from "../types/components/UserProfileSettings.types";
-import { toast } from "sonner";
+import SuccessAlert from '../components/userProfile/shared/SuccessAlert';
 
 // Lazy load components that aren't immediately needed
 const UnifiedUserProfileForm = lazy(() => import('../components/userProfile/UnifiedUserProfileForm'));
@@ -55,6 +55,7 @@ const DynamicUserProfile = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
   // Load saved draft from localStorage
   const loadSavedDraft = useCallback(() => {
@@ -70,7 +71,8 @@ const DynamicUserProfile = () => {
         if (hoursDiff < 24) {
           setProfileData(parsedDraft.data);
           setLastSaved(savedTime);
-          toast.info("Restored your last unsaved changes");
+          setInfo("Restored your last unsaved changes");
+          setTimeout(() => setInfo(null), 4000);
           return true;
         } else {
           localStorage.removeItem(PROFILE_STORAGE_KEY);
@@ -271,6 +273,22 @@ const DynamicUserProfile = () => {
           {tabContent}
         </div>
       </main>
+      {error && (
+        <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
+          <SuccessAlert
+            message={error}
+            onClose={() => setError(null)}
+          />
+        </div>
+      )}
+      {info && (
+        <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
+          <SuccessAlert
+            message={info}
+            onClose={() => setInfo(null)}
+          />
+        </div>
+      )}
     </div>
   );
 };
