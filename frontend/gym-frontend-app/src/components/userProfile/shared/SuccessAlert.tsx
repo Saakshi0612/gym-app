@@ -1,25 +1,64 @@
 import React from "react";
-import { IoCheckmarkCircle, IoClose } from "react-icons/io5";
+import { FaCheck, FaTimes } from 'react-icons/fa';
 
 interface SuccessAlertProps {
   message: string;
   onClose: () => void;
+  type?: 'success' | 'error';
 }
 
-const SuccessAlert: React.FC<SuccessAlertProps> = ({ message, onClose }) => {
+const SuccessAlert: React.FC<SuccessAlertProps> = ({ message, onClose, type = 'success' }) => {
+  const isSuccess = type === 'success';
+
+  const colorClasses = isSuccess
+    ? {
+        bg: 'bg-green-50',
+        border: 'border-green-200',
+        iconBg: 'bg-green-500',
+        text: 'text-green-800',
+        subText: 'text-green-700',
+        button: 'text-green-500 hover:bg-green-100',
+        icon: <FaCheck className="text-white text-xs" />,
+        dismissIcon: <FaCheck className="h-4 w-4" />,
+        heading: 'Success',
+      }
+    : {
+        bg: 'bg-red-50',
+        border: 'border-red-200',
+        iconBg: 'bg-red-500',
+        text: 'text-red-800',
+        subText: 'text-red-700',
+        button: 'text-red-500 hover:bg-red-100',
+        icon: <FaTimes className="text-white text-xs" />,
+        dismissIcon: <FaTimes className="h-4 w-4" />,
+        heading: 'Error',
+      };
+
   return (
-    <div className="fixed top-5 left-4 right-4 md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 z-50 bg-[var(--color-green-50)] border border-[var(--color-primary-green)] rounded-md px-4 py-3 shadow-md w-auto md:w-[480px] flex items-start gap-3 animate-fadeIn">
-      <IoCheckmarkCircle size={20} className="text-[var(--color-primary-green)] mt-0.5 flex-shrink-0" />
-      <div className="flex-1 text-sm text-[var(--color-neutral-900)]">
-        <p className="font-semibold">Success</p>
-        <p className="break-words">{message}</p>
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full p-2 max-w-md">
+      <div className={`${colorClasses.bg} ${colorClasses.border} rounded-md p-4 relative shadow-lg`}>
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <div className={`w-5 h-5 ${colorClasses.iconBg} rounded-full flex items-center justify-center`}>
+              {colorClasses.icon}
+            </div>
+          </div>
+          <div className="ml-3">
+            <h3 className={`text-sm font-medium ${colorClasses.text}`}>{colorClasses.heading}</h3>
+            <div className={`mt-1 text-sm ${colorClasses.subText}`}>
+              {message}
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`ml-auto -mx-1.5 -my-1.5 ${colorClasses.bg} ${colorClasses.button} rounded-lg p-1.5`}
+            onClick={onClose}
+          >
+            <span className="sr-only">Dismiss</span>
+            {colorClasses.dismissIcon}
+          </button>
+        </div>
       </div>
-      <button 
-        onClick={onClose} 
-        className="text-[var(--color-neutral-900)] hover:text-black ml-2 flex-shrink-0"
-      >
-        <IoClose size={18} />
-      </button>
     </div>
   );
 };

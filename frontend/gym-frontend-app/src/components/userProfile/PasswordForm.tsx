@@ -1,10 +1,12 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
-import { Eye, EyeOff, Check, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { updatePassword } from '../../services/authSlice';
 import { FormDataType, VisibilityType } from "../../types/components/passwordFormTypes";
+import { validatePassword } from "../../utils/validation";
+import SuccessAlert from "./shared/SuccessAlert";
 
 const PasswordForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,42 +26,84 @@ const PasswordForm: React.FC = () => {
 
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({
+    oldPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
 
   const toggleVisibility = (field: keyof VisibilityType) => {
     setVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  const validateField = (name: string, value: string) => {
+    if (name === "oldPassword" || name === "newPassword") {
+      const validation = validatePassword(value);
+      return !validation.isValid;
+    }
+    if (name === "confirmPassword") {
+      return value !== formData.newPassword;
+    }
+    return false;
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Validate field on change
+    const hasError = validateField(name, value);
+    setFieldErrors(prev => ({ ...prev, [name]: hasError }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const { oldPassword, newPassword, confirmPassword } = formData;
+    
+    // Validate old password
+    const oldPasswordError = validatePassword(formData.oldPassword);
+    if (!oldPasswordError.isValid) {
+      setErrorMessage(oldPasswordError.error || "Invalid old password");
+      setShowError(true);
+      return;
+    }
 
-    if (newPassword !== confirmPassword) {
-      setErrorMessage("New passwords do not match.");
-      setSuccessMessage("");
+    // Validate new password
+    const newPasswordError = validatePassword(formData.newPassword);
+    if (!newPasswordError.isValid) {
+      setErrorMessage(newPasswordError.error || "Invalid new password");
+      setShowError(true);
+      return;
+    }
+
+    // Check if passwords match
+    if (formData.newPassword !== formData.confirmPassword) {
+      setErrorMessage("New passwords do not match");
+      setShowError(true);
       return;
     }
 
     try {
-      const resultAction = await dispatch(updatePassword({ oldPassword, newPassword }));
+      await dispatch(updatePassword({
+        oldPassword: formData.oldPassword,
+        newPassword: formData.newPassword
+      })).unwrap();
       
-      if (updatePassword.fulfilled.match(resultAction)) {
-        setSuccessMessage("The password has been updated successfully.");
-        setErrorMessage("");
-        setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
-        setTimeout(() => setSuccessMessage(""), 4000);
-      } else if (updatePassword.rejected.match(resultAction)) {
-        setErrorMessage(resultAction.payload as string || "An error occurred.");
-        setSuccessMessage("");
-      }
+      setSuccessMessage("Password updated successfully!");
+      setShowSuccess(true);
+      setFormData({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
+      
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 4000);
     } catch (error) {
-      console.error("Error updating password:", error);
-      setErrorMessage("We couldn't process your request at this time. Please try again later.");
-      setSuccessMessage("");
+      setErrorMessage(error as string);
+      setShowError(true);
     }
   };
 
@@ -75,73 +119,29 @@ const PasswordForm: React.FC = () => {
   const strength = getStrength(formData.newPassword);
 
   return (
-    <>
-      <style>
-        {`
-          input[type="password"]::-ms-reveal,
-          input[type="password"]::-ms-clear {
-            display: none;
-          }
-          input[type="password"]::-webkit-credentials-auto-fill-button,
-          input[type="password"]::-webkit-contacts-auto-fill-button {
-            visibility: hidden;
-            display: none !important;
-            pointer-events: none;
-            position: absolute;
-            right: 0;
-          }
-        `}
-      </style>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg">
+      {showSuccess && (
+        <div className="mb-4">
+          <SuccessAlert
+            message={successMessage}
+            onClose={() => setShowSuccess(false)}
+          />
+        </div>
+      )}
+      
+      {showError && (
+        <div className="mb-4">
+          <SuccessAlert
+            message={errorMessage}
+            onClose={() => setShowError(false)}
+          />
+        </div>
+      )}
 
       <form
         className="w-full max-w-lg mx-auto md:ml-16 space-y-8 flex flex-col justify-center px-0 md:px-4 mt-0 md:mt-8"
         onSubmit={handleSubmit}
       >
-        {/* Toasts */}
-        <AnimatePresence>
-          {successMessage && (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="fixed top-8 left-4 right-4 md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 bg-[#E6FFE1] border-l-4 border-[#9ef300] p-4 rounded-md shadow flex items-start gap-4 z-50"
-            >
-              <div className="bg-[#9ef300] text-white rounded-full p-1">
-                <Check size={16} strokeWidth={3} />
-              </div>
-              <div className="flex flex-col text-sm text-[#323A3A]">
-                <strong>Success</strong>
-                <span>{successMessage}</span>
-              </div>
-              <button type="button" onClick={() => setSuccessMessage("")}>
-                <X size={16} strokeWidth={3} />
-              </button>
-            </motion.div>
-          )}
-
-          {errorMessage && (
-            <motion.div
-              key="error"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="fixed top-8 left-4 right-4 md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 bg-[#FFF1F1] border-l-4 border-red-500 p-4 rounded-md shadow flex items-start gap-4 z-50"
-            >
-              <div className="bg-red-500 text-white rounded-full p-1">
-                <X size={16} strokeWidth={3} />
-              </div>
-              <div className="flex flex-col text-sm text-[#323A3A]">
-                <strong>Error</strong>
-                <span>{errorMessage}</span>
-              </div>
-              <button type="button" onClick={() => setErrorMessage("")}>
-                <X size={16} strokeWidth={3} />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Password Fields Container */}
         <div className="px-4 md:px-0">
           {[
@@ -151,6 +151,7 @@ const PasswordForm: React.FC = () => {
           ].map(({ label, field, vis }) => {
             const isNew = field === "newPassword";
             const value = formData[field as keyof FormDataType];
+            const hasError = fieldErrors[field];
 
             return (
               <div className="relative space-y-2" key={field}>
@@ -168,7 +169,11 @@ const PasswordForm: React.FC = () => {
                     value={value}
                     onChange={handleChange}
                     autoComplete="new-password"
-                    className="w-full h-16 px-4 pr-14 text-base text-[#323A3A] placeholder:text-gray-400 border border-[#DADADA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ef300] bg-white"
+                    className={`w-full h-16 px-4 pr-14 text-base text-[#323A3A] placeholder:text-gray-400 border rounded-lg focus:outline-none focus:ring-2 bg-white ${
+                      hasError 
+                        ? "border-red-500 focus:ring-red-500" 
+                        : "border-[#DADADA] focus:ring-[#9ef300]"
+                    } [&::-ms-reveal]:hidden [&::-ms-clear]:hidden [&::-webkit-contacts-auto-fill-button]:hidden [&::-webkit-credentials-auto-fill-button]:hidden`}
                     required
                     minLength={8}
                   />
@@ -205,7 +210,7 @@ const PasswordForm: React.FC = () => {
                 )}
 
                 <p className="text-xs text-[#666] pt-1">
-                  At least one capital letter required
+                  Password must be 8-16 characters long and include uppercase letters, lowercase letters, numbers, and special characters
                 </p>
               </div>
             );
@@ -217,13 +222,20 @@ const PasswordForm: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="bg-[#9ef300] hover:bg-lime-500 text-[#323A3A] text-base px-8 py-3 rounded-lg font-semibold transition-all disabled:opacity-50"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out bg-primary-green text-primary-black hover:bg-[#9ef300] hover:text-primary-white disabled:bg-neutral-200 disabled:text-neutral-600 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px]"
           >
-            {isLoading ? "Updating..." : "Save Changes"}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Updating...</span>
+              </>
+            ) : (
+              "Save Changes"
+            )}
           </button>
         </div>
       </form>
-    </>
+    </div>
   );
 };
 

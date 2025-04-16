@@ -125,7 +125,7 @@ const FeedbackSection: React.FC = () => {
       
       {/* Pagination with normal HTML buttons */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-6 mb-12">
           <div className="flex items-center space-x-6">
             {/* Show the « icon to go back to previous pages when not on first set */}
             {currentPage > 3 && (
@@ -145,7 +145,7 @@ const FeedbackSection: React.FC = () => {
             )}
 
             {/* Show only 3 pages at a time */}
-            {[...Array(Math.min(3, totalPages))].map((_, i) => {
+            {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
               let pageNum;
               if (currentPage <= 3) {
                 pageNum = i + 1;
