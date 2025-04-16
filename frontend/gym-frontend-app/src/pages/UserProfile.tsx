@@ -268,8 +268,8 @@ const DynamicUserProfile = () => {
       <div className="w-full md:w-64 md:min-h-screen md:border-r border-neutral-200 flex-shrink-0">
         <Sidebar {...sidebarProps} />
       </div>
-      <main className="flex-1 px-4 md:px-8 pt-6 md:pt-8">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-1 px-4 md:px-8 pt-6 md:pt-8 pb-16 transition-all duration-300 ease-in-out">
+        <div className="max-w-4xl mx-auto transition-opacity duration-300 ease-in-out">
           {tabContent}
         </div>
       </main>

@@ -120,8 +120,6 @@ const PasswordForm: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg">
-      <h2 className="text-2xl font-bold mb-6">Change Password</h2>
-      
       {showSuccess && (
         <div className="mb-4">
           <SuccessAlert
