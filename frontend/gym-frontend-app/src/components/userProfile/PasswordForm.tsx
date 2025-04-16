@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
@@ -222,9 +222,16 @@ const PasswordForm: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out bg-primary-green text-primary-black hover:bg-[#9ef300] hover:text-primary-white disabled:bg-neutral-200 disabled:text-neutral-600 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out bg-primary-green text-primary-black hover:bg-[#9ef300] hover:text-primary-white disabled:bg-neutral-200 disabled:text-neutral-600 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px]"
           >
-            {isLoading ? "Updating..." : "Save Changes"}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Updating...</span>
+              </>
+            ) : (
+              "Save Changes"
+            )}
           </button>
         </div>
       </form>

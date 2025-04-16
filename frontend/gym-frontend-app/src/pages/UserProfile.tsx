@@ -6,6 +6,7 @@ import { SidebarTab } from "../types/components/sidebar.types";
 import Sidebar from '../components/userProfile/Sidebar';
 import { AdminProfileData, CoachProfileData, ClientProfileData } from "../types/components/UserProfileSettings.types";
 import SuccessAlert from '../components/userProfile/shared/SuccessAlert';
+import { motion } from "framer-motion";
 
 // Lazy load components that aren't immediately needed
 const UnifiedUserProfileForm = lazy(() => import('../components/userProfile/UnifiedUserProfileForm'));
@@ -19,16 +20,30 @@ const PROFILE_STORAGE_KEY = 'gym_app_profile_draft';
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-full">
-    <div className="animate-pulse flex space-x-4">
-      <div className="rounded-full bg-gray-200 h-12 w-12"></div>
-      <div className="flex-1 space-y-4 py-1">
-        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-        <div className="space-y-2">
-          <div className="h-4 bg-gray-200 rounded"></div>
-          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-        </div>
-      </div>
-    </div>
+    <motion.div 
+      className="flex flex-col items-center space-y-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div 
+        className="w-16 h-16 rounded-full border-4 border-primary-green border-t-transparent"
+        animate={{ rotate: 360 }}
+        transition={{ 
+          duration: 1,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+      />
+      <motion.div 
+        className="text-primary-green font-medium"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        Loading...
+      </motion.div>
+    </motion.div>
   </div>
 );
 
