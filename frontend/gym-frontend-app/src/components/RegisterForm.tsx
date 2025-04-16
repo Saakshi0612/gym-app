@@ -8,8 +8,7 @@ import Input from "./common/Input";
 import { RegistrationFormData } from "../types";
 import Dropdown from "./DropdownWrapper";
 import SystemAlert from './SystemAlert';
-
-import AuthLayout from "./layout/authLayout";
+import AuthLayout from "./auth/authLayout";
 import AuthFooter from "./auth/AuthFooter";
 
 const TARGET_OPTIONS = [
