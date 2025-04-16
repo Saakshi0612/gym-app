@@ -24,6 +24,8 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLUListElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -34,6 +36,15 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && dropdownRef.current) {
+      const highlightedElement = dropdownRef.current.children[highlightedIndex] as HTMLElement;
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightedIndex, isOpen]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!isOpen) return;
@@ -89,29 +100,30 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
       </div>
 
       {/* Dropdown */}
-      <ul
-        className={`absolute z-20 w-full mt-1 bg-primary-white rounded-md border border-neutral-400 shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${
-          isOpen ? "opacity-100 translate-y-1 scale-100" : "opacity-0 -translate-y-2 scale-95 pointer-events-none"
-        }`}
-      >
-        {options.map((option, index) => (
-          <li
-            key={option.value}
-            className={`px-4 py-3 text-sm md:text-base cursor-pointer transition-colors duration-150 ${
-              index === highlightedIndex
-                ? "bg-primary-green text-primary-black"
-                : "text-neutral-700 hover:bg-green-100"
-            }`}
-            onMouseDown={() => {
-              onChange(option.value);
-              setIsOpen(false);
-            }}
-            onMouseEnter={() => setHighlightedIndex(index)}
-          >
-            {option.label}
-          </li>
-        ))}
-      </ul>
+      {isOpen && (
+        <ul
+          ref={dropdownRef}
+          className="absolute z-20 w-full mt-1 bg-primary-white rounded-md border border-neutral-400 shadow-lg overflow-y-auto max-h-40"
+        >
+          {options.map((option, index) => (
+            <li
+              key={option.value}
+              className={`px-4 py-3 text-sm md:text-base cursor-pointer transition-colors duration-150 ${
+                index === highlightedIndex
+                  ? "bg-primary-green text-primary-black"
+                  : "text-neutral-700 hover:bg-green-100"
+              }`}
+              onMouseDown={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              onMouseEnter={() => setHighlightedIndex(index)}
+            >
+              {option.label}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

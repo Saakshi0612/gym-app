@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Specialization, TagsFieldProps } from "../../types/components/UserProfileSettings.types";
-
+import { ChevronDown } from "lucide-react";
 
 const allOptions = Object.values(Specialization);
 
@@ -13,6 +13,8 @@ const TagsField: React.FC<TagsFieldProps> = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLUListElement>(null);
 
   const filteredOptions = allOptions.filter(
     (option) =>
@@ -61,25 +63,44 @@ const TagsField: React.FC<TagsFieldProps> = ({
     }
   }, [filteredOptions.length, highlightedIndex]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (showDropdown && dropdownRef.current) {
+      const highlightedElement = dropdownRef.current.children[highlightedIndex] as HTMLElement;
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightedIndex, showDropdown]);
+
   return (
-    <div className="w-full relative">
+    <div className="w-full relative" ref={wrapperRef}>
       {/* Floating label */}
-      <label className="absolute -top-2 left-3 bg-[var(--color-primary-white)] text-sm text-[var(--color-neutral-900)] px-1 z-10">
+      <label className="absolute -top-2.5 left-3 z-10 bg-primary-white px-1 text-caption text-neutral-600 pointer-events-none">
         Specialization
       </label>
 
       {/* Tag input container */}
-      <div className="border border-[var(--color-neutral-400)] rounded-md px-3 py-2 bg-[var(--color-primary-white)] min-h-[54px] flex items-center flex-wrap gap-2 relative mt-2 sm:px-2 sm:py-2">
+      <div className="border border-neutral-400 rounded-md px-3 py-2.5 bg-primary-white min-h-[50px] flex items-center flex-wrap gap-2 relative mt-2 hover:border-primary-green focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green">
         {/* Tags */}
         {tags.map((tag, index) => (
           <span
             key={index}
-            className="bg-[var(--color-neutral-200)] text-[var(--color-neutral-900)] text-sm px-3 py-1 rounded-md flex items-center gap-2 whitespace-nowrap max-w-full"
+            className="bg-neutral-200 text-neutral-900 text-base px-3 py-1.5 rounded-md flex items-center gap-2 whitespace-nowrap max-w-full"
           >
             <span className="truncate max-w-[100px] sm:max-w-[80px]">{tag}</span>
             <button
               onClick={() => handleRemove(index)}
-              className="text-[var(--color-neutral-600)] hover:text-[var(--color-semantic-red)] font-bold text-sm"
+              className="text-neutral-600 hover:text-semantic-red font-bold text-base"
             >
               ×
             </button>
@@ -102,21 +123,34 @@ const TagsField: React.FC<TagsFieldProps> = ({
               ? "Add specialization"
               : ""
           }
-          className="flex-1 min-w-[100px] sm:min-w-[80px] outline-none border-none text-sm py-1 text-[var(--color-neutral-900)] placeholder-[var(--color-neutral-600)]"
+          className="flex-1 min-w-[100px] sm:min-w-[80px] outline-none border-none text-sm py-1 text-neutral-900 placeholder-neutral-400"
+        />
+
+        {/* Dropdown Toggle */}
+        <ChevronDown
+          size={20}
+          className={`text-neutral-600 transition-transform duration-300 cursor-pointer ${
+            showDropdown ? "rotate-180" : "rotate-0"
+          }`}
+          onClick={() => setShowDropdown(!showDropdown)}
         />
 
         {/* Dropdown */}
-        {showDropdown && searchTerm && filteredOptions.length > 0 && (
-          <ul className="absolute left-0 top-full mt-1 bg-[var(--color-primary-white)] border border-[var(--color-neutral-400)] rounded-md shadow-sm w-full max-h-40 overflow-y-auto z-10 text-sm sm:text-xs">
+        {showDropdown && filteredOptions.length > 0 && (
+          <ul 
+            ref={dropdownRef}
+            className="absolute z-20 w-full mt-1 bg-primary-white rounded-md border border-neutral-400 shadow-lg overflow-y-auto max-h-40 left-0 top-full"
+          >
             {filteredOptions.map((option, idx) => (
               <li
                 key={idx}
                 onClick={() => handleAdd(option)}
-                className={`px-4 py-2 cursor-pointer ${
+                className={`px-4 py-2 text-sm cursor-pointer transition-colors duration-150 ${
                   idx === highlightedIndex
-                    ? "bg-[var(--color-neutral-200)] text-[var(--color-neutral-900)]"
-                    : "hover:bg-[var(--color-neutral-200)]"
+                    ? "bg-primary-green text-primary-black"
+                    : "text-neutral-700 hover:bg-green-100"
                 }`}
+                onMouseEnter={() => setHighlightedIndex(idx)}
               >
                 {option}
               </li>

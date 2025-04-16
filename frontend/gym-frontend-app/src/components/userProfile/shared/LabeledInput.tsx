@@ -32,6 +32,11 @@ const ErrorMessage = memo(({ error }: { error: string }) => {
           Example: "John Smith" (not " John Smith" or "John Smith ")
         </p>
       )}
+      {error === "Name is required" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Please enter your name
+        </p>
+      )}
     </div>
   );
 });
