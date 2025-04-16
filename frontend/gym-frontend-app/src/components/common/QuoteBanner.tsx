@@ -1,4 +1,4 @@
-import img from "../../assets/sidebar.png"
+import img from "../../assets/images/sidebar.png"
 // src/components/common/QuoteBanner.tsx
 export const QuoteSidebar = () => {
     return (

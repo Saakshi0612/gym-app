@@ -1,5 +1,5 @@
 import React from "react";
-import pdfIconPath from "../../assets/PDF.svg";
+import pdfIconPath from "../../assets/images/PDF.svg";
 import { CoachProps } from "../../types/components/coach.types";
 import Button from "../common/ButtonComponent";
 

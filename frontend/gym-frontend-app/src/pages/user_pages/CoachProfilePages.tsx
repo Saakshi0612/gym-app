@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/store';
 import CoachSidebar from '../../components/CoachComponents/CoachSideBar';
-import AvatarImg from '../../assets/Avatar.jpg';
+import AvatarImg from '../../assets/images/Avatar.jpg';
 import CoachAvailabilityCalendar from '../../components/CoachComponents/CoachCalendar';
 import FeedbackSection from '../../components/FeedBack/FeedBack';
 import { TimeSlot } from '../../types/components/coach.types';
