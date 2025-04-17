@@ -28,7 +28,7 @@ const CoachProfilePage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   // Track if user has actively selected a date
-  const [dateSelected, setDateSelected] = useState<boolean>(false);
+  const [dateSelected, setDateSelected] = useState<boolean>(true);
   
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [showConfirmCard, setShowConfirmCard] = useState(false);
