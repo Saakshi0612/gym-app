@@ -28,7 +28,7 @@ export const loginUser = createAsyncThunk(
       );
 
       if (!user) {
-        return rejectWithValue("We couldn't log you in. Double-check your password and try again.");
+        return rejectWithValue("We couldn't log you in. Double-check your credentials and try again.");
       }
 
       // Use object destructuring to exclude password
