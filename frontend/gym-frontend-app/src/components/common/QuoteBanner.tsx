@@ -2,7 +2,7 @@ import img from "../../assets/sidebar.png"
 // src/components/common/QuoteBanner.tsx
 export const QuoteSidebar = () => {
     return (
-      <div className="relative h-[90vh] hidden lg:block lg:w-[45%] my-auto  rounded-md ">
+      <div className="relative  h-[90vh] hidden lg:block lg:w-[45%] my-auto  rounded-md ">
        
         <div className="absolute inset-0">
           <img

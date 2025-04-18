@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '../store/store';
 import AuthLayout from './layout/authLayout';
 import { QuoteSidebar } from './common/QuoteBanner';
 import Input from './common/Input';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 
 export default function LoginForm() {
@@ -17,7 +18,7 @@ export default function LoginForm() {
   
   const [showLoginSuccess, setShowLoginSuccess] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(true);
-
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -63,7 +64,13 @@ export default function LoginForm() {
     if (passwordError) dispatch(clearError());
   };
 
-  
+   const passwordToggleIcon = (
+        <div onClick={() => setShowPassword(prev => !prev)}
+           className='cursor-pointer text-lg'
+        >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+        </div>
+   )
   
 
   return (
@@ -113,10 +120,11 @@ export default function LoginForm() {
             name="password"
             
             placeholder="Enter your Password "
-            type={'password'}
+            type={showPassword? "text" : "password"}
             value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePasswordChange(e.target.value)}
             error={passwordError}
+            rightElement = {passwordToggleIcon}
             helpText="At least one capital letter required"
             
           />

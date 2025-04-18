@@ -11,6 +11,7 @@ export interface EmailInputProps {
     lastName: string;
     email: string;
     password: string;
+    confirmPassword: string;
     targets: string;
     preferableActivity: string;
   }
