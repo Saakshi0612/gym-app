@@ -9,7 +9,7 @@ import { RegistrationFormData } from "../types";
 import Dropdown from "./common/Selection";
 import SystemAlert from './SystemAlert';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import AuthLayout from "./layout/authLayout";
+import AuthLayout from "./auth/authLayout";
 import AuthFooter from "./auth/AuthFooter";
 import FieldWrapper from "./common/FieldWrapper";
 const TARGET_OPTIONS = [

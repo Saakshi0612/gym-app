@@ -13,7 +13,6 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   
   const [showLoginSuccess, setShowLoginSuccess] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(true);
