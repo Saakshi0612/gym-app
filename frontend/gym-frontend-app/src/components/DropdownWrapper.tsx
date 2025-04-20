@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { UseFormRegisterReturn } from "react-hook-form";
-import dropdownIcon from "../assets/dropdown.svg";
+import dropdownIcon from "../assets/images/dropdown.svg";
 
 interface DropdownFieldProps {
   label: string;

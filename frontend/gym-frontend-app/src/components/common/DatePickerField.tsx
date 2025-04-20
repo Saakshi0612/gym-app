@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import Calendar from "./Calender"; 
-import Dropdownsvg from "../../assets/dropdown.svg"
+import Dropdownsvg from "../../assets/images/dropdown.svg"
 
 interface DatePickerFieldProps {
   label: string;

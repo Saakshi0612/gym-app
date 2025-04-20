@@ -1,4 +1,3 @@
-// src/components/LoginForm.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, clearError } from '../services/authSlice';
@@ -6,15 +5,15 @@ import SystemAlert from './SystemAlert';
 import SubmitButton from './form/SubmitButton';
 import AuthFooter from './auth/AuthFooter';
 import { useAppDispatch, useAppSelector } from '../store/store';
-import AuthLayout from './layout/authLayout';
+import AuthLayout from './auth/authLayout';
 import { QuoteSidebar } from './common/QuoteBanner';
 import Input from './common/Input';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
-
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const [showLoginSuccess, setShowLoginSuccess] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(true);
@@ -25,7 +24,7 @@ export default function LoginForm() {
   const { isLoading, error } = useAppSelector(state => state.auth);
 
   const isSystemError = error && error.includes('technical difficulties');
-  const passwordError = error && !isSystemError ? error : null;
+  const loginError = error && !isSystemError ? error : null;
   const systemError = isSystemError ? error : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +43,7 @@ export default function LoginForm() {
       const timer = setTimeout(() => {
         setShowLoginSuccess(false);
         navigate('/');
-      }, 2000);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [showLoginSuccess, navigate]);
@@ -59,19 +58,13 @@ export default function LoginForm() {
     }
   }, [error, showErrorAlert, dispatch]);
 
-  const handlePasswordChange = (newPassword: string) => {
-    setPassword(newPassword);
-    if (passwordError) dispatch(clearError());
+  const handleInputChange = () => {
+    if (loginError) dispatch(clearError());
   };
 
-   const passwordToggleIcon = (
-        <div onClick={() => setShowPassword(prev => !prev)}
-           className='cursor-pointer text-lg'
-        >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-        </div>
-   )
-  
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   return (
     <AuthLayout
@@ -103,30 +96,41 @@ export default function LoginForm() {
         <h1 className="text-2xl font-lexend mb-6">Log In to Your Account</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Replaced EmailInput with reusable Input */}
           <Input
             label="Email"
             name="email"
             type="email"
             placeholder="Enter your Email"
             value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setEmail(e.target.value);
+              handleInputChange();
+            }}
             helpText="e.g. username@domain.com"
+            error={loginError ? " " : undefined}
           />
 
-          {/* Replaced PasswordInput with reusable Input */}
           <Input
             label="Password"
             name="password"
-            
-            placeholder="Enter your Password "
-            type={showPassword? "text" : "password"}
+            placeholder="Enter your Password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePasswordChange(e.target.value)}
-            error={passwordError}
-            rightElement = {passwordToggleIcon}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setPassword(e.target.value);
+              handleInputChange();
+            }}
+            error={loginError}
             helpText="At least one capital letter required"
-            
+            rightElement={
+              <button 
+                type="button" 
+                onClick={togglePasswordVisibility}
+                className="focus:outline-none"
+              >
+                {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+              </button>
+            }
           />
 
           <SubmitButton
@@ -142,7 +146,6 @@ export default function LoginForm() {
           linkUrl="/register"
         />
       </div>
-
     </AuthLayout>
   );
 }
