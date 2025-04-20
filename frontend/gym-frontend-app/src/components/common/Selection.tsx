@@ -1,3 +1,4 @@
+// components/common/DropdownField.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { UseFormRegisterReturn } from "react-hook-form";
 import dropdownIcon from "../../assets/images/dropdown.svg";
@@ -11,6 +12,9 @@ interface DropdownFieldProps {
   onChange: (val: string) => void;
   value: string;
   containerClassName?: string;
+
+  /** Optional: Enables dynamic dropdown max-height */
+  useDynamicHeight?: boolean;
 }
 
 const DropdownField: React.FC<DropdownFieldProps> = ({
@@ -22,9 +26,12 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   onChange,
   value,
   containerClassName,
+  useDynamicHeight = false,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [maxHeight, setMaxHeight] = useState<number>(240); // default 15rem
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleSelection = (optionValue: string) => {
     onChange(optionValue);
@@ -46,14 +53,35 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // 🧠 Optional: Set dynamic height based on screen space
+  useEffect(() => {
+    if (!useDynamicHeight) return;
+
+    const updateHeight = () => {
+      if (buttonRef.current) {
+        const screenHeight = window.innerHeight;
+        const bottom = buttonRef.current.getBoundingClientRect().bottom;
+        setMaxHeight(screenHeight - bottom - 10); // 10px padding
+      }
+    };
+
+    updateHeight(); // initial
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, [useDynamicHeight]);
+
   return (
     <div className="relative" ref={dropdownRef}>
-      <fieldset className={`border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white ${containerClassName || ''}`}>
+      <fieldset
+        className={`border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white ${containerClassName || ""}`}
+      >
         <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px] ml-1 px-1 bg-white text-[#4B5563]">
           {label}
         </legend>
+
         <div className="relative">
           <button
+            ref={useDynamicHeight ? buttonRef : undefined}
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
             className="w-full p-2 pt-0 rounded bg-white flex justify-between items-center font-light"
@@ -64,23 +92,17 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
             <img
               src={dropdownIcon}
               alt="Toggle Dropdown"
-              className={`w-5 h-5 transition-transform duration-100 ${
-                isDropdownOpen ? "rotate-180" : ""
-              }`}
+              className={`w-5 h-5 transition-transform duration-100 ${isDropdownOpen ? "rotate-180" : ""}`}
             />
           </button>
 
-          <input
-            type="hidden"
-            name={name}
-            value={value}
-            {...register}
-          />
+          <input type="hidden" name={name} value={value} {...register} />
 
           {isDropdownOpen && (
             <ul
-              className="absolute w-full font-lexend bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-60 overflow-y-auto z-10"
+              className={`absolute w-full font-lexend bg-white border border-gray-200 rounded shadow-lg mt-1 z-50 overflow-y-auto scrollbar scrollbar-w-1 scrollbar-thumb-[#85878372] scrollbar-track-gray-100 scrollbar-rounded`}
               role="listbox"
+              style={{ maxHeight: `${maxHeight}px` }}
             >
               {options.map(({ value: optionValue, label: optionLabel }) => (
                 <li
@@ -90,7 +112,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
                   role="option"
                   aria-selected={value === optionValue}
                 >
-                  <span>{optionLabel}</span>
+                  <span className="text-sm font-light text-[#323A3A]">{optionLabel}</span>
                   {value === optionValue && (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -99,12 +121,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
                 </li>
