@@ -35,7 +35,7 @@ const CoachProfilePage: React.FC = () => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('success');
+  const [alertType, setAlertType] = useState<'success' | 'error'>('success');
   
   // Get authentication state from Redux
   const { isAuthenticated } = useAppSelector((state) => state.auth);
