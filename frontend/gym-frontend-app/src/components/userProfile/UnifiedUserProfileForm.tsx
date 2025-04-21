@@ -343,7 +343,18 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
           <>
             <div className="mt-6">
               <DynamicSelect
-                label="Preferable Activity"
+                label="Target Goals"
+                placeholder="Select Goal"
+                options={options.targetOptions}
+                selected={formState.targets}
+                onChange={(val) =>
+                  setFormState((prev) => ({ ...prev, targets: val }))
+                }
+              />
+            </div>
+            <div className="mt-6">
+              <DynamicSelect
+                label="Preferred Activity"
                 placeholder="Select Activity"
                 options={options.activityOptions}
                 selected={formState.preferableActivity}
@@ -352,17 +363,6 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                     ...prev,
                     preferableActivity: val,
                   }))
-                }
-              />
-            </div>
-            <div className="mt-6">
-              <DynamicSelect
-                label="Target Goals"
-                placeholder="Select Goal"
-                options={options.targetOptions}
-                selected={formState.targets}
-                onChange={(val) =>
-                  setFormState((prev) => ({ ...prev, targets: val }))
                 }
               />
             </div>

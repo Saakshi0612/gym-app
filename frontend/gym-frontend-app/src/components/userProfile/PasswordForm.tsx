@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
@@ -120,6 +120,8 @@ const PasswordForm: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg">
+      <h2 className="text-2xl font-bold mb-6">Change Password</h2>
+      
       {showSuccess && (
         <div className="mb-4">
           <SuccessAlert
@@ -222,16 +224,9 @@ const PasswordForm: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out bg-primary-green text-primary-black hover:bg-[#9ef300] hover:text-primary-white disabled:bg-neutral-200 disabled:text-neutral-600 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px]"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out bg-primary-green text-primary-black hover:bg-[#9ef300] hover:text-primary-white disabled:bg-neutral-200 disabled:text-neutral-600 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Updating...</span>
-              </>
-            ) : (
-              "Save Changes"
-            )}
+            {isLoading ? "Updating..." : "Save Changes"}
           </button>
         </div>
       </form>
