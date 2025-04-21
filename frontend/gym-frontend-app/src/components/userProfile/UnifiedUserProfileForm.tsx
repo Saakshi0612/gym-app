@@ -121,6 +121,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
+    // Reset form state when profile data changes
     const userData: UserProfileData = {
       name: `${profileData.firstName} ${profileData.lastName}`,
       email: profileData.email,
@@ -151,10 +152,13 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({
       error: null,
     };
 
-    setFormState(newFormState);
-    initialFormStateRef.current = newFormState;
-    setIsDirty(false);
-  }, [role, profileData]);
+    // Only update if the data has actually changed
+    if (JSON.stringify(newFormState) !== JSON.stringify(formState)) {
+      setFormState(newFormState);
+      initialFormStateRef.current = newFormState;
+      setIsDirty(false);
+    }
+  }, [role, profileData, formState]);
 
   // Check if form has been modified
   useEffect(() => {
@@ -373,7 +377,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({
           <UserProfileHeader
             {...formState.userData}
             onFileSelect={handleProfilePhotoChange}
-            rating={role === UserRole.COACH ? formState.rating : 0}
+            rating={formState.rating}
           />
         </motion.div>
 

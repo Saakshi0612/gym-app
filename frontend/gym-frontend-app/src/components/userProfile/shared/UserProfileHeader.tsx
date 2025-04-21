@@ -114,7 +114,7 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
   };
 
   const showAvatar = role === UserRole.COACH || role === UserRole.CLIENT;
-  const showRating = role === UserRole.COACH;
+  const showRating = role === UserRole.COACH && rating > 0;
 
   if (!name || !email) return null;
 
@@ -206,7 +206,7 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
                   variants={ratingVariants}
                 >
                   <span className="font-medium">Rating</span>
-                  <span className="font-semibold">{rating.toFixed(2)}</span>
+                  <span className="font-semibold">{rating.toFixed(1)}</span>
                   <motion.div
                     initial={{ rotate: -180, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
