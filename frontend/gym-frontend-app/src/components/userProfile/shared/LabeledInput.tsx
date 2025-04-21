@@ -17,9 +17,14 @@ const ErrorMessage = memo(({ error }: { error: string }) => {
   return (
     <div className="mt-1">
       <p className="text-red-600 text-xs">{error}</p>
-      {error === "Name can only contain letters, spaces, and hyphens" && (
+      {error === "Name cannot contain numbers" && (
         <p className="text-xs text-neutral-500 mt-0.5">
-          Example: "John Smith" or "Jean-Pierre"
+          Example: "John Smith" (not "John123")
+        </p>
+      )}
+      {error === "Name cannot contain special characters" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Example: "John Smith" (not "John@Smith")
         </p>
       )}
       {error === "Name cannot contain consecutive spaces or hyphens" && (
@@ -30,6 +35,16 @@ const ErrorMessage = memo(({ error }: { error: string }) => {
       {error === "Name cannot start or end with a space or hyphen" && (
         <p className="text-xs text-neutral-500 mt-0.5">
           Example: "John Smith" (not " John Smith" or "John Smith ")
+        </p>
+      )}
+      {error === "Name must be at least 2 characters long" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Example: "John" (not "J")
+        </p>
+      )}
+      {error === "Name cannot exceed 50 characters" && (
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Please use a shorter name
         </p>
       )}
       {error === "Name is required" && (

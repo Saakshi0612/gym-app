@@ -238,6 +238,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             onClose={() =>
               setFormState((prev) => ({ ...prev, error: null }))
             }
+            type="error"
           />
         </div>
       )}
