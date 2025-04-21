@@ -77,12 +77,12 @@ export type TagsFieldProps = {
   onRemoveTag: (index: number) => void;
 };
 
-export type CertificateUploadProps = {
+export interface CertificateUploadProps {
   certificates: Certificate[];
-  onDrop: (files: FileList | null) => void;
+  onDrop: (files: File[]) => void;
   onRemove: (index: number) => void;
   onDownload: (url: string) => void;
-};
+}
 
 export type TargetGoalSelectProps = {
   selected: string;
@@ -153,6 +153,7 @@ export type UserProfileFormState = {
   targets: string;
   showSuccess: boolean;
   saving: boolean;
+  error: string | null;
 };
 
 export interface SaveButtonProps {

@@ -46,7 +46,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
 
     if (finalFiles.length > 0) {
       setUploadingIndex(certificates.length);
-      onDrop(finalFiles as File[]);
+      onDrop(finalFiles);
     }
   };
 
