@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/store';
 import CoachSidebar from '../../components/CoachComponents/CoachSideBar';
-import AvatarImg from '../../assets/Avatar.jpg';
+import AvatarImg from '../../assets/images/Avatar.jpg';
 import CoachAvailabilityCalendar from '../../components/CoachComponents/CoachCalendar';
 import FeedbackSection from '../../components/FeedBack/FeedBack';
 import { TimeSlot } from '../../types/components/coach.types';
@@ -28,7 +28,7 @@ const CoachProfilePage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   // Track if user has actively selected a date
-  const [dateSelected, setDateSelected] = useState<boolean>(false);
+  const [dateSelected, setDateSelected] = useState<boolean>(true);
   
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [showConfirmCard, setShowConfirmCard] = useState(false);

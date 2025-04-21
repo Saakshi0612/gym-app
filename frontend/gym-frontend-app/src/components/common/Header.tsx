@@ -3,7 +3,7 @@ import { FaBars } from "react-icons/fa";
 import { RiFlashlightFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import BackgroundHeader from "../../assets/Base.jpg";
+import BackgroundHeader from "../../assets/images/Base.jpg";
 import Button from "./ButtonComponent";
 import { useAppSelector } from "../../store/store";
 import { logout } from "../../services/authSlice";
