@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "name": "team6-lambda",
+  "func_name": "lambdas/team6-lambda/index.handler",
+  "resource_type": "lambda",
+  "iam_role_name": "team6-lambda-role",
+  "runtime": "nodejs20.x",
+  "memory": 128,
+  "timeout": 100,
+  "lambda_path": "lambdas\\team6-lambda",
+  "dependencies": [],
+  "event_sources": [],
+  "env_variables": {},
+  "publish_version": true,
+  "alias": "${lambdas_alias_name}",
+  "url_config": {},
+  "ephemeral_storage": 512,
+  "tags": {}
+}
