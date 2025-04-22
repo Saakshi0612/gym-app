@@ -87,26 +87,8 @@ const ErrorMessage = memo(({ error, id }: ErrorMessageProps) => {
       case "oldPassword":
       case "newPassword":
       case "confirmPassword":
-        if (error.includes("length")) {
-          return "Password must be 8-16 characters long";
-        }
-        if (error.includes("uppercase")) {
-          return "Password must contain at least one uppercase letter";
-        }
-        if (error.includes("lowercase")) {
-          return "Password must contain at least one lowercase letter";
-        }
-        if (error.includes("number")) {
-          return "Password must contain at least one number";
-        }
-        if (error.includes("special")) {
-          return "Password must contain at least one special character";
-        }
-        if (error.includes("match")) {
-          return "Passwords do not match";
-        }
-        if (isRequired) return "Password is required";
-        return "Please enter a valid password";
+        // Return the specific error message without additional context
+        return error;
       
       default:
         if (isRequired) return "This field is required";
@@ -262,10 +244,16 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
         </div>
       )}
 
-      {/* Password requirements hint */}
-      {type === "password" && (
+      {/* Password requirements hint - only show when no error */}
+      {type === "password" && !error && (
         <p className="text-xs text-[#666] pt-1">
-          Password must be 8-16 characters long and include uppercase letters, lowercase letters, numbers, and special characters
+          {id === "oldPassword" 
+            ? "Enter current password"
+            : id === "newPassword"
+              ? "Enter new password"
+              : id === "confirmPassword"
+                ? "Re-enter new password"
+                : "Password must be 8-16 characters with uppercase, lowercase, numbers, and special characters (!@#$%^&*)"}
         </p>
       )}
 
