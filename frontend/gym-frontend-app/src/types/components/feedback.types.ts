@@ -7,7 +7,7 @@ export interface FeedbackCardProps {
   }
 
   export interface Feedback {
-    id: string;
+    id: number;
     name: string;
     date: string;
     rating: number;
