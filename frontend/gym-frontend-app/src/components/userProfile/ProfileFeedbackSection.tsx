@@ -31,20 +31,20 @@ const ProfileFeedbackSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const dragX = useMotionValue(0);
 
-  // Debounced resize handler
+  const handleResize = () => {
+    const newFeedbacksPerPage = getFeedbacksPerPage();
+    setFeedbacksPerPage(newFeedbacksPerPage);
+    setCurrentPage(1);
+  };
+
   const debouncedResize = useCallback(
-    debounce(() => {
-      const newFeedbacksPerPage = getFeedbacksPerPage();
-      setFeedbacksPerPage(newFeedbacksPerPage);
-      // Reset to first page when layout changes to prevent empty pages
-      setCurrentPage(1);
-    }, 250),
-    []
+    debounce(handleResize, 250),
+    [setFeedbacksPerPage, setCurrentPage]
   );
 
   // Fetch feedbacks from JSON
   useEffect(() => {
-    const fetchFeedbacks = async () => {
+    const fetchFeedbacks = async (): Promise<void> => {
       try {
         // Try fetching from public directory first
         const response = await fetch('/mockFeedbacks.json');
@@ -58,7 +58,7 @@ const ProfileFeedbackSection: React.FC = () => {
         }
 
         // Validate each feedback object
-        const validFeedbacks = data.filter((feedback: any) => {
+        const validFeedbacks = data.filter((feedback: Feedback) => {
           return (
             typeof feedback.id === 'string' &&
             typeof feedback.name === 'string' &&
@@ -135,14 +135,14 @@ const ProfileFeedbackSection: React.FC = () => {
     });
   }, []);
 
-  const handlePageChange = (pageNumber: number) => {
+  const handlePageChange = (pageNumber: number): void => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
       scrollToTop();
     }
   };
 
-  const handleSwipe = (offset: number) => {
+  const handleSwipe = (offset: number): void => {
     if (offset > 100) handlePageChange(currentPage - 1);
     else if (offset < -100) handlePageChange(currentPage + 1);
   };

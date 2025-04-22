@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
+import { ThunkDispatch, AnyAction } from "@reduxjs/toolkit";
 import {
   UserRole,
   UserProfileData,
@@ -7,7 +8,6 @@ import {
   AdminProfileData,
   CoachProfileData,
   ClientProfileData,
-  UserProfileFormState,
 } from "../../types/components/UserProfileSettings.types";
 
 import UserProfileHeader from "./shared/UserProfileHeader";
@@ -29,12 +29,37 @@ interface UnifiedUserProfileFormProps {
   onSaveSuccess: () => void;
 }
 
+interface UserProfileFormState {
+  userData: UserProfileData | null;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  title: string;
+  about: string;
+  tags: string[];
+  certificates: Certificate[];
+  rating: number;
+  preferableActivity: string;
+  targets: string;
+  showSuccess: boolean;
+  saving: boolean;
+  error: string | null;
+  isSubmitSuccessful?: boolean;
+}
+
+interface RootState {
+  // Add your root state type here
+  auth: {
+    user: User | null;
+  };
+}
+
 const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   role,
   profileData,
   onSaveSuccess,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>();
   const initialFormStateRef = useRef<UserProfileFormState | null>(null);
 
   const [formState, setFormState] = useState<UserProfileFormState>({
@@ -69,7 +94,6 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     };
 
     const newFormState: UserProfileFormState = {
-      ...formState,
       userData,
       firstName: profileData.firstName || "",
       lastName: profileData.lastName || "",
@@ -103,7 +127,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     };
 
     setFormState(newFormState);
-    initialFormStateRef.current = { ...newFormState };
+    initialFormStateRef.current = newFormState;
     setIsDirty(false);
   }, [profileData, role]);
 
@@ -111,15 +135,18 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   useEffect(() => {
     if (!initialFormStateRef.current) return;
     
+    const currentRef = initialFormStateRef.current;
     const hasChanges = Object.keys(formState).some(key => {
       if (key === 'showSuccess' || key === 'saving' || key === 'error') return false;
       if (key === 'userData') {
-        return formState.userData?.avatarUrl !== initialFormStateRef.current?.userData?.avatarUrl;
+        return formState.userData?.avatarUrl !== currentRef.userData?.avatarUrl;
       }
-      if (Array.isArray(formState[key])) {
-        return JSON.stringify(formState[key]) !== JSON.stringify(initialFormStateRef.current[key]);
+      const typedKey = key as keyof UserProfileFormState;
+      if (Array.isArray(formState[typedKey])) {
+        return JSON.stringify(formState[typedKey]) !== 
+               JSON.stringify(currentRef[typedKey]);
       }
-      return formState[key] !== initialFormStateRef.current[key];
+      return formState[typedKey] !== currentRef[typedKey];
     });
     
     setIsDirty(hasChanges);
@@ -159,7 +186,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<void> => {
     try {
       // Validate required fields
       if (!formState.firstName?.trim() || !formState.lastName?.trim()) {
@@ -183,11 +210,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
       setFormState(prev => ({ ...prev, saving: true, error: null }));
 
-      const userPayload: User = {
+      const userPayload = {
         email: formState.userData?.email || "",
         firstName: formState.firstName,
         lastName: formState.lastName,
-        role: formState.userData?.role || UserRole.CLIENT,
+        role: role,
         phoneNumber: formState.phoneNumber,
         title: formState.title,
         about: formState.about,
@@ -197,34 +224,37 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         preferableActivity: formState.preferableActivity,
         target: formState.targets,
         avatarUrl: formState.userData?.avatarUrl || "",
-      };
+      } satisfies User;
 
-      // Dispatch update action
-      await dispatch(updateUserProfile(userPayload));
+      const result = await dispatch(updateUserProfile(userPayload));
+      
+      if ('payload' in result && result.payload) {
+        const updatedUserData: UserProfileData = {
+          name: `${formState.firstName} ${formState.lastName}`,
+          email: formState.userData?.email || "",
+          role: role,
+          avatarUrl: formState.userData?.avatarUrl || "",
+        };
 
-      const updatedUserData = {
-        ...formState.userData,
-        name: `${formState.firstName} ${formState.lastName}`,
-      };
+        const updatedFormState: UserProfileFormState = {
+          ...formState,
+          saving: false,
+          showSuccess: true,
+          userData: updatedUserData,
+          error: null,
+        };
 
-      const updatedFormState = {
-        ...formState,
-        saving: false,
-        showSuccess: true,
-        userData: updatedUserData,
-        error: null,
-      };
+        setFormState(updatedFormState);
+        initialFormStateRef.current = updatedFormState;
+        setIsDirty(false);
+        onSaveSuccess();
 
-      setFormState(updatedFormState);
-      initialFormStateRef.current = { ...updatedFormState };
-      setIsDirty(false);
-      onSaveSuccess();
-
-      // Hide success message after 8 seconds
-      setTimeout(() => {
-        setFormState(prev => ({ ...prev, showSuccess: false }));
-      }, 8000);
-
+        setTimeout(() => {
+          setFormState(prev => ({ ...prev, showSuccess: false }));
+        }, 8000);
+      } else {
+        throw new Error('Failed to update profile');
+      }
     } catch (error) {
       console.error('Error saving profile:', error);
       setFormState(prev => ({
@@ -235,8 +265,18 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     }
   };
 
-  if (!formState.userData)
+  useEffect(() => {
+    if (formState.isSubmitSuccessful) {
+      setFormState(prev => ({ ...prev, showSuccess: true }));
+      setTimeout(() => {
+        setFormState(prev => ({ ...prev, showSuccess: false }));
+      }, 8000);
+    }
+  }, [formState.isSubmitSuccessful, setFormState]);
+
+  if (!formState.userData) {
     return <div className="p-4 text-center">Loading profile...</div>;
+  }
 
   return (
     <>
@@ -364,11 +404,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
           <>
             <div className="mt-6">
               <DynamicSelect
+                id="preferable-activity"
                 label="Preferable Activity"
-                placeholder="Select Activity"
                 options={options.activityOptions}
                 selected={formState.preferableActivity}
-                onChange={(val) =>
+                onChange={(val: string) =>
                   setFormState((prev) => ({
                     ...prev,
                     preferableActivity: val,
@@ -378,11 +418,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             </div>
             <div className="mt-6">
               <DynamicSelect
+                id="target-goals"
                 label="Target Goals"
-                placeholder="Select Goal"
                 options={options.targetOptions}
                 selected={formState.targets}
-                onChange={(val) =>
+                onChange={(val: string) =>
                   setFormState((prev) => ({ ...prev, targets: val }))
                 }
               />
