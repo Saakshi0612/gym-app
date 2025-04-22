@@ -61,8 +61,7 @@ body {
  ); /* Darker lime green on hover from your original CSS */
 }
 
-@tailwind base;
-@tailwind components;
+
 @tailwind utilities;
 
 @layer utilities {

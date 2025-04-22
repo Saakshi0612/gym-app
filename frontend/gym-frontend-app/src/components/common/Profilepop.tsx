@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { X, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserNavigationProps } from '../../types';
@@ -17,7 +17,8 @@ const UserNavigation= ({
 }:UserNavigationProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const dropdownRef = useRef(null);
+
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
@@ -26,8 +27,9 @@ const UserNavigation= ({
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
