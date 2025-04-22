@@ -1,15 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ProfileFeedbackCard from '../userProfile/ProfileFeedBackCard';
 import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
-import { Feedback } from '../../types/components/feedback.types';
+import { Feedback, RawFeedback, FeedbackState } from '../../types/components/feedback.types';
 import debounce from 'lodash/debounce';
 import Spinner from '../common/Spinner';
-
-interface FeedbackState {
-  data: Feedback[];
-  loading: boolean;
-  error: string | null;
-}
 
 const getFeedbacksPerPage = () => {
   const width = window.innerWidth;
@@ -31,15 +25,13 @@ const ProfileFeedbackSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const dragX = useMotionValue(0);
 
-  const handleResize = () => {
-    const newFeedbacksPerPage = getFeedbacksPerPage();
-    setFeedbacksPerPage(newFeedbacksPerPage);
-    setCurrentPage(1);
-  };
-
-  const debouncedResize = useCallback(
-    debounce(handleResize, 250),
-    [setFeedbacksPerPage, setCurrentPage]
+  const debouncedResize = useMemo(
+    () => debounce(() => {
+      const newFeedbacksPerPage = getFeedbacksPerPage();
+      setFeedbacksPerPage(newFeedbacksPerPage);
+      setCurrentPage(1);
+    }, 250),
+    []
   );
 
   // Fetch feedbacks from JSON
@@ -58,7 +50,7 @@ const ProfileFeedbackSection: React.FC = () => {
         }
 
         // Validate each feedback object
-        const validFeedbacks = data.filter((feedback: Feedback) => {
+        const validFeedbacks = data.filter((feedback: RawFeedback) => {
           return (
             typeof feedback.id === 'string' &&
             typeof feedback.name === 'string' &&
@@ -73,8 +65,14 @@ const ProfileFeedbackSection: React.FC = () => {
           throw new Error('No valid feedback data found');
         }
 
+        // Convert string IDs to numbers to match the Feedback type
+        const typedFeedbacks: Feedback[] = validFeedbacks.map(feedback => ({
+          ...feedback,
+          id: parseInt(feedback.id, 10) || 0
+        }));
+
         setFeedbackState({
-          data: validFeedbacks,
+          data: typedFeedbacks,
           loading: false,
           error: null
         });
@@ -84,8 +82,14 @@ const ProfileFeedbackSection: React.FC = () => {
         try {
           const data = await import('../../assets/JSON/mockFeedbacks.json');
           if (Array.isArray(data.default)) {
+            // Convert string IDs to numbers to match the Feedback type
+            const typedFeedbacks: Feedback[] = data.default.map(feedback => ({
+              ...feedback,
+              id: parseInt(feedback.id, 10) || 0
+            }));
+            
             setFeedbackState({
-              data: data.default,
+              data: typedFeedbacks,
               loading: false,
               error: null
             });

@@ -80,10 +80,10 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
         fileInputRef.current.value = '';
       }
 
-      // Clear success message after 8 seconds
+      // Clear success message after 4 seconds
       setTimeout(() => {
         setSuccess(null);
-      }, 8000);
+      }, 4000);
     } catch (error) {
       console.error('Error processing cropped image:', error);
       setError("Failed to process the image. Please try again.");
@@ -114,7 +114,7 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
         <div className="mb-4">
           <SuccessAlert
             type={error ? "error" : "success"}
-            message={error || success}
+            message={(error || success || '')}
             onClose={clearMessages}
           />
         </div>

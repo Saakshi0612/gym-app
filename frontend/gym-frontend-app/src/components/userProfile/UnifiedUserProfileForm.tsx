@@ -45,6 +45,7 @@ interface UserProfileFormState {
   saving: boolean;
   error: string | null;
   isSubmitSuccessful?: boolean;
+  hasBeenSaved?: boolean;
 }
 
 interface RootState {
@@ -61,6 +62,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 }) => {
   const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>();
   const initialFormStateRef = useRef<UserProfileFormState | null>(null);
+  const successTimeoutRef = useRef<number | null>(null);
+  const lastSavedHashRef = useRef<string | null>(null);
 
   const [formState, setFormState] = useState<UserProfileFormState>({
     userData: null,
@@ -129,25 +132,37 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     setFormState(newFormState);
     initialFormStateRef.current = newFormState;
     setIsDirty(false);
+    
+    // Generate initial hash for the form state
+    const formHash = generateFormHash(newFormState);
+    lastSavedHashRef.current = formHash;
   }, [profileData, role]);
+
+  // Helper function to generate a hash of the form state
+  const generateFormHash = (state: UserProfileFormState): string => {
+    const relevantData = {
+      firstName: state.firstName,
+      lastName: state.lastName,
+      phoneNumber: state.phoneNumber,
+      title: state.title,
+      about: state.about,
+      tags: state.tags,
+      certificates: state.certificates,
+      rating: state.rating,
+      preferableActivity: state.preferableActivity,
+      targets: state.targets,
+      avatarUrl: state.userData?.avatarUrl || "",
+    };
+    
+    return JSON.stringify(relevantData);
+  };
 
   // Check if form has been modified
   useEffect(() => {
     if (!initialFormStateRef.current) return;
     
-    const currentRef = initialFormStateRef.current;
-    const hasChanges = Object.keys(formState).some(key => {
-      if (key === 'showSuccess' || key === 'saving' || key === 'error') return false;
-      if (key === 'userData') {
-        return formState.userData?.avatarUrl !== currentRef.userData?.avatarUrl;
-      }
-      const typedKey = key as keyof UserProfileFormState;
-      if (Array.isArray(formState[typedKey])) {
-        return JSON.stringify(formState[typedKey]) !== 
-               JSON.stringify(currentRef[typedKey]);
-      }
-      return formState[typedKey] !== currentRef[typedKey];
-    });
+    const currentHash = generateFormHash(formState);
+    const hasChanges = currentHash !== lastSavedHashRef.current;
     
     setIsDirty(hasChanges);
   }, [formState]);
@@ -242,16 +257,27 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
           showSuccess: true,
           userData: updatedUserData,
           error: null,
+          isSubmitSuccessful: true,
         };
 
         setFormState(updatedFormState);
-        initialFormStateRef.current = updatedFormState;
+        
+        // Update the saved hash
+        const newHash = generateFormHash(updatedFormState);
+        lastSavedHashRef.current = newHash;
+        
         setIsDirty(false);
         onSaveSuccess();
 
-        setTimeout(() => {
-          setFormState(prev => ({ ...prev, showSuccess: false }));
-        }, 8000);
+        // Clear any existing timeout
+        if (successTimeoutRef.current !== null) {
+          clearTimeout(successTimeoutRef.current);
+        }
+
+        // Set a new timeout with a longer duration
+        successTimeoutRef.current = window.setTimeout(() => {
+          setFormState(prev => ({ ...prev, showSuccess: false, isSubmitSuccessful: false }));
+        }, 2000); // Reduced to 2 seconds
       } else {
         throw new Error('Failed to update profile');
       }
@@ -265,14 +291,30 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     }
   };
 
+  // Clean up timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current !== null) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Reintroduce the problematic useEffect that causes the error
   useEffect(() => {
     if (formState.isSubmitSuccessful) {
       setFormState(prev => ({ ...prev, showSuccess: true }));
-      setTimeout(() => {
-        setFormState(prev => ({ ...prev, showSuccess: false }));
-      }, 8000);
+      const timeoutId = setTimeout(() => {
+        setFormState(prev => ({ 
+          ...prev, 
+          showSuccess: false, 
+          isSubmitSuccessful: false
+        }));
+      }, 2000); // Reduced to 2 seconds
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [formState.isSubmitSuccessful, setFormState]);
+  }, [formState.isSubmitSuccessful]);
 
   if (!formState.userData) {
     return <div className="p-4 text-center">Loading profile...</div>;
@@ -286,7 +328,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             type="success"
             message="Your profile has been updated successfully."
             onClose={() =>
-              setFormState((prev) => ({ ...prev, showSuccess: false }))
+              setFormState((prev) => ({ ...prev, showSuccess: false, isSubmitSuccessful: false }))
             }
           />
         </div>
@@ -434,7 +476,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
           <ProfileSaveButton 
             saving={formState.saving} 
             onClick={handleSave} 
-            disabled={!isDirty}
+            disabled={!isDirty || formState.hasBeenSaved}
           />
         </div>
       </div>

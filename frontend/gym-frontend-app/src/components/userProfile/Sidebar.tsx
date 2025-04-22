@@ -13,15 +13,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const indicatorStyle = useMemo(
-    () => ({
-      backgroundColor: isAdmin
-        ? "var(--color-semantic-blue)"
-        : "var(--color-primary-green)",
-    }),
-    [isAdmin]
-  );
-
   const tabs = useMemo(() => {
     const baseTabs = [
       { id: SidebarTab.GENERAL_INFO, label: 'General Information' },
@@ -61,8 +52,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             General Information
             {activeTab === SidebarTab.GENERAL_INFO && (
               <span
-                className="absolute bottom-0 left-0 w-full h-[2px] transition-all"
-                style={indicatorStyle}
+                className={`absolute bottom-0 left-0 w-full h-[2px] transition-all ${
+                  isAdmin ? "bg-semantic-blue" : "bg-primary-green"
+                }`}
               />
             )}
           </button>
@@ -78,8 +70,9 @@ const Sidebar: React.FC<SidebarProps> = ({
               Client Feedback
               {activeTab === SidebarTab.CLIENT_FEEDBACK && (
                 <span
-                  className="absolute bottom-0 left-0 w-full h-[2px] transition-all"
-                  style={indicatorStyle}
+                  className={`absolute bottom-0 left-0 w-full h-[2px] transition-all ${
+                    isAdmin ? "bg-semantic-blue" : "bg-primary-green"
+                  }`}
                 />
               )}
             </button>
@@ -95,8 +88,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             Change Password
             {activeTab === SidebarTab.CHANGE_PASSWORD && (
               <span
-                className="absolute bottom-0 left-0 w-full h-[2px] transition-all"
-                style={indicatorStyle}
+                className={`absolute bottom-0 left-0 w-full h-[2px] transition-all ${
+                  isAdmin ? "bg-semantic-blue" : "bg-primary-green"
+                }`}
               />
             )}
           </button>
@@ -117,8 +111,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   {activeTab === tab.id && (
                     <span
-                      className="absolute left-0 top-0 bottom-0 w-[3px] transition-all duration-200 ease-out"
-                      style={indicatorStyle}
+                      className={`absolute left-0 top-0 bottom-0 w-[3px] transition-all duration-200 ease-out ${
+                        isAdmin ? "bg-semantic-blue" : "bg-primary-green"
+                      }`}
                     />
                   )}
                   {tab.label}
