@@ -1,6 +1,5 @@
 describe('Basic test setup', () => {
-    it('always passes', () => {
-      expect(true).toBe(true)
-    })
+  it('always passes', () => {
+    expect(true).toBe(true)
   })
-  
+})
