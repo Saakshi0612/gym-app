@@ -136,15 +136,52 @@ export const updateUserProfile = createAsyncThunk(
 
 export const updatePassword = createAsyncThunk(
   'auth/updatePassword',
-  async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }) => {
+  async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }, { getState, rejectWithValue }) => {
     try {
-      const response = await axios.put('/api/auth/update-password', {
-        oldPassword,
-        newPassword
-      });
-      return response.data;
+      const state = getState() as { auth: AuthState };
+      const currentUser = state.auth.user;
+
+      if (!currentUser) {
+        return rejectWithValue('No user is logged in.');
+      }
+
+      // Find user in the local storage
+      const index = users.findIndex(user => user.email === currentUser.email);
+      
+      if (index === -1) {
+        return rejectWithValue('User not found.');
+      }
+
+      // Verify old password
+      if (users[index].password !== oldPassword) {
+        return rejectWithValue('Current password is incorrect.');
+      }
+
+      // Check if new password is same as old password
+      if (oldPassword === newPassword) {
+        return rejectWithValue('New password must be different from current password.');
+      }
+
+      // Update password
+      users[index].password = newPassword;
+
+      // Update localStorage
+      try {
+        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        const storedIndex = storedUsers.findIndex((u: StoredUser) => u.email === currentUser.email);
+        if (storedIndex !== -1) {
+          storedUsers[storedIndex].password = newPassword;
+          localStorage.setItem('users', JSON.stringify(storedUsers));
+        }
+      } catch (e) {
+        console.error('Error updating localStorage:', e);
+        return rejectWithValue('Failed to save password.');
+      }
+
+      return { message: 'Password updated successfully' };
     } catch (error) {
-      throw error;
+      console.error("Error updating password:", error);
+      return rejectWithValue('Failed to update password.');
     }
   }
 );
