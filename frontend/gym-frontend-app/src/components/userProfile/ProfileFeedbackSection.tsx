@@ -200,7 +200,7 @@ const ProfileFeedbackSection: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`text-sm ${
+                  className={`text-sm px-2 ${
                     currentPage === 1 
                       ? 'text-gray-300 cursor-not-allowed' 
                       : 'text-gray-600 hover:text-black'
@@ -217,10 +217,10 @@ const ProfileFeedbackSection: React.FC = () => {
                       key={pageNum}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handlePageChange(pageNum)}
-                      className={`w-6 h-6 flex items-center justify-center text-sm ${
+                      className={`w-6 h-6 flex items-center justify-center text-sm border-b-2 transition-colors ${
                         currentPage === pageNum
-                          ? 'bg-[#9ef300] rounded-sm text-black font-medium'
-                          : 'text-gray-600 hover:text-black'
+                          ? 'border-[#9ef300] text-black font-medium'
+                          : 'border-transparent text-gray-600 hover:text-black hover:border-gray-300'
                       }`}
                       aria-label={`Page ${pageNum}`}
                       aria-current={currentPage === pageNum ? 'page' : undefined}
@@ -234,7 +234,7 @@ const ProfileFeedbackSection: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`text-sm ${
+                  className={`text-sm px-2 ${
                     currentPage === totalPages 
                       ? 'text-gray-300 cursor-not-allowed' 
                       : 'text-gray-600 hover:text-black'
