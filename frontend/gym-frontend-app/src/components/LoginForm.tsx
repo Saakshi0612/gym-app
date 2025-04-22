@@ -52,7 +52,7 @@ export default function LoginForm() {
       const timer = setTimeout(() => {
         setShowErrorAlert(false);
         dispatch(clearError());
-      }, 4000);
+      }, 8000);
       return () => clearTimeout(timer);
     }
   }, [error, showErrorAlert, dispatch]);
