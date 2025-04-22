@@ -29,7 +29,9 @@
     "resource_type": "api_gateway",
     "deploy_stage": "dev",
     "dependencies": [],
-    "resources": {},
+    "resources": {
+      
+    },
     "tags": {}
   }
 }
