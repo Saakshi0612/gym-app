@@ -163,47 +163,45 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
 
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white/90 rounded-lg p-3 sm:p-4 w-full max-w-xl mx-auto">
-        <h3 className="text-lg font-semibold mb-2 text-center">Crop Your Profile Picture</h3>
-        <p className="text-sm text-gray-600 mb-3 text-center px-2">
+      <div className="bg-white rounded-xl p-3 sm:p-4 w-full max-w-xl mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100">
+        <h3 className="text-lg font-semibold mb-2">Crop Your Profile Picture</h3>
+        <p className="text-sm text-gray-600 mb-3">
           Click and drag to select the portion of the image you want to use as your profile picture.
         </p>
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-full flex justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+          <div className="w-full sm:w-auto sm:flex-1 max-h-[350px] sm:max-h-[400px] overflow-hidden bg-gray-50 rounded-lg">
             {isLoading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
               </div>
             ) : (
               imgSrc && (
-                <div className="max-w-[280px] sm:max-w-full mx-auto">
-                  <ReactCrop
-                    crop={crop}
-                    onChange={handleCropChange}
-                    onComplete={(c) => setCompletedCrop(c)}
-                    aspect={aspectRatio}
-                    className="max-w-full"
-                    minWidth={50}
-                    minHeight={50}
-                    circularCrop
-                  >
-                    <img
-                      ref={imgRef}
-                      src={imgSrc}
-                      alt="Crop me"
-                      className="max-w-full object-contain"
-                      style={{ maxHeight: '300px' }}
-                    />
-                  </ReactCrop>
-                </div>
+                <ReactCrop
+                  crop={crop}
+                  onChange={handleCropChange}
+                  onComplete={(c) => setCompletedCrop(c)}
+                  aspect={aspectRatio}
+                  className="max-w-full"
+                  minWidth={50}
+                  minHeight={50}
+                  circularCrop
+                >
+                  <img
+                    ref={imgRef}
+                    src={imgSrc}
+                    alt="Crop me"
+                    className="max-w-full object-contain"
+                    style={{ maxHeight: '350px' }}
+                  />
+                </ReactCrop>
               )
             )}
           </div>
           
           {/* Preview Section */}
-          <div className="flex flex-col items-center">
+          <div className="w-[150px] flex flex-col items-center">
             <h4 className="text-sm font-medium text-gray-700 mb-2">Preview</h4>
-            <div className="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] rounded-full bg-gray-100 overflow-hidden">
+            <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] rounded-full bg-gray-50 overflow-hidden shadow-inner border border-gray-100">
               <canvas
                 ref={previewCanvasRef}
                 className="w-full h-full"
@@ -212,12 +210,12 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           </div>
         </div>
         
-        <div className="flex justify-center sm:justify-end gap-3 mt-4">
+        <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
           <button
             type="button"
             onClick={onCancel}
             disabled={isProcessing}
-            className="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-medium transition-colors min-w-[100px]"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
           >
             Cancel
           </button>
@@ -225,10 +223,10 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
             type="button"
             onClick={handleCropComplete}
             disabled={!completedCrop || isProcessing}
-            className="px-5 py-2 bg-[#9ef300] hover:bg-[#8cdc00] text-black rounded-lg text-sm font-medium transition-colors disabled:bg-gray-200 disabled:text-gray-500 min-w-[100px]"
+            className="px-4 py-2 bg-[#9ef300] hover:bg-[#8cdc00] text-black rounded-lg text-sm font-medium transition-colors disabled:bg-gray-100 disabled:text-gray-500"
           >
             {isProcessing ? (
-              <span className="flex items-center justify-center gap-2">
+              <span className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-r-transparent"></div>
                 Processing...
               </span>
