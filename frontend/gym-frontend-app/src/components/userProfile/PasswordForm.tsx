@@ -13,6 +13,12 @@ const validatePasswordField = (value: string): string | null => {
   return result.isValid ? null : result.error || "Invalid password";
 };
 
+// Add validation for old password
+const validateOldPassword = (value: string): string | null => {
+  if (!value) return "Current password is required";
+  return null;
+};
+
 const PasswordForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const isLoading = useSelector((state: RootState) => state.auth.isLoading);
@@ -27,16 +33,67 @@ const PasswordForm: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [formErrors, setFormErrors] = useState<{
+    oldPassword: string | null;
+    newPassword: string | null;
+    confirmPassword: string | null;
+  }>({
+    oldPassword: null,
+    newPassword: null,
+    confirmPassword: null
+  });
+
+  // Validate all fields before submission
+  const validateForm = (): boolean => {
+    const errors = {
+      oldPassword: validateOldPassword(formData.oldPassword),
+      newPassword: validatePasswordField(formData.newPassword),
+      confirmPassword: validateConfirmPassword(formData.confirmPassword)
+    };
+
+    setFormErrors(errors);
+
+    // Check if old password and new password are the same
+    if (formData.oldPassword === formData.newPassword) {
+      setErrorMessage("New password must be different from current password");
+      setShowError(true);
+      return false;
+    }
+
+    // Check if any field is empty
+    if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
+      setErrorMessage("All fields are required");
+      setShowError(true);
+      return false;
+    }
+
+    // Check if there are any validation errors
+    if (errors.oldPassword || errors.newPassword || errors.confirmPassword) {
+      setErrorMessage("Please fix all validation errors before submitting");
+      setShowError(true);
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
+    setShowError(false);
+    setShowSuccess(false);
+    
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
+    
     try {
-      await dispatch(updatePassword({
+      const result = await dispatch(updatePassword({
         oldPassword: formData.oldPassword,
         newPassword: formData.newPassword
       })).unwrap();
       
-      setSuccessMessage("Password updated successfully!");
+      setSuccessMessage(result.message || "Password updated successfully!");
       setShowSuccess(true);
       setFormData({
         oldPassword: "",
@@ -48,9 +105,15 @@ const PasswordForm: React.FC = () => {
         setShowSuccess(false);
       }, 4000);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error updating password';
-      setErrorMessage(errorMessage);
+      const errorMsg = typeof error === 'object' && error !== null && 'message' in error
+        ? String(error.message)
+        : 'Error updating password';
+      setErrorMessage(errorMsg);
       setShowError(true);
+      
+      setTimeout(() => {
+        setShowError(false);
+      }, 4000);
     }
   }, [dispatch, formData]);
 
@@ -67,6 +130,7 @@ const PasswordForm: React.FC = () => {
           <SuccessAlert
             message={successMessage}
             onClose={() => setShowSuccess(false)}
+            type="success"
           />
         </div>
       )}
@@ -76,6 +140,7 @@ const PasswordForm: React.FC = () => {
           <SuccessAlert
             message={errorMessage}
             onClose={() => setShowError(false)}
+            type="error"
           />
         </div>
       )}
@@ -87,18 +152,24 @@ const PasswordForm: React.FC = () => {
         <div className="px-4 md:px-0 space-y-6">
           <LabeledInput
             id="oldPassword"
-            label="Old Password"
+            label="Current Password"
             value={formData.oldPassword}
-            onChange={(val) => setFormData(prev => ({ ...prev, oldPassword: val }))}
+            onChange={(val) => {
+              setFormData(prev => ({ ...prev, oldPassword: val }));
+              setFormErrors(prev => ({ ...prev, oldPassword: validateOldPassword(val) }));
+            }}
             type="password"
-            validation={validatePasswordField}
+            validation={validateOldPassword}
           />
 
           <LabeledInput
             id="newPassword"
             label="New Password"
             value={formData.newPassword}
-            onChange={(val) => setFormData(prev => ({ ...prev, newPassword: val }))}
+            onChange={(val) => {
+              setFormData(prev => ({ ...prev, newPassword: val }));
+              setFormErrors(prev => ({ ...prev, newPassword: validatePasswordField(val) }));
+            }}
             type="password"
             validation={validatePasswordField}
             showStrengthIndicator
@@ -108,7 +179,10 @@ const PasswordForm: React.FC = () => {
             id="confirmPassword"
             label="Confirm New Password"
             value={formData.confirmPassword}
-            onChange={(val) => setFormData(prev => ({ ...prev, confirmPassword: val }))}
+            onChange={(val) => {
+              setFormData(prev => ({ ...prev, confirmPassword: val }));
+              setFormErrors(prev => ({ ...prev, confirmPassword: validateConfirmPassword(val) }));
+            }}
             type="password"
             validation={validateConfirmPassword}
           />
@@ -118,7 +192,7 @@ const PasswordForm: React.FC = () => {
           <button
             type="submit"
             className="w-full md:w-auto px-8 py-4 bg-primary-green text-white rounded-lg font-medium hover:bg-[#8CE300] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            disabled={isLoading}
+            disabled={isLoading || Object.values(formErrors).some(error => error !== null)}
           >
             {isLoading ? (
               <>
