@@ -11,7 +11,7 @@ const getFeedbacksPerPage = () => {
   return 2;
 };
 
-const UserFeedbackSection: React.FC = () => {
+const ProfileFeedbackSection: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [feedbacksPerPage, setFeedbacksPerPage] = useState(getFeedbacksPerPage());
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
@@ -73,22 +73,14 @@ const UserFeedbackSection: React.FC = () => {
   };
 
   return (
-    <motion.div
+    <div
       ref={sectionRef}
       className="flex flex-col mt-4 md:mt-0 w-full overflow-hidden"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
     >
       {loading ? (
-        <motion.div 
-          className="flex justify-center items-center py-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
+        <div className="flex justify-center items-center py-8">
           <span>Loading...</span>
-        </motion.div>
+        </div>
       ) : (
         <AnimatePresence mode="wait">
           <motion.div
@@ -104,28 +96,17 @@ const UserFeedbackSection: React.FC = () => {
             dragElastic={0.1}
             onDragEnd={(_, info) => handleSwipe(info.offset.x)}
           >
-            {currentFeedbacks.map((feedback, index) => (
-              <motion.div 
-                key={feedback.id} 
-                className="h-full"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
+            {currentFeedbacks.map((feedback) => (
+              <div key={feedback.id} className="h-full">
                 <ProfileFeedbackCard {...feedback} />
-              </motion.div>
+              </div>
             ))}
           </motion.div>
         </AnimatePresence>
       )}
 
       {totalPages > 1 && (
-        <motion.div 
-          className="pt-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
+        <div className="pt-10">
           <div className="flex justify-center items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.95 }}
@@ -152,9 +133,6 @@ const UserFeedbackSection: React.FC = () => {
                       ? 'border-primary-green text-primary-black'
                       : 'border-transparent text-neutral-600'
                   }`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + index * 0.05 }}
                 >
                   {pageNum}
                 </motion.button>
@@ -173,10 +151,10 @@ const UserFeedbackSection: React.FC = () => {
               ›
             </motion.button>
           </div>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
-export default UserFeedbackSection;
+export default ProfileFeedbackSection;
