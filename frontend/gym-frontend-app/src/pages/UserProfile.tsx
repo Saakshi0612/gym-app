@@ -6,12 +6,12 @@ import { SidebarTab } from "../types/components/sidebar.types";
 import Sidebar from '../components/userProfile/Sidebar';
 import { AdminProfileData, CoachProfileData, ClientProfileData } from "../types/components/UserProfileSettings.types";
 import SuccessAlert from '../components/userProfile/shared/SuccessAlert';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 // Lazy load components that aren't immediately needed
-const UserProfileForm = lazy(() => import('../components/userProfile/UnifiedUserProfileForm'));
-const UserPasswordForm = lazy(() => import('../components/userProfile/PasswordForm'));
-const UserFeedbackSection = lazy(() => import('../components/userProfile/ProfileFeedbackSection'));
+const UnifiedUserProfileForm = lazy(() => import('../components/userProfile/UnifiedUserProfileForm'));
+const PasswordForm = lazy(() => import('../components/userProfile/PasswordForm'));
+const ProfileFeedbackSection = lazy(() => import('../components/userProfile/ProfileFeedbackSection'));
 
 // Constants
 const AUTOSAVE_DELAY = 2000; // 2 seconds delay for autosave
@@ -20,16 +20,30 @@ const PROFILE_STORAGE_KEY = 'gym_app_profile_draft';
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-full">
-    <div className="animate-pulse flex space-x-4">
-      <div className="rounded-full bg-gray-200 h-12 w-12"></div>
-      <div className="flex-1 space-y-4 py-1">
-        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-        <div className="space-y-2">
-          <div className="h-4 bg-gray-200 rounded"></div>
-          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-        </div>
-      </div>
-    </div>
+    <motion.div 
+      className="flex flex-col items-center space-y-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div 
+        className="w-16 h-16 rounded-full border-4 border-primary-green border-t-transparent"
+        animate={{ rotate: 360 }}
+        transition={{ 
+          duration: 1,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+      />
+      <motion.div 
+        className="text-primary-green font-medium"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        Loading...
+      </motion.div>
+    </motion.div>
   </div>
 );
 
@@ -48,61 +62,7 @@ const ErrorDisplay = memo(({ error, onRetry }: { error: string, onRetry: () => v
 
 ErrorDisplay.displayName = 'ErrorDisplay';
 
-// Animation variants for smoother transitions
-const pageVariants = {
-  hidden: { opacity: 0 },
-  visible: { 
-    opacity: 1,
-    transition: { 
-      duration: 0.5,
-      ease: [0.22, 1, 0.36, 1] // Custom easing for a more natural feel
-    }
-  }
-};
-
-const sidebarVariants = {
-  hidden: { x: -30, opacity: 0 },
-  visible: { 
-    x: 0, opacity: 1,
-    transition: { 
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
-      delay: 0.1
-    }
-  }
-};
-
-const mainContentVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { 
-    y: 0, opacity: 1,
-    transition: { 
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
-      delay: 0.2
-    }
-  }
-};
-
-const alertVariants = {
-  hidden: { y: -50, opacity: 0 },
-  visible: { 
-    y: 0, opacity: 1,
-    transition: { 
-      duration: 0.4,
-      ease: [0.22, 1, 0.36, 1]
-    }
-  },
-  exit: { 
-    y: -50, opacity: 0,
-    transition: { 
-      duration: 0.3,
-      ease: [0.22, 1, 0.36, 1]
-    }
-  }
-};
-
-const UserProfilePage = () => {
+const DynamicUserProfile = () => {
   const user = useSelector((state: RootState) => state.auth.user);
   const [activeTab, setActiveTab] = useState<SidebarTab>(SidebarTab.GENERAL_INFO);
   const [profileData, setProfileData] = useState<AdminProfileData | CoachProfileData | ClientProfileData | null>(null);
@@ -271,7 +231,7 @@ const UserProfilePage = () => {
       case SidebarTab.GENERAL_INFO:
         return (
           <Suspense fallback={<LoadingFallback />}>
-            <UserProfileForm
+            <UnifiedUserProfileForm
               role={profileData.role}
               profileData={profileData}
               onChange={handleProfileChange}
@@ -283,13 +243,13 @@ const UserProfilePage = () => {
       case SidebarTab.CHANGE_PASSWORD:
         return (
           <Suspense fallback={<LoadingFallback />}>
-            <UserPasswordForm />
+            <PasswordForm />
           </Suspense>
         );
       case SidebarTab.CLIENT_FEEDBACK:
         return user.role === UserRole.COACH ? (
           <Suspense fallback={<LoadingFallback />}>
-            <UserFeedbackSection />
+            <ProfileFeedbackSection />
           </Suspense>
         ) : null;
       default:
@@ -319,60 +279,33 @@ const UserProfilePage = () => {
   }, [isDirty]);
 
   return (
-    <motion.div 
-      className="flex flex-col md:flex-row min-h-screen bg-primary-white"
-      initial="hidden"
-      animate="visible"
-      variants={pageVariants}
-    >
-      <motion.div 
-        className="w-full md:w-64 md:min-h-screen md:border-r border-neutral-200 flex-shrink-0"
-        variants={sidebarVariants}
-      >
+    <div className="flex flex-col md:flex-row min-h-screen bg-primary-white">
+      <div className="w-full md:w-64 md:min-h-screen md:border-r border-neutral-200 flex-shrink-0">
         <Sidebar {...sidebarProps} />
-      </motion.div>
-      <motion.main 
-        className="flex-1 px-4 md:px-8 pt-6 md:pt-8 pb-16"
-        variants={mainContentVariants}
-      >
-        <div className="max-w-4xl mx-auto">
-          <AnimatePresence mode="wait">
-            {tabContent}
-          </AnimatePresence>
+      </div>
+      <main className="flex-1 px-4 md:px-8 pt-6 md:pt-8 pb-16 transition-all duration-300 ease-in-out">
+        <div className="max-w-4xl mx-auto transition-opacity duration-300 ease-in-out">
+          {tabContent}
         </div>
-      </motion.main>
-      <AnimatePresence>
-        {error && (
-          <motion.div 
-            className="fixed top-4 inset-x-0 z-50 flex justify-center px-4"
-            variants={alertVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <SuccessAlert
-              message={error}
-              onClose={() => setError(null)}
-            />
-          </motion.div>
-        )}
-        {info && (
-          <motion.div 
-            className="fixed top-4 inset-x-0 z-50 flex justify-center px-4"
-            variants={alertVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <SuccessAlert
-              message={info}
-              onClose={() => setInfo(null)}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+      </main>
+      {error && (
+        <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
+          <SuccessAlert
+            message={error}
+            onClose={() => setError(null)}
+          />
+        </div>
+      )}
+      {info && (
+        <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
+          <SuccessAlert
+            message={info}
+            onClose={() => setInfo(null)}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 
-export default memo(UserProfilePage);
+export default memo(DynamicUserProfile);

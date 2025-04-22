@@ -31,10 +31,8 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue("We couldn't log you in. Double-check your credentials and try again.");
       }
 
-      // Exclude password from the returned user object
+      // Use object destructuring to exclude password
       const { password, ...userWithoutPassword } = user;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _ = password; // Explicitly ignore password
       return userWithoutPassword;
     } catch (error) {
       console.error("Login error:", error);
@@ -74,10 +72,8 @@ export const registerUser = createAsyncThunk(
       
       users.push(newUser);
 
-      // Exclude password from the returned user object
+      // Use object destructuring to exclude password
       const { password, ...userWithoutPassword } = newUser;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _ = password; // Explicitly ignore password
       
       // Save to localStorage for persistence
       try {
