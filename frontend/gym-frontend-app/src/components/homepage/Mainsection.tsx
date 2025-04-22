@@ -9,6 +9,50 @@ import DropdownField from "../common/Selection";
 import Button from "../common/ButtonComponent";
 import axios from "axios";
 
+type TimeSlotOption = {
+  value: string;
+  label: string;
+};
+
+const filterUpcomingTimeSlots = (
+  timeSlotOptions: TimeSlotOption[],
+  selectedDate: Date
+): TimeSlotOption[] => {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const timeStringToMinutes = (timeStr: string): number => {
+    const match = timeStr.match(/(\d+)(am|pm)/i);
+    if (!match) return 0;
+
+    let [_, hourStr, meridiem] = match;
+    let hour = parseInt(hourStr, 10);
+
+    if (meridiem.toLowerCase() === "pm" && hour !== 12) hour += 12;
+    if (meridiem.toLowerCase() === "am" && hour === 12) hour = 0;
+
+    return hour * 60;
+  };
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  return timeSlotOptions.filter((slot) => {
+    if (slot.value.toLowerCase() === "all") return true;
+    if (!isToday(selectedDate)) return true; // show all slots if not today
+
+    const [startTime] = slot.value.split("-");
+    const startMinutes = timeStringToMinutes(startTime);
+    return startMinutes >= currentMinutes;
+  });
+};
+
 const MainSection: React.FC = () => {
   const {
     setFilteredResults,
@@ -28,6 +72,10 @@ const MainSection: React.FC = () => {
   // helper to convert string date to Date object
   const parseDate = (dateString: string) =>
     new Date(`${dateString}, ${new Date().getFullYear()}`);
+
+  const filteredTimeOptions = React.useMemo(() => {
+    return filterUpcomingTimeSlots(dropdownData.timeSlotOptions, filters.date);
+  }, [filters.date]);
 
   // Fetch and show today's and future workouts
   useEffect(() => {
@@ -131,7 +179,7 @@ const MainSection: React.FC = () => {
             <div className="z-30">
               <DropdownField
                 label="Time"
-                options={dropdownData.timeSlotOptions}
+                options={filteredTimeOptions}
                 name="time"
                 onChange={(value: string) =>
                   handleDropdownChange("time", value)

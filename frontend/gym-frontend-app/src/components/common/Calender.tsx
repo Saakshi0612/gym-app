@@ -1,6 +1,8 @@
 import React from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 
+
+
 interface CalendarProps {
   currentDate: Date;
   selectedDate: Date;
@@ -14,18 +16,22 @@ const Calendar: React.FC<CalendarProps> = ({
   onDateSelect,
   onMonthChange
 }) => {
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
+ 
   const monthYearString = new Intl.DateTimeFormat('en-US', {
     month: 'long',
     year: 'numeric'
   }).format(currentDate);
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const calendarDays = [...Array(firstDayOfMonth).fill(null), ...days];
