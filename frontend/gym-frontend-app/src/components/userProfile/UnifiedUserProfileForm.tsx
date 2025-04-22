@@ -220,10 +220,10 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       setIsDirty(false);
       onSaveSuccess();
 
-      // Hide success message after 3 seconds
+      // Hide success message after 8 seconds
       setTimeout(() => {
         setFormState(prev => ({ ...prev, showSuccess: false }));
-      }, 3000);
+      }, 8000);
 
     } catch (error) {
       console.error('Error saving profile:', error);

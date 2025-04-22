@@ -22,7 +22,7 @@ const validateOldPassword = (value: string): string | null => {
 const PasswordForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const isLoading = useSelector((state: RootState) => state.auth.isLoading);
-  
+
   const [formData, setFormData] = useState<FormDataType>({
     oldPassword: "",
     newPassword: "",
@@ -86,7 +86,7 @@ const PasswordForm: React.FC = () => {
     if (!validateForm()) {
       return;
     }
-    
+
     try {
       const result = await dispatch(updatePassword({
         oldPassword: formData.oldPassword,
@@ -103,17 +103,17 @@ const PasswordForm: React.FC = () => {
       
       setTimeout(() => {
         setShowSuccess(false);
-      }, 4000);
+      }, 8000);
     } catch (error: unknown) {
       const errorMsg = typeof error === 'object' && error !== null && 'message' in error
         ? String(error.message)
-        : 'Error updating password';
+        : 'Current password is incorrect';
       setErrorMessage(errorMsg);
       setShowError(true);
       
       setTimeout(() => {
         setShowError(false);
-      }, 4000);
+      }, 3000);
     }
   }, [dispatch, formData]);
 

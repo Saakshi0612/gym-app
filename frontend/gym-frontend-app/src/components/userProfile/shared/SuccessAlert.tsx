@@ -23,12 +23,12 @@ const SuccessAlert: React.FC<SuccessAlertProps> = ({ message, onClose, type = 's
         heading: 'Success',
       }
     : {
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-        iconBg: 'bg-red-500',
-        text: 'text-red-800',
-        subText: 'text-red-700',
-        button: 'text-red-500 hover:bg-red-100',
+        bg: 'bg-red-100',
+        border: 'border-red-300',
+        iconBg: 'bg-red-600',
+        text: 'text-red-900',
+        subText: 'text-red-800',
+        button: 'text-red-600 hover:bg-red-200',
         icon: <FaTimes className="text-white text-xs" />,
         dismissIcon: <FaTimes className="h-4 w-4" />,
         heading: 'Error',
