@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -19,7 +19,9 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (imageFile) {
@@ -39,7 +41,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
       makeAspectCrop(
         {
           unit: '%',
-          width: 90,
+          width: 80,
         },
         aspectRatio,
         width,
@@ -50,6 +52,52 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
     );
     setCrop(crop);
   };
+
+  const updatePreview = useCallback(() => {
+    if (!completedCrop || !imgRef.current || !previewCanvasRef.current) {
+      return;
+    }
+
+    const image = imgRef.current;
+    const canvas = previewCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      return;
+    }
+
+    // Set preview canvas size
+    const size = 150; // Size of preview
+    canvas.width = size;
+    canvas.height = size;
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Create circular clipping path
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
+    ctx.clip();
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    ctx.drawImage(
+      image,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      size,
+      size
+    );
+  }, [completedCrop]);
+
+  useEffect(() => {
+    updatePreview();
+  }, [updatePreview]);
 
   const getCroppedImg = async (image: HTMLImageElement, crop: PixelCrop) => {
     const canvas = document.createElement('canvas');
@@ -62,6 +110,17 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
     if (!ctx) {
       throw new Error('No 2d context');
     }
+
+    // Create circular clipping path
+    ctx.beginPath();
+    ctx.arc(
+      crop.width / 2,
+      crop.height / 2,
+      Math.min(crop.width, crop.height) / 2,
+      0,
+      2 * Math.PI
+    );
+    ctx.clip();
 
     ctx.drawImage(
       image,
@@ -87,10 +146,13 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
   const handleCropComplete = async () => {
     if (imgRef.current && completedCrop) {
       try {
+        setIsProcessing(true);
         const croppedImageBlob = await getCroppedImg(imgRef.current, completedCrop);
         onCropComplete(croppedImageBlob);
       } catch (error) {
         console.error('Error cropping image:', error);
+      } finally {
+        setIsProcessing(false);
       }
     }
   };
@@ -100,53 +162,77 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-4 max-w-2xl w-full">
-        <h3 className="text-lg font-semibold mb-4">Crop Your Profile Picture</h3>
-        <p className="text-sm text-gray-600 mb-4">
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-xl p-3 sm:p-4 w-full max-w-xl mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100">
+        <h3 className="text-lg font-semibold mb-2">Crop Your Profile Picture</h3>
+        <p className="text-sm text-gray-600 mb-3">
           Click and drag to select the portion of the image you want to use as your profile picture.
         </p>
-        <div className="max-h-[60vh] overflow-auto mb-4 flex justify-center">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-            </div>
-          ) : (
-            imgSrc && (
-              <ReactCrop
-                crop={crop}
-                onChange={handleCropChange}
-                onComplete={(c) => setCompletedCrop(c)}
-                aspect={aspectRatio}
-                className="max-w-full"
-                minWidth={50}
-                minHeight={50}
-              >
-                <img
-                  ref={imgRef}
-                  src={imgSrc}
-                  alt="Crop me"
-                  onLoad={onImageLoad}
+        <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+          <div className="w-full sm:w-auto sm:flex-1 max-h-[350px] sm:max-h-[400px] overflow-hidden bg-gray-50 rounded-lg">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+              </div>
+            ) : (
+              imgSrc && (
+                <ReactCrop
+                  crop={crop}
+                  onChange={handleCropChange}
+                  onComplete={(c) => setCompletedCrop(c)}
+                  aspect={aspectRatio}
                   className="max-w-full"
-                  style={{ maxHeight: '60vh' }}
-                />
-              </ReactCrop>
-            )
-          )}
+                  minWidth={50}
+                  minHeight={50}
+                  circularCrop
+                >
+                  <img
+                    ref={imgRef}
+                    src={imgSrc}
+                    alt="Crop me"
+                    className="max-w-full object-contain"
+                    style={{ maxHeight: '350px' }}
+                  />
+                </ReactCrop>
+              )
+            )}
+          </div>
+          
+          {/* Preview Section */}
+          <div className="w-[150px] flex flex-col items-center">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Preview</h4>
+            <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] rounded-full bg-gray-50 overflow-hidden shadow-inner border border-gray-100">
+              <canvas
+                ref={previewCanvasRef}
+                className="w-full h-full"
+              />
+            </div>
+          </div>
         </div>
-        <div className="flex justify-end gap-2">
+        
+        <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
           <button
+            type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+            disabled={isProcessing}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleCropComplete}
-            className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
-            disabled={!completedCrop}
+            disabled={!completedCrop || isProcessing}
+            className="px-4 py-2 bg-[#9ef300] hover:bg-[#8cdc00] text-black rounded-lg text-sm font-medium transition-colors disabled:bg-gray-100 disabled:text-gray-500"
           >
-            Apply
+            {isProcessing ? (
+              <span className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-r-transparent"></div>
+                Processing...
+              </span>
+            ) : (
+              'Apply'
+            )}
           </button>
         </div>
       </div>

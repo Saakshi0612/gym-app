@@ -1,23 +1,22 @@
-import React, { useState, ChangeEvent, FormEvent } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
+import React, { useState, FormEvent, useCallback } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { updatePassword } from '../../services/authSlice';
-import { FormDataType, VisibilityType } from "../../types/components/passwordFormTypes";
+import { FormDataType } from "../../types/components/passwordFormTypes";
 import { validatePassword } from "../../utils/validation";
 import SuccessAlert from "./shared/SuccessAlert";
+import LabeledInput from "./shared/LabeledInput";
+import { Loader2 } from "lucide-react";
+
+const validatePasswordField = (value: string): string | null => {
+  const result = validatePassword(value);
+  return result.isValid ? null : result.error || "Invalid password";
+};
 
 const PasswordForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const isLoading = useSelector((state: RootState) => state.auth.isLoading);
   
-  const [visibility, setVisibility] = useState<VisibilityType>({
-    old: false,
-    new: false,
-    confirm: false,
-  });
-
   const [formData, setFormData] = useState<FormDataType>({
     oldPassword: "",
     newPassword: "",
@@ -28,62 +27,9 @@ const PasswordForm: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({
-    oldPassword: false,
-    newPassword: false,
-    confirmPassword: false,
-  });
 
-  const toggleVisibility = (field: keyof VisibilityType) => {
-    setVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
-  };
-
-  const validateField = (name: string, value: string) => {
-    if (name === "oldPassword" || name === "newPassword") {
-      const validation = validatePassword(value);
-      return !validation.isValid;
-    }
-    if (name === "confirmPassword") {
-      return value !== formData.newPassword;
-    }
-    return false;
-  };
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    
-    // Validate field on change
-    const hasError = validateField(name, value);
-    setFieldErrors(prev => ({ ...prev, [name]: hasError }));
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
-    
-    // Validate old password
-    const oldPasswordError = validatePassword(formData.oldPassword);
-    if (!oldPasswordError.isValid) {
-      setErrorMessage(oldPasswordError.error || "Invalid old password");
-      setShowError(true);
-      return;
-    }
-
-    // Validate new password
-    const newPasswordError = validatePassword(formData.newPassword);
-    if (!newPasswordError.isValid) {
-      setErrorMessage(newPasswordError.error || "Invalid new password");
-      setShowError(true);
-      return;
-    }
-
-    // Check if passwords match
-    if (formData.newPassword !== formData.confirmPassword) {
-      setErrorMessage("New passwords do not match");
-      setShowError(true);
-      return;
-    }
-
     try {
       await dispatch(updatePassword({
         oldPassword: formData.oldPassword,
@@ -101,22 +47,18 @@ const PasswordForm: React.FC = () => {
       setTimeout(() => {
         setShowSuccess(false);
       }, 4000);
-    } catch (error) {
-      setErrorMessage(error as string);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error updating password';
+      setErrorMessage(errorMessage);
       setShowError(true);
     }
-  };
+  }, [dispatch, formData]);
 
-  const getStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 8) strength += 1;
-    if (/[A-Z]/.test(password)) strength += 1;
-    if (/[0-9]/.test(password)) strength += 1;
-    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-    return strength;
-  };
-
-  const strength = getStrength(formData.newPassword);
+  const validateConfirmPassword = useCallback((value: string) => {
+    if (!value) return "Confirm password is required";
+    if (value !== formData.newPassword) return "Passwords do not match";
+    return null;
+  }, [formData.newPassword]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg">
@@ -142,95 +84,49 @@ const PasswordForm: React.FC = () => {
         className="w-full max-w-lg mx-auto md:ml-16 space-y-8 flex flex-col justify-center px-0 md:px-4 mt-0 md:mt-8"
         onSubmit={handleSubmit}
       >
-        {/* Password Fields Container */}
-        <div className="px-4 md:px-0">
-          {[
-            { label: "Old Password", field: "oldPassword", vis: "old" },
-            { label: "New Password", field: "newPassword", vis: "new" },
-            { label: "Confirm New Password", field: "confirmPassword", vis: "confirm" },
-          ].map(({ label, field, vis }) => {
-            const isNew = field === "newPassword";
-            const value = formData[field as keyof FormDataType];
-            const hasError = fieldErrors[field];
+        <div className="px-4 md:px-0 space-y-6">
+          <LabeledInput
+            id="oldPassword"
+            label="Old Password"
+            value={formData.oldPassword}
+            onChange={(val) => setFormData(prev => ({ ...prev, oldPassword: val }))}
+            type="password"
+            validation={validatePasswordField}
+          />
 
-            return (
-              <div className="relative space-y-2" key={field}>
-                <label
-                  htmlFor={field}
-                  className="absolute -top-3 left-3 bg-white px-1 text-sm text-[#323A3A] z-10"
-                >
-                  {label}
-                </label>
-                <div className="relative mt-4">
-                  <input
-                    id={field}
-                    name={field}
-                    type={visibility[vis as keyof VisibilityType] ? "text" : "password"}
-                    value={value}
-                    onChange={handleChange}
-                    autoComplete="new-password"
-                    className={`w-full h-16 px-4 pr-14 text-base text-[#323A3A] placeholder:text-gray-400 border rounded-lg focus:outline-none focus:ring-2 bg-white ${
-                      hasError 
-                        ? "border-red-500 focus:ring-red-500" 
-                        : "border-[#DADADA] focus:ring-[#9ef300]"
-                    } [&::-ms-reveal]:hidden [&::-ms-clear]:hidden [&::-webkit-contacts-auto-fill-button]:hidden [&::-webkit-credentials-auto-fill-button]:hidden`}
-                    required
-                    minLength={8}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 h-16 w-10 flex items-center justify-center text-[#666] hover:text-[#000]"
-                    onClick={() => toggleVisibility(vis as keyof VisibilityType)}
-                    aria-label={`Toggle ${label} visibility`}
-                  >
-                    {visibility[vis as keyof VisibilityType] ? (
-                      <EyeOff size={24} strokeWidth={2.5} />
-                    ) : (
-                      <Eye size={24} strokeWidth={2.5} />
-                    )}
-                  </button>
-                </div>
+          <LabeledInput
+            id="newPassword"
+            label="New Password"
+            value={formData.newPassword}
+            onChange={(val) => setFormData(prev => ({ ...prev, newPassword: val }))}
+            type="password"
+            validation={validatePasswordField}
+            showStrengthIndicator
+          />
 
-                {isNew && (
-                  <div className="w-full h-2 rounded bg-gray-200 mt-2">
-                    <motion.div
-                      className={`h-2 rounded transition-all ${
-                        strength === 1
-                          ? "bg-red-500 w-1/4"
-                          : strength === 2
-                          ? "bg-yellow-500 w-2/4"
-                          : strength === 3
-                          ? "bg-[#C6F500] w-3/4"
-                          : strength >= 4
-                          ? "bg-[#9ef300] w-full"
-                          : "bg-gray-200 w-0"
-                      }`}
-                    />
-                  </div>
-                )}
-
-                <p className="text-xs text-[#666] pt-1">
-                  Password must be 8-16 characters long and include uppercase letters, lowercase letters, numbers, and special characters
-                </p>
-              </div>
-            );
-          })}
+          <LabeledInput
+            id="confirmPassword"
+            label="Confirm New Password"
+            value={formData.confirmPassword}
+            onChange={(val) => setFormData(prev => ({ ...prev, confirmPassword: val }))}
+            type="password"
+            validation={validateConfirmPassword}
+          />
         </div>
 
-        {/* Submit Button */}
         <div className="w-full text-center md:text-right px-4 md:px-0">
           <button
             type="submit"
+            className="w-full md:w-auto px-8 py-4 bg-primary-green text-white rounded-lg font-medium hover:bg-[#8CE300] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             disabled={isLoading}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out bg-primary-green text-primary-black hover:bg-[#9ef300] hover:text-primary-white disabled:bg-neutral-200 disabled:text-neutral-600 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px]"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Updating...</span>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Updating...
               </>
             ) : (
-              "Save Changes"
+              'Update Password'
             )}
           </button>
         </div>

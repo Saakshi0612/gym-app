@@ -22,10 +22,9 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
   onChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLUListElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,32 +43,11 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
         highlightedElement.scrollIntoView({ block: 'nearest' });
       }
     }
-  }, [highlightedIndex, isOpen]);
+  }, [isOpen, highlightedIndex]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!isOpen) return;
-
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setHighlightedIndex((prev) => (prev + 1) % options.length);
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setHighlightedIndex((prev) =>
-          prev === 0 ? options.length - 1 : prev - 1
-        );
-        break;
-      case "Enter":
-        e.preventDefault();
-        onChange(options[highlightedIndex].value);
-        setIsOpen(false);
-        break;
-      case "Escape":
-        setIsOpen(false);
-        break;
-    }
-  };
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [options]);
 
   const selectedLabel = options.find((opt) => opt.value === selected)?.label || "";
 

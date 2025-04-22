@@ -33,7 +33,7 @@ const Input: React.FC<InputProps> = ({
           type={type}
           placeholder={placeholder}
           {...register}
-          className={`w-full px-4 py-3.5 border ${
+          className={`w-full h-16 px-4 border ${
             error ? 'border-red-500' : 'border-gray-200'
           } rounded-lg ${icon ? 'pl-11' : ''} ${
             rightElement ? 'pr-11' : ''
