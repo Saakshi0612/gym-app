@@ -65,16 +65,16 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <fieldset className="border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white">
+      <fieldset className="border rounded-md border-[#DADADA] h-16 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white">
         <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px] ml-1 px-1 bg-white text-[#4B5563]">
           {label}
         </legend>
-        <div className="relative">
+        <div className="relative h-full">
           <button
-            ref={buttonRef} // Reference for button positioning
+            ref={buttonRef}
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
-            className="w-full p-2 pt-0 rounded bg-white flex justify-between items-center font-light"
+            className="w-full h-full px-4 rounded bg-white flex justify-between items-center font-light"
             aria-haspopup="listbox"
             aria-expanded={isDropdownOpen}
           >

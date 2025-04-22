@@ -94,11 +94,12 @@ const DynamicUserProfile = () => {
         }
       }
       return false;
-    } catch (err) {
-      console.error('Error loading draft:', err);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error loading draft';
+      setError(errorMessage);
       return false;
     }
-  }, []); 
+  }, [setProfileData, setLastSaved, setInfo, setError]); 
 
   // Save draft to localStorage
   const saveDraft = useCallback((data: AdminProfileData | CoachProfileData | ClientProfileData) => {
@@ -112,7 +113,7 @@ const DynamicUserProfile = () => {
     } catch (err) {
       console.error('Error saving draft:', err);
     }
-  }, []);
+  }, [setLastSaved]);
 
   // Generate profile data with error handling
   const generateProfileData = useCallback(() => {
@@ -173,19 +174,19 @@ const DynamicUserProfile = () => {
           setProfileData(newProfileData);
         }
       }
-    } catch (error) {
-      console.error('Error loading profile data:', error);
-      setError('Error loading profile data. Please refresh the page.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error loading profile data';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [generateProfileData, loadSavedDraft]);
+  }, [generateProfileData, loadSavedDraft, setError, setIsLoading]);
 
   // Handle profile data changes
   const handleProfileChange = useCallback((newData: AdminProfileData | CoachProfileData | ClientProfileData) => {
     setProfileData(newData);
     setIsDirty(true);
-  }, []);
+  }, [setIsDirty]);
 
   // Autosave effect with debounce
   useEffect(() => {
@@ -197,14 +198,14 @@ const DynamicUserProfile = () => {
     }, AUTOSAVE_DELAY);
 
     return () => clearTimeout(timer);
-  }, [isDirty, profileData, saveDraft]);
+  }, [isDirty, profileData, saveDraft, setIsDirty]);
 
   // Clear draft on successful save
   const handleSuccessfulSave = useCallback(() => {
     localStorage.removeItem(PROFILE_STORAGE_KEY);
     setIsDirty(false);
     setLastSaved(null);
-  }, []);
+  }, [setIsDirty, setLastSaved]);
 
   // Handle tab changes with unsaved changes warning
   const handleTabChange = useCallback((newTab: SidebarTab) => {
@@ -309,3 +310,4 @@ const DynamicUserProfile = () => {
 };
 
 export default memo(DynamicUserProfile);
+DynamicUserProfile.displayName = 'DynamicUserProfile';

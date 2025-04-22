@@ -90,7 +90,7 @@ const TagsField: React.FC<TagsFieldProps> = ({
       </label>
 
       {/* Tag input container */}
-      <div className="border border-neutral-400 rounded-md px-3 py-2.5 bg-primary-white min-h-[50px] flex items-center flex-wrap gap-2 relative mt-2 hover:border-primary-green focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green">
+      <div className="border border-neutral-400 rounded-md px-3 py-2.5 bg-primary-white h-16 flex items-center flex-wrap gap-2 relative mt-2 hover:border-primary-green focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green">
         {/* Tags */}
         {tags.map((tag, index) => (
           <span

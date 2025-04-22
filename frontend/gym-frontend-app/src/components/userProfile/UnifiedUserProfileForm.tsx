@@ -26,17 +26,13 @@ import { validateName } from '../../utils/validation';
 interface UnifiedUserProfileFormProps {
   role: UserRole;
   profileData: AdminProfileData | CoachProfileData | ClientProfileData;
-  onChange: (newData: AdminProfileData | CoachProfileData | ClientProfileData) => void;
   onSaveSuccess: () => void;
-  lastSaved: Date | null;
 }
 
 const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   role,
   profileData,
-  onChange,
   onSaveSuccess,
-  lastSaved,
 }) => {
   const dispatch = useDispatch();
   const initialFormStateRef = useRef<UserProfileFormState | null>(null);
@@ -55,6 +51,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     targets: "",
     showSuccess: false,
     saving: false,
+    error: null,
   });
 
   // Track if form has been modified
@@ -203,16 +200,19 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
       dispatch(updateUserProfile(userPayload));
 
-      setTimeout(() => {
+      const successTimer = setTimeout(() => {
         setFormState((prev) => ({ ...prev, showSuccess: false }));
       }, 4000);
 
-      console.log("✅ Data saved:", updatedFormState);
-
       onSaveSuccess();
+      return () => clearTimeout(successTimer);
     } catch (error) {
-      setFormState(prev => ({ ...prev, error: "Error saving changes." }));
-      setFormState((prev) => ({ ...prev, saving: false }));
+      const errorMessage = error instanceof Error ? error.message : "Error saving changes.";
+      setFormState(prev => ({ 
+        ...prev, 
+        error: errorMessage,
+        saving: false 
+      }));
     }
   };
 
@@ -224,6 +224,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       {formState.showSuccess && (
         <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
           <SuccessAlert
+            type="success"
             message="Your profile has been updated successfully."
             onClose={() =>
               setFormState((prev) => ({ ...prev, showSuccess: false }))
@@ -234,6 +235,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       {formState.error && (
         <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
           <SuccessAlert
+            type="error"
             message={formState.error}
             onClose={() =>
               setFormState((prev) => ({ ...prev, error: null }))

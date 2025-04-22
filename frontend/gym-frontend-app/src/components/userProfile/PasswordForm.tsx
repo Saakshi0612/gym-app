@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, FormEvent } from "react";
+import React, { useState, ChangeEvent, FormEvent, useCallback, useMemo } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,11 +34,11 @@ const PasswordForm: React.FC = () => {
     confirmPassword: false,
   });
 
-  const toggleVisibility = (field: keyof VisibilityType) => {
+  const toggleVisibility = useCallback((field: keyof VisibilityType) => {
     setVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
-  };
+  }, []);
 
-  const validateField = (name: string, value: string) => {
+  const validateField = useCallback((name: string, value: string) => {
     if (name === "oldPassword" || name === "newPassword") {
       const validation = validatePassword(value);
       return !validation.isValid;
@@ -47,43 +47,19 @@ const PasswordForm: React.FC = () => {
       return value !== formData.newPassword;
     }
     return false;
-  };
+  }, [formData.newPassword]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     
     // Validate field on change
     const hasError = validateField(name, value);
     setFieldErrors(prev => ({ ...prev, [name]: hasError }));
-  };
+  }, [validateField]);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
-    
-    // Validate old password
-    const oldPasswordError = validatePassword(formData.oldPassword);
-    if (!oldPasswordError.isValid) {
-      setErrorMessage(oldPasswordError.error || "Invalid old password");
-      setShowError(true);
-      return;
-    }
-
-    // Validate new password
-    const newPasswordError = validatePassword(formData.newPassword);
-    if (!newPasswordError.isValid) {
-      setErrorMessage(newPasswordError.error || "Invalid new password");
-      setShowError(true);
-      return;
-    }
-
-    // Check if passwords match
-    if (formData.newPassword !== formData.confirmPassword) {
-      setErrorMessage("New passwords do not match");
-      setShowError(true);
-      return;
-    }
-
     try {
       await dispatch(updatePassword({
         oldPassword: formData.oldPassword,
@@ -101,22 +77,23 @@ const PasswordForm: React.FC = () => {
       setTimeout(() => {
         setShowSuccess(false);
       }, 4000);
-    } catch (error) {
-      setErrorMessage(error as string);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error updating password';
+      setErrorMessage(errorMessage);
       setShowError(true);
     }
-  };
+  }, [dispatch, formData]);
 
-  const getStrength = (password: string) => {
+  const getStrength = useCallback((password: string) => {
     let strength = 0;
     if (password.length >= 8) strength += 1;
     if (/[A-Z]/.test(password)) strength += 1;
     if (/[0-9]/.test(password)) strength += 1;
     if (/[^A-Za-z0-9]/.test(password)) strength += 1;
     return strength;
-  };
+  }, []);
 
-  const strength = getStrength(formData.newPassword);
+  const strength = useMemo(() => getStrength(formData.newPassword), [formData.newPassword, getStrength]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg">
@@ -222,7 +199,7 @@ const PasswordForm: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out bg-primary-green text-primary-black hover:bg-[#9ef300] hover:text-primary-white disabled:bg-neutral-200 disabled:text-neutral-600 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px]"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out bg-primary-green text-primary-black hover:bg-[#9ef300] hover:text-primary-white disabled:bg-neutral-200 disabled:text-neutral-600 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px] mx-auto md:ml-auto"
           >
             {isLoading ? (
               <>

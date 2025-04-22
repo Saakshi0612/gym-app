@@ -1,6 +1,7 @@
 // src/services/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
+import axios from 'axios';
 
 interface StoredUser extends User {
   password: string;
@@ -135,44 +136,15 @@ export const updateUserProfile = createAsyncThunk(
 
 export const updatePassword = createAsyncThunk(
   'auth/updatePassword',
-  async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }, { getState, rejectWithValue }) => {
+  async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }) => {
     try {
-      const state = getState() as { auth: AuthState };
-      const currentUser = state.auth.user;
-
-      if (!currentUser) {
-        return rejectWithValue('No user is logged in.');
-      }
-
-      const userIndex = users.findIndex(user => user.email === currentUser.email);
-
-      if (userIndex === -1) {
-        return rejectWithValue('User not found.');
-      }
-
-      if (users[userIndex].password !== oldPassword) {
-        return rejectWithValue('Current password is incorrect.');
-      }
-
-      // Update the password
-      users[userIndex].password = newPassword;
-      
-      // Update localStorage
-      try {
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-        const storedIndex = storedUsers.findIndex((u: User) => u.email === currentUser.email);
-        if (storedIndex !== -1) {
-          storedUsers[storedIndex].password = newPassword;
-          localStorage.setItem('users', JSON.stringify(storedUsers));
-        }
-      } catch (e) {
-        console.error('Error updating password in localStorage:', e);
-      }
-
-      return currentUser;
+      const response = await axios.put('/api/auth/update-password', {
+        oldPassword,
+        newPassword
+      });
+      return response.data;
     } catch (error) {
-      console.error("Error updating password:", error);
-      return rejectWithValue('Failed to update password.');
+      throw error;
     }
   }
 );

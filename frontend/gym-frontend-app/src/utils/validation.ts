@@ -7,11 +7,14 @@ export const validateName = (value: string): string | null => {
     return "Name cannot exceed 50 characters";
   }
   
-  // Check if the name contains only letters, spaces, and hyphens
-  const nameRegex = /^[A-Za-z\s-]+$/;
-  
-  if (!nameRegex.test(value)) {
-    return "Name can only contain letters, spaces, and hyphens";
+  // Check for numbers
+  if (/\d/.test(value)) {
+    return "Name cannot contain numbers";
+  }
+
+  // Check for special characters (excluding hyphens)
+  if (/[^A-Za-z\s-]/.test(value)) {
+    return "Name cannot contain special characters";
   }
   
   // Check for consecutive spaces or hyphens

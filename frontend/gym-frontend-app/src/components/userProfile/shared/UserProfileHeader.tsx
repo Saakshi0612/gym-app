@@ -76,6 +76,7 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
       {error && (
         <div className="mb-4">
           <SuccessAlert
+            type="error"
             message={error}
             onClose={() => setError(null)}
           />
@@ -84,6 +85,7 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
       {success && (
         <div className="mb-4">
           <SuccessAlert
+            type="success"
             message={success}
             onClose={() => setSuccess(null)}
           />
