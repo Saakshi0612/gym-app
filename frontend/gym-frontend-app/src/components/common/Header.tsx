@@ -136,7 +136,7 @@ const Header: React.FC = () => {
             </div>
           )}
 
-          {isAuthenticated && (
+          {isAuthenticated && user && (
             <UserNavigation
               isAuthenticated={isAuthenticated}
               userName={`${user?.firstName} ${user?.lastName}`}

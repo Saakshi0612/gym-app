@@ -1,5 +1,5 @@
 // src/App.tsx
-import React from "react";
+
 import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 
 import RegisterForm from "./components/RegisterForm";
@@ -21,10 +21,7 @@ const ProtectedRoute = () => {
   
 // Main app content
 function AppContent() {
-  const { user} = useAppSelector(
-    (state) => state.auth
-  );
-  const role :'coach'|'client'| 'admin' | undefined= user?.role;
+
   const location = useLocation();
   const hideHeaderRoutes = ["/login", "/register"];
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
@@ -45,7 +42,7 @@ function AppContent() {
           <Route path="/" element={<MainSection />} />
           <Route
           path="/account"
-          element={<DynamicUserProfile role= {role} />}
+          element={<DynamicUserProfile />}
         />
           {/* Add other protected routes here as needed */}
         </Route>

@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable */
+// @ts-nocheck
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
