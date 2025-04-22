@@ -9,6 +9,9 @@ import {
   ClientProfileData,
   UserProfileFormState,
 } from "../../types/components/UserProfileSettings.types";
+import { AppDispatch } from "../../store/store";
+import { AnyAction } from "redux";
+import { motion, AnimatePresence } from "framer-motion";
 
 import UserProfileHeader from "./shared/UserProfileHeader";
 import TagsField from "./TagsField";
@@ -23,7 +26,7 @@ import { updateUserProfile } from "../../services/authSlice";
 import { User } from "../../types/auth.types";
 import { validateName } from '../../utils/validation';
 
-interface UnifiedUserProfileFormProps {
+interface UserProfileFormProps {
   role: UserRole;
   profileData: AdminProfileData | CoachProfileData | ClientProfileData;
   onChange: (newData: AdminProfileData | CoachProfileData | ClientProfileData) => void;
@@ -31,14 +34,70 @@ interface UnifiedUserProfileFormProps {
   lastSaved: Date | null;
 }
 
-const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
+// Animation variants for smoother transitions
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }
+};
+
+const headerVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { 
+      duration: 0.5,
+      ease: [0.22, 1, 0.36, 1],
+      delay: 0.2
+    }
+  }
+};
+
+const formFieldVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({ 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      duration: 0.5,
+      ease: [0.22, 1, 0.36, 1],
+      delay: 0.3 + i * 0.1
+    }
+  })
+};
+
+const alertVariants = {
+  hidden: { y: -50, opacity: 0 },
+  visible: { 
+    y: 0, opacity: 1,
+    transition: { 
+      duration: 0.4,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  },
+  exit: { 
+    y: -50, opacity: 0,
+    transition: { 
+      duration: 0.3,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }
+};
+
+const UserProfileForm: React.FC<UserProfileFormProps> = ({
   role,
   profileData,
   onChange,
   onSaveSuccess,
   lastSaved,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const initialFormStateRef = useRef<UserProfileFormState | null>(null);
 
   const [formState, setFormState] = useState<UserProfileFormState>({
@@ -55,12 +114,14 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     targets: "",
     showSuccess: false,
     saving: false,
+    error: null,
   });
 
   // Track if form has been modified
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
+    // Reset form state when profile data changes
     const userData: UserProfileData = {
       name: `${profileData.firstName} ${profileData.lastName}`,
       email: profileData.email,
@@ -68,8 +129,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       avatarUrl: profileData.avatarUrl,
     };
 
-    const newFormState = {
-      ...formState,
+    const newFormState: UserProfileFormState = {
       userData,
       firstName: profileData.firstName,
       lastName: profileData.lastName,
@@ -87,12 +147,18 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         role === UserRole.CLIENT ? (profileData as ClientProfileData).preferableActivity : "",
       targets:
         role === UserRole.CLIENT ? (profileData as ClientProfileData).targets : "",
+      showSuccess: false,
+      saving: false,
+      error: null,
     };
 
-    setFormState(newFormState);
-    initialFormStateRef.current = newFormState;
-    setIsDirty(false);
-  }, [role, profileData]);
+    // Only update if the data has actually changed
+    if (JSON.stringify(newFormState) !== JSON.stringify(formState)) {
+      setFormState(newFormState);
+      initialFormStateRef.current = newFormState;
+      setIsDirty(false);
+    }
+  }, [role, profileData, formState]);
 
   // Check if form has been modified
   useEffect(() => {
@@ -106,16 +172,14 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       formState.about !== initialFormStateRef.current.about ||
       formState.preferableActivity !== initialFormStateRef.current.preferableActivity ||
       formState.targets !== initialFormStateRef.current.targets ||
-      formState.userData?.avatarUrl !== initialFormStateRef.current.userData?.avatarUrl ||
       JSON.stringify(formState.tags) !== JSON.stringify(initialFormStateRef.current.tags) ||
       JSON.stringify(formState.certificates) !== JSON.stringify(initialFormStateRef.current.certificates);
     
     setIsDirty(hasChanges);
   }, [formState]);
 
-  const handleDrop = (files: FileList | null) => {
-    if (!files) return;
-    const newCerts: Certificate[] = Array.from(files).map((file) => ({
+  const handleDrop = (files: File[]) => {
+    const newCerts: Certificate[] = files.map((file) => ({
       name: file.name,
       size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
       url: URL.createObjectURL(file),
@@ -136,14 +200,30 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
   const handleProfilePhotoChange = (file: File | null) => {
     if (file) {
+      // Create a URL for the image
       const imageUrl = URL.createObjectURL(file);
+      
+      // Update the form state with the new image URL and mark as dirty
       setFormState((prev) => ({
         ...prev,
         userData: prev.userData ? {
           ...prev.userData,
           avatarUrl: imageUrl
-        } : null
+        } : null,
+        isDirty: true
       }));
+
+      // Trigger the onChange callback with the updated profile data
+      const updatedProfileData = {
+        ...profileData,
+        avatarUrl: imageUrl
+      };
+      onChange(updatedProfileData);
+      
+      // Clean up the old URL if it exists
+      if (formState.userData?.avatarUrl) {
+        URL.revokeObjectURL(formState.userData.avatarUrl);
+      }
     }
   };
 
@@ -201,7 +281,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         avatarUrl: formState.userData?.avatarUrl || "",
       };
 
-      dispatch(updateUserProfile(userPayload));
+      // Dispatch with proper type assertion
+      dispatch(updateUserProfile(userPayload) as unknown as AnyAction);
 
       setTimeout(() => {
         setFormState((prev) => ({ ...prev, showSuccess: false }));
@@ -209,8 +290,33 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
       console.log("✅ Data saved:", updatedFormState);
 
+      // Call the onChange prop to notify parent component of changes
+      if (onChange) {
+        const updatedProfileData = {
+          ...profileData,
+          firstName: formState.firstName,
+          lastName: formState.lastName,
+          phoneNumber: formState.phoneNumber,
+          title: formState.title,
+          about: formState.about,
+          tags: formState.tags,
+          certificates: formState.certificates,
+          rating: formState.rating,
+          preferableActivity: formState.preferableActivity,
+          targets: formState.targets,
+          avatarUrl: formState.userData?.avatarUrl || "",
+        };
+        onChange(updatedProfileData);
+      }
+
+      // Log the last saved time if available
+      if (lastSaved) {
+        console.log("Last saved:", lastSaved.toLocaleString());
+      }
+
       onSaveSuccess();
-    } catch (error) {
+    } catch (err) {
+      console.error("Error saving profile:", err);
       setFormState(prev => ({ ...prev, error: "Error saving changes." }));
       setFormState((prev) => ({ ...prev, saving: false }));
     }
@@ -221,35 +327,67 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
   return (
     <>
-      {formState.showSuccess && (
-        <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
-          <SuccessAlert
-            message="Your profile has been updated successfully."
-            onClose={() =>
-              setFormState((prev) => ({ ...prev, showSuccess: false }))
-            }
-          />
-        </div>
-      )}
-      {formState.error && (
-        <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
-          <SuccessAlert
-            message={formState.error}
-            onClose={() =>
-              setFormState((prev) => ({ ...prev, error: null }))
-            }
-          />
-        </div>
-      )}
+      <AnimatePresence>
+        {formState.showSuccess && (
+          <motion.div 
+            className="fixed top-4 inset-x-0 z-50 flex justify-center px-4"
+            variants={alertVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <SuccessAlert
+              message="Your profile has been updated successfully."
+              onClose={() =>
+                setFormState((prev) => ({ ...prev, showSuccess: false }))
+              }
+            />
+          </motion.div>
+        )}
+        {formState.error && (
+          <motion.div 
+            className="fixed top-4 inset-x-0 z-50 flex justify-center px-4"
+            variants={alertVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <SuccessAlert
+              message={formState.error}
+              onClose={() =>
+                setFormState((prev) => ({ ...prev, error: null }))
+              }
+              type="error"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg">
-        <UserProfileHeader
-          {...formState.userData}
-          onFileSelect={handleProfilePhotoChange}
-          rating={role === UserRole.COACH ? formState.rating : 0}
-        />
+      <motion.div 
+        className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div
+          variants={headerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <UserProfileHeader
+            {...formState.userData}
+            onFileSelect={handleProfilePhotoChange}
+            rating={formState.rating}
+          />
+        </motion.div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div 
+          className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4"
+          variants={formFieldVariants}
+          custom={0}
+          initial="hidden"
+          animate="visible"
+        >
           <LabeledInput
             id="firstName"
             label="First Name"
@@ -270,10 +408,16 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             }
             validation={validateName}
           />
-        </div>
+        </motion.div>
 
         {role === UserRole.ADMIN && (
-          <div className="mt-6">
+          <motion.div 
+            className="mt-6"
+            variants={formFieldVariants}
+            custom={1}
+            initial="hidden"
+            animate="visible"
+          >
             <LabeledInput
               id="phoneNumber"
               label="Phone Number"
@@ -283,12 +427,18 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                 setFormState((prev) => ({ ...prev, phoneNumber: val }))
               }
             />
-          </div>
+          </motion.div>
         )}
 
         {role === UserRole.COACH && (
           <>
-            <div className="mt-6">
+            <motion.div 
+              className="mt-6"
+              variants={formFieldVariants}
+              custom={1}
+              initial="hidden"
+              animate="visible"
+            >
               <LabeledInput
                 id="title"
                 label="Title"
@@ -297,9 +447,16 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                 onChange={(val) =>
                   setFormState((prev) => ({ ...prev, title: val }))
                 }
+                showPlaceholderAsHint={true}
               />
-            </div>
-            <div className="mt-6">
+            </motion.div>
+            <motion.div 
+              className="mt-6"
+              variants={formFieldVariants}
+              custom={2}
+              initial="hidden"
+              animate="visible"
+            >
               <LabeledInput
                 id="about"
                 label="About"
@@ -309,9 +466,16 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                 onChange={(val) =>
                   setFormState((prev) => ({ ...prev, about: val }))
                 }
+                showPlaceholderAsHint={true}
               />
-            </div>
-            <div className="mt-6">
+            </motion.div>
+            <motion.div 
+              className="mt-6"
+              variants={formFieldVariants}
+              custom={3}
+              initial="hidden"
+              animate="visible"
+            >
               <TagsField
                 tags={formState.tags}
                 onAddTag={(tag) =>
@@ -327,24 +491,53 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                   }))
                 }
               />
-            </div>
-            <div className="mt-6">
+            </motion.div>
+            <motion.div 
+              className="mt-6"
+              variants={formFieldVariants}
+              custom={4}
+              initial="hidden"
+              animate="visible"
+            >
               <CertificateUpload
                 certificates={formState.certificates}
                 onDrop={handleDrop}
                 onRemove={handleRemove}
                 onDownload={(url) => window.open(url, "_blank")}
               />
-            </div>
+            </motion.div>
           </>
         )}
 
         {role === UserRole.CLIENT && (
           <>
-            <div className="mt-6">
+            <motion.div 
+              className="mt-6"
+              variants={formFieldVariants}
+              custom={1}
+              initial="hidden"
+              animate="visible"
+            >
               <DynamicSelect
-                label="Preferable Activity"
-                placeholder="Select Activity"
+                id="target-goals"
+                label="Target Goals"
+                options={options.targetOptions}
+                selected={formState.targets}
+                onChange={(val) =>
+                  setFormState((prev) => ({ ...prev, targets: val }))
+                }
+              />
+            </motion.div>
+            <motion.div 
+              className="mt-6"
+              variants={formFieldVariants}
+              custom={2}
+              initial="hidden"
+              animate="visible"
+            >
+              <DynamicSelect
+                id="preferred-activity"
+                label="Preferred Activity"
                 options={options.activityOptions}
                 selected={formState.preferableActivity}
                 onChange={(val) =>
@@ -354,31 +547,26 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                   }))
                 }
               />
-            </div>
-            <div className="mt-6">
-              <DynamicSelect
-                label="Target Goals"
-                placeholder="Select Goal"
-                options={options.targetOptions}
-                selected={formState.targets}
-                onChange={(val) =>
-                  setFormState((prev) => ({ ...prev, targets: val }))
-                }
-              />
-            </div>
+            </motion.div>
           </>
         )}
 
-        <div className="mt-8">
+        <motion.div 
+          className="mt-8"
+          variants={formFieldVariants}
+          custom={5}
+          initial="hidden"
+          animate="visible"
+        >
           <ProfileSaveButton 
             saving={formState.saving} 
             onClick={handleSave} 
             disabled={!isDirty}
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </>
   );
 };
 
-export default UnifiedUserProfileForm;
+export default UserProfileForm;
