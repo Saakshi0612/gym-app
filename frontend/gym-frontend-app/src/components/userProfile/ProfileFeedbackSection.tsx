@@ -17,7 +17,7 @@ const getFeedbacksPerPage = () => {
   if (width >= 1280) return 6; // xl screens
   if (width >= 1024) return 3; // lg screens
   if (width >= 768) return 2;  // md screens
-  return 1; // sm screens
+  return 2; // sm screens - show 2 on mobile
 };
 
 const ProfileFeedbackSection: React.FC = () => {
@@ -128,10 +128,17 @@ const ProfileFeedbackSection: React.FC = () => {
     currentPage * feedbacksPerPage
   );
 
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, []);
+
   const handlePageChange = (pageNumber: number) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
-      sectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+      scrollToTop();
     }
   };
 
@@ -143,7 +150,7 @@ const ProfileFeedbackSection: React.FC = () => {
   return (
     <div
       ref={sectionRef}
-      className="flex flex-col mt-4 md:mt-0 w-full overflow-hidden"
+      className="flex flex-col mt-4 md:mt-0 w-full overflow-hidden max-w-[95%] mx-auto"
       role="region"
       aria-label="User Feedback Section"
     >
@@ -168,7 +175,7 @@ const ProfileFeedbackSection: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 gap-6"
+              className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 gap-4 sm:gap-6"
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               style={{ x: dragX }}
@@ -176,7 +183,7 @@ const ProfileFeedbackSection: React.FC = () => {
               onDragEnd={(_, info) => handleSwipe(info.offset.x)}
             >
               {currentFeedbacks.map((feedback) => (
-                <div key={feedback.id} className="h-full">
+                <div key={feedback.id} className="w-full">
                   <ProfileFeedbackCard {...feedback} />
                 </div>
               ))}
@@ -184,15 +191,19 @@ const ProfileFeedbackSection: React.FC = () => {
           </AnimatePresence>
 
           {totalPages > 1 && (
-            <nav className="pt-10" aria-label="Feedback pagination">
-              <div className="flex justify-center items-center gap-2">
+            <nav 
+              className="mt-6 sm:pt-10 flex justify-center" 
+              aria-label="Feedback pagination"
+            >
+              <div className="flex items-center gap-3">
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`text-caption text-neutral-600 hover:text-primary-black font-bold px-3 py-1 ${
-                    currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
+                  className={`text-sm ${
+                    currentPage === 1 
+                      ? 'text-gray-300 cursor-not-allowed' 
+                      : 'text-gray-600 hover:text-black'
                   }`}
                   aria-label="Previous page"
                 >
@@ -205,12 +216,11 @@ const ProfileFeedbackSection: React.FC = () => {
                     <motion.button
                       key={pageNum}
                       whileTap={{ scale: 0.95 }}
-                      whileHover={{ scale: 1.05 }}
                       onClick={() => handlePageChange(pageNum)}
-                      className={`px-4 py-2 text-caption font-medium border-b-2 transition ${
+                      className={`w-6 h-6 flex items-center justify-center text-sm ${
                         currentPage === pageNum
-                          ? 'border-primary-green text-primary-black'
-                          : 'border-transparent text-neutral-600'
+                          ? 'bg-[#9ef300] rounded-sm text-black font-medium'
+                          : 'text-gray-600 hover:text-black'
                       }`}
                       aria-label={`Page ${pageNum}`}
                       aria-current={currentPage === pageNum ? 'page' : undefined}
@@ -222,11 +232,12 @@ const ProfileFeedbackSection: React.FC = () => {
 
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`text-caption text-neutral-600 hover:text-primary-black font-bold px-3 py-1 ${
-                    currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''
+                  className={`text-sm ${
+                    currentPage === totalPages 
+                      ? 'text-gray-300 cursor-not-allowed' 
+                      : 'text-gray-600 hover:text-black'
                   }`}
                   aria-label="Next page"
                 >

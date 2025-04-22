@@ -17,7 +17,7 @@ const ProfileFeedbackCard: React.FC<ProfileFeedbackCardProps> = ({
   avatarUrl,
 }) => {
   return (
-    <div className="bg-primary-white rounded-lg p-5 xl:p-6 shadow-sm h-full min-h-[180px] xl:min-h-[200px]">
+    <div className="bg-primary-white rounded-lg p-4 sm:p-5 xl:p-6 shadow-sm w-full max-w-[500px] sm:max-w-none mx-auto">
       {/* Top row: Avatar, name, date, rating */}
       <div className="flex items-start gap-3 mb-2 xl:mb-3">
         <img
