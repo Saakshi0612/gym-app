@@ -98,13 +98,14 @@ export interface CoachProps {
   rating: number;
   title: string;
   about: string;
-  description: string;
-  type_of_sport: string;
-  time: string[];
-  date: string;
+  description?: string;
+  type_of_sport?: string;
+  time?: string[];
+  date?: string;
   profileImage: string;
   specializations?: string[];
   certificates?: Certificate[];
+  onBookWorkout?: () => void;
 }
 
 export interface CoachCardProps {

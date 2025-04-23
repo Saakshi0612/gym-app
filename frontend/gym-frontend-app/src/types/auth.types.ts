@@ -6,6 +6,18 @@ export interface User {
     role: 'client' | 'coach' | 'admin';
     target?: string;
     activity?: string;
+    phoneNumber?: string;
+    title?: string;
+    about?: string;
+    tags?: string[];
+    certificates?: Array<{
+      name: string;
+      size: string;
+      url: string;
+    }>;
+    rating?: number;
+    preferableActivity?: string;
+    avatarUrl?: string;
   }
   
   export interface AuthState {
@@ -21,10 +33,24 @@ export interface User {
   }
   
   export interface RegisterData {
-    firstName: string;
-    lastName: string;
     email: string;
     password: string;
-    target: string;
-    activity: string;
+    firstName: string;
+    lastName: string;
+    target?: string;
+    activity?: string;
   }
+
+export interface UserNavigationProps {
+  isAuthenticated: boolean;
+  userName?: string;
+  userEmail?: string;
+  userDetail?: User| null ; // Add null as a possible type
+  notification: string;
+  profile: string;
+  accountIcon: string;
+  handleLogout: () => void;
+  handleAccountClick: () => void;
+  onMobileMenuToggle?: (isOpen: boolean) => void;
+  className?: string;
+}

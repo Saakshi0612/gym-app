@@ -1,0 +1,14 @@
+{
+  "name": "team6-lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build":"vite build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {"@types/node": "^22.14.0",
+    "vite": "^6.2.5"}
+}

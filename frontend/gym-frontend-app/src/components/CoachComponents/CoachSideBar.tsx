@@ -1,5 +1,5 @@
 import React from "react";
-import pdfIconPath from "../../assets/PDF.svg";
+import pdfIconPath from "../../assets/images/PDF.svg";
 import { CoachProps } from "../../types/components/coach.types";
 import Button from "../common/ButtonComponent";
 
@@ -11,6 +11,7 @@ const CoachSidebar: React.FC<CoachProps> = ({
   specializations,
   certificates,
   profileImage,
+  onBookWorkout 
 }) => {
   return (
     <div className="w-full rounded-lg overflow-hidden shadow-lg bg-white p-0">
@@ -103,6 +104,7 @@ const CoachSidebar: React.FC<CoachProps> = ({
             variant="primary"
             fullWidth={true}
             className="bg-primary-green hover:bg-green-600 text-black py-2.5 px-4 text-sm"
+            onClick={onBookWorkout} 
           >
             Book Workout
           </Button>

@@ -1,16 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
-import Calendar from "./Calender"; // Adjust import path
+import Calendar from "./Calender"; 
+import Dropdownsvg from "../../assets/images/dropdown.svg"
 
 interface DatePickerFieldProps {
   label: string;
   value: Date;
   onChange: (date: Date) => void;
+  error?: string;
 }
 
 const DatePickerField: React.FC<DatePickerFieldProps> = ({
   label,
   value,
   onChange,
+  error,
 }) => {
   const [currentDate, setCurrentDate] = useState(value);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -26,16 +29,21 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
     setCurrentDate(date);
   };
 
-  // Format the date to show only month and day
-  const formattedDate = value.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric'
+  const formattedDate = value.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 
-  // Close calendar if clicking outside
+  // Click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
+      if (
+        ref.current && 
+        !ref.current.contains(event.target as Node) &&
+        calendarRef.current &&
+        !calendarRef.current.contains(event.target as Node)
+      ) {
         setShowCalendar(false);
       }
     };
@@ -43,53 +51,54 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Check if calendar would go off-screen
-  const checkPosition = () => {
-    if (ref.current && calendarRef.current) {
-      const fieldRect = ref.current.getBoundingClientRect();
-      const calendarHeight = calendarRef.current.offsetHeight;
-      const viewportHeight = window.innerHeight;
-      
-      // If there's not enough space below, position above
-      if (fieldRect.bottom + calendarHeight > viewportHeight && fieldRect.top > calendarHeight) {
-        return { top: 'auto', bottom: '100%', marginBottom: '5px' };
-      }
-    }
-    
-    // Default position below the input
-    return { top: '100%', bottom: 'auto', marginTop: '5px' };
-  };
-
   return (
-    <div className="flex-1 relative" ref={ref}>
-      <fieldset className="border rounded px-3 py-2">
-        <legend className="text-sm mx-2 px-1 text-gray-500">{label}</legend>
-        <div
-          className="cursor-pointer text-gray-700"
-          onClick={() => setShowCalendar((prev) => !prev)}
-        >
-          {formattedDate}
-        </div>
-
-        {showCalendar && (
-          <div 
-            ref={calendarRef}
-            className="absolute z-100 bg-white border border-gray-200 rounded shadow-lg left-0" 
-            style={{
-              width: "min(280px, 90vw)",
-              maxWidth: "100vw",
-              ...checkPosition()
-            }}
+    <div className="relative z-30" ref={ref}>
+      <fieldset className="border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white">
+        <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px] ml-1 px-1 bg-white text-[#4B5563]">
+          {label}
+        </legend>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowCalendar(!showCalendar)}
+            className="w-full p-2 pt-0 rounded bg-white flex justify-between items-center font-light"
           >
-            <Calendar
-              currentDate={currentDate}
-              selectedDate={value}
-              onDateSelect={handleDateSelect}
-              onMonthChange={handleMonthChange}
+            {formattedDate}
+            <img
+              src={Dropdownsvg}
+              alt="Dropdown Icon"
+              className={`w-5 h-5 transition-transform duration-100 ${
+                showCalendar ? "rotate-180" : ""
+              }`}
             />
-          </div>
-        )}
+          </button>
+        </div>
       </fieldset>
+
+      {error && <span className="text-xs text-red-500 mt-1">{error}</span>}
+
+      {showCalendar && (
+        <div
+          ref={calendarRef}
+          className="absolute left-0 mt-1 bg-white border border-gray-200 rounded shadow-lg"
+          style={{
+            width: "min(320px, 90vw)", // Use min() to cap width at 320px or 90% of viewport width
+            zIndex: 50,
+            maxHeight: "min(400px, 80vh)", // Responsive height too
+            overflowY: "auto",
+            // Position handling for small screens
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+        >
+          <Calendar
+            currentDate={currentDate}
+            selectedDate={value}
+            onDateSelect={handleDateSelect}
+            onMonthChange={handleMonthChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

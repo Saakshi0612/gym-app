@@ -1,78 +1,145 @@
-// src/components/LoginForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, clearError } from '../services/authSlice';
-import SystemErrorAlert from './SystemErrorAlert';
-import EmailInput from './form/EmailInput';
-import PasswordInput from './form/PasswordInput';
+import SystemAlert from './SystemAlert';
 import SubmitButton from './form/SubmitButton';
 import AuthFooter from './auth/AuthFooter';
 import { useAppDispatch, useAppSelector } from '../store/store';
-import AuthLayout from './layout/AuthLayout';
+import AuthLayout from './auth/authLayout';
 import { QuoteSidebar } from './common/QuoteBanner';
+import Input from './common/Input';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  const [showLoginSuccess, setShowLoginSuccess] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  
+
   const { isLoading, error } = useAppSelector(state => state.auth);
-  
+
   const isSystemError = error && error.includes('technical difficulties');
-  const passwordError = error && !isSystemError ? error : null;
+  const loginError = error && !isSystemError ? error : null;
   const systemError = isSystemError ? error : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const resultAction = await dispatch(loginUser({ email, password }));
-    
+
     if (loginUser.fulfilled.match(resultAction)) {
-      // If login is successful, save the user data to localStorage
-      localStorage.setItem('user', JSON.stringify(resultAction.payload));
-      navigate('/');
+      setShowLoginSuccess(true);
+    } else {
+      setShowErrorAlert(true);
     }
   };
 
-  const handlePasswordChange = (newPassword: string) => {
-    setPassword(newPassword);
-    if (passwordError) dispatch(clearError());
+  useEffect(() => {
+    if (showLoginSuccess) {
+      const timer = setTimeout(() => {
+        setShowLoginSuccess(false);
+        navigate('/');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [showLoginSuccess, navigate]);
+
+  useEffect(() => {
+    if (error && showErrorAlert) {
+      const timer = setTimeout(() => {
+        setShowErrorAlert(false);
+        dispatch(clearError());
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, showErrorAlert, dispatch]);
+
+  const handleInputChange = () => {
+    if (loginError) dispatch(clearError());
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
     <AuthLayout
       sidebar={<QuoteSidebar />}
-      systemError={systemError ? 
-        <SystemErrorAlert message={systemError} onDismiss={() => dispatch(clearError())} /> 
-        : null
+      systemError={
+        <>
+          {systemError && showErrorAlert && (
+            <SystemAlert
+              type="error"
+              message={systemError}
+              onDismiss={() => {
+                setShowErrorAlert(false);
+                dispatch(clearError());
+              }}
+            />
+          )}
+          {showLoginSuccess && (
+            <SystemAlert
+              type="success"
+              message="Login successful! Redirecting to home..."
+              onDismiss={() => setShowLoginSuccess(false)}
+            />
+          )}
+        </>
       }
     >
-      <div className="max-w-md mx-auto w-full py-4">
+     <div className="max-w-md mx-auto w-full py-4">
         <h2 className="text-gray-700 mb-1 uppercase text-xs font-lexend">WELCOME BACK</h2>
         <h1 className="text-2xl font-lexend mb-6">Log In to Your Account</h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <EmailInput 
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            placeholder="Enter your Email"
             value={email}
-            onChange={setEmail}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setEmail(e.target.value);
+              handleInputChange();
+            }}
             helpText="e.g. username@domain.com"
+            error={loginError ? " " : undefined}
           />
-          
-          <PasswordInput 
+
+          <Input
+            label="Password"
+            name="password"
+            placeholder="Enter your Password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={handlePasswordChange}
-            error={passwordError}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setPassword(e.target.value);
+              handleInputChange();
+            }}
+            error={loginError}
             helpText="At least one capital letter required"
+            rightElement={
+              <button 
+                type="button" 
+                onClick={togglePasswordVisibility}
+                className="focus:outline-none"
+              >
+                {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+              </button>
+            }
           />
-          
-          <SubmitButton 
+
+          <SubmitButton
             isLoading={isLoading}
             text="Log In"
             loadingText="Logging in..."
           />
         </form>
-        
-        <AuthFooter 
+
+        <AuthFooter
           message="Don't have an account?"
           linkText="CREATE NEW ACCOUNT"
           linkUrl="/register"
@@ -81,4 +148,3 @@ export default function LoginForm() {
     </AuthLayout>
   );
 }
-

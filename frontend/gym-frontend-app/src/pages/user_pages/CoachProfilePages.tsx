@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../../store/store';
 import CoachSidebar from '../../components/CoachComponents/CoachSideBar';
-import AvatarImg from '../../assets/Avatar.jpg';
+import AvatarImg from '../../assets/images/Avatar.jpg';
 import CoachAvailabilityCalendar from '../../components/CoachComponents/CoachCalendar';
 import FeedbackSection from '../../components/FeedBack/FeedBack';
 import { TimeSlot } from '../../types/components/coach.types';
 import { Coach } from '../../types/components/coach.types';
+import ConfirmBookingCard from '../../components/homepage/confirmBookingCard';
+import LoginPromptModal from '../../components/homepage/isLoggedInCard';
+import { ChevronRightIcon } from 'lucide-react';
+import SystemAlert from '../../components/SystemAlert';
 
 // Define the structure of the JSON file
 interface CoachesData {
@@ -14,11 +19,32 @@ interface CoachesData {
 
 const CoachProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [coach, setCoach] = useState<Coach | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date(2024, 6, 3)); // July 3, 2024
   
+  // Set default date to today
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  // Track if user has actively selected a date
+  const [dateSelected, setDateSelected] = useState<boolean>(true);
+  
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
+  const [showConfirmCard, setShowConfirmCard] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error'>('success');
+  
+  // Get authentication state from Redux
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  // Log authentication state for debugging
+  useEffect(() => {
+    console.log('Auth state in CoachProfilePage:', { isAuthenticated });
+  }, [isAuthenticated]);
+
   // Sample time slots data
   const [availableTimeSlots] = useState<TimeSlot[]>([
     { id: '1', startTime: '8:00', endTime: '9:00 AM', isAvailable: true },
@@ -34,10 +60,10 @@ const CoachProfilePage: React.FC = () => {
       try {
         const response = await import('../../assets/JSON/Coaches.json');
         const coachesData: CoachesData = response.default;
-        
+
         const coachId = parseInt(id || '0', 10);
         const foundCoach = coachesData.coaches.find(c => c.id === coachId);
-        
+
         if (foundCoach) {
           setCoach(foundCoach);
         } else {
@@ -56,7 +82,55 @@ const CoachProfilePage: React.FC = () => {
 
   const handleTimeSlotSelect = (timeSlot: TimeSlot) => {
     console.log(`Selected time slot: ${timeSlot.startTime} - ${timeSlot.endTime}`);
-    // Handle booking logic here
+    setSelectedTimeSlot(timeSlot);
+  };
+
+  const handleBookWorkoutClick = () => {
+    // Check if user has selected a date
+    if (!dateSelected) {
+      setAlertType('error');
+      setAlertMessage("Please select a date for your workout.");
+      setShowAlert(true);
+      
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 5000);
+      return;
+    }
+    
+    // Check if user has selected a time slot
+    if (!selectedTimeSlot) {
+      setAlertType('error');
+      setAlertMessage("Please select a time slot before booking.");
+      setShowAlert(true);
+      
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 5000);
+      return;
+    }
+    
+    // Check if user is authenticated
+    if (isAuthenticated) {
+      setShowConfirmCard(true);
+    } else {
+      setShowLoginPrompt(true);
+    }
+  };
+
+  const handleBookingConfirmed = () => {
+    // Close the confirmation modal
+    setShowConfirmCard(false);
+    
+    // Show success alert
+    setAlertType('success');
+    setAlertMessage(`Your workout with ${coach?.name_of_coach} has been booked successfully!`);
+    setShowAlert(true);
+    
+    // Automatically hide the alert after 5 seconds
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 5000);
   };
 
   const upcomingWorkouts = [
@@ -85,6 +159,21 @@ const CoachProfilePage: React.FC = () => {
 
   return (
     <div className="p-4 min-h-screen bg-gray-50">
+      {/* Alert Component */}
+      {showAlert && (
+        <SystemAlert 
+          type={alertType}
+          message={alertMessage} 
+          onDismiss={() => setShowAlert(false)} 
+        />
+      )}
+      
+      <p className="flex items-center space-x-2 p-4">
+        <span>Coaches</span>
+        <ChevronRightIcon className="h-5 w-5 text-gray-500" />
+        <span className="text-gray-600">{coach.name_of_coach}</span>
+      </p>
+
       <div className="max-w-7xl mx-auto">
         {/* Use grid for better responsive layout */}
         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-4 gap-6">
@@ -98,20 +187,21 @@ const CoachProfilePage: React.FC = () => {
                 about={"I have 8 years of experience in the field, having studied various styles of yoga and completed rigorous training programs. I have taught diverse groups, from beginners to advanced practitioners, in both studio and private settings. I have regularly engaged in community events and wellness retreats, inspiring others on their yoga journeys."}
                 specializations={[coach.type_of_sport]}
                 certificates={[
-                  { 
-                    name: "Mindfulness-Based Stress Reduction (MBSR) Certification.pdf", 
-                    file: "/certificates/mbsr.pdf" 
+                  {
+                    name: "Mindfulness-Based Stress Reduction (MBSR) Certification.pdf",
+                    file: "/certificates/mbsr.pdf"
                   },
-                  { 
-                    name: "Integrative Yoga Therapy Certification.pdf", 
-                    file: "/certificates/yoga-therapy.pdf" 
+                  {
+                    name: "Integrative Yoga Therapy Certification.pdf",
+                    file: "/certificates/yoga-therapy.pdf"
                   }
                 ]}
                 profileImage={coach.imageUrl || AvatarImg}
+                onBookWorkout={handleBookWorkoutClick}
               />
             </div>
           </div>
-          
+
           {/* Right Column - Calendar, Buttons, and Feedback */}
           <div className="lg:col-span-3 space-y-6">
             {/* Calendar Section */}
@@ -122,11 +212,12 @@ const CoachProfilePage: React.FC = () => {
                 onTimeSlotSelect={handleTimeSlotSelect}
                 onDateChange={(date) => {
                   setSelectedDate(date);
+                  setDateSelected(true); // Mark that user has selected a date
                   console.log(`Date changed to: ${date.toDateString()}`);
                 }}
               />
             </div>
-            
+
             {/* Upcoming Workouts Section */}
             <div>
               <h2 className="text-lg font-medium uppercase mb-4">Upcoming Workouts</h2>
@@ -145,7 +236,7 @@ const CoachProfilePage: React.FC = () => {
                 </div>
               ))}
             </div>
-            
+
             {/* Feedback Section */}
             <div>
               <FeedbackSection />
@@ -153,6 +244,30 @@ const CoachProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Confirmation Card Modal */}
+      {showConfirmCard && selectedTimeSlot && (
+        <ConfirmBookingCard
+          coach={{
+            ...coach,
+            selectedTime: selectedTimeSlot.startTime,
+            date: selectedDate.toISOString(),
+          }}
+          onClose={() => setShowConfirmCard(false)}
+          onConfirm={handleBookingConfirmed}
+        />
+      )}
+      
+      {/* Login Prompt Modal */}
+      <LoginPromptModal
+        isOpen={showLoginPrompt}
+        onCancel={() => setShowLoginPrompt(false)}
+        onLogin={() => {
+          // Store the current URL for redirect after login
+          localStorage.setItem('redirectAfterLogin', `/coaches/${id}`);
+          navigate("/login");
+        }}
+      />
     </div>
   );
 };
