@@ -162,17 +162,17 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl p-3 sm:p-4 w-full max-w-xl mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100">
-        <h3 className="text-lg font-semibold mb-2">Crop Your Profile Picture</h3>
-        <p className="text-sm text-gray-600 mb-3">
+    <div className="fixed inset-0 bg-primary-white/30 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-primary-white rounded-xl p-3 sm:p-4 w-full max-w-xl mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-200">
+        <h3 className="text-lg font-semibold mb-2 text-neutral-900">Crop Your Profile Picture</h3>
+        <p className="text-sm text-neutral-600 mb-3">
           Click and drag to select the portion of the image you want to use as your profile picture.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
-          <div className="w-full sm:w-auto sm:flex-1 max-h-[350px] sm:max-h-[400px] overflow-hidden bg-gray-50 rounded-lg">
+          <div className="w-full sm:w-auto sm:flex-1 max-h-[350px] sm:max-h-[400px] overflow-hidden bg-neutral-200 rounded-lg">
             {isLoading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-green"></div>
               </div>
             ) : (
               imgSrc && (
@@ -192,6 +192,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                     alt="Crop me"
                     className="max-w-full object-contain"
                     style={{ maxHeight: '350px' }}
+                    onLoad={onImageLoad}
                   />
                 </ReactCrop>
               )
@@ -200,8 +201,8 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           
           {/* Preview Section */}
           <div className="w-[150px] flex flex-col items-center">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Preview</h4>
-            <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] rounded-full bg-gray-50 overflow-hidden shadow-inner border border-gray-100">
+            <h4 className="text-sm font-medium text-neutral-700 mb-2">Preview</h4>
+            <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] rounded-full bg-neutral-200 overflow-hidden shadow-inner border border-neutral-200">
               <canvas
                 ref={previewCanvasRef}
                 className="w-full h-full"
@@ -210,12 +211,12 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           </div>
         </div>
         
-        <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
+        <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-neutral-200">
           <button
             type="button"
             onClick={onCancel}
             disabled={isProcessing}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded-lg text-sm font-medium transition-colors"
           >
             Cancel
           </button>
@@ -223,7 +224,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
             type="button"
             onClick={handleCropComplete}
             disabled={!completedCrop || isProcessing}
-            className="px-4 py-2 bg-[#9ef300] hover:bg-[#8cdc00] text-black rounded-lg text-sm font-medium transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+            className="px-4 py-2 bg-primary-green hover:bg-primary-green/90 text-primary-black rounded-lg text-sm font-medium transition-colors disabled:bg-neutral-200 disabled:text-neutral-500"
           >
             {isProcessing ? (
               <span className="flex items-center gap-2">

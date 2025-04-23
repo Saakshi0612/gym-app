@@ -80,10 +80,10 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
         fileInputRef.current.value = '';
       }
 
-      // Clear success message after 8 seconds
+      // Clear success message after 4 seconds
       setTimeout(() => {
         setSuccess(null);
-      }, 8000);
+      }, 4000);
     } catch (error) {
       console.error('Error processing cropped image:', error);
       setError("Failed to process the image. Please try again.");
@@ -114,7 +114,7 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
         <div className="mb-4">
           <SuccessAlert
             type={error ? "error" : "success"}
-            message={error || success}
+            message={(error || success || '')}
             onClose={clearMessages}
           />
         </div>
@@ -157,7 +157,7 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-3 flex-wrap">
               <h2 className="text-base font-semibold text-primary-black">
-                {name} <span className="text-sm text-neutral-600">({role})</span>
+                {name} <span className="text-sm text-neutral-600">({role.charAt(0).toUpperCase() + role.slice(1)})</span>
               </h2>
               {showRating && (
                 <div className="flex items-center gap-1 text-sm text-neutral-600">

@@ -43,8 +43,18 @@ const PasswordForm: React.FC = () => {
     confirmPassword: null
   });
 
-  // Validate all fields before submission
-  const validateForm = (): boolean => {
+  const validateConfirmPassword = useCallback((value: string) => {
+    if (!value) return "Confirm password is required";
+    if (value !== formData.newPassword) return "Passwords do not match";
+    return null;
+  }, [formData.newPassword]);
+
+  const handleSubmit = useCallback(async (e: FormEvent) => {
+    e.preventDefault();
+    setShowError(false);
+    setShowSuccess(false);
+    
+    // Validate form before submitting
     const errors = {
       oldPassword: validateOldPassword(formData.oldPassword),
       newPassword: validatePasswordField(formData.newPassword),
@@ -57,33 +67,20 @@ const PasswordForm: React.FC = () => {
     if (formData.oldPassword === formData.newPassword) {
       setErrorMessage("New password must be different from current password");
       setShowError(true);
-      return false;
+      return;
     }
 
     // Check if any field is empty
     if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
       setErrorMessage("All fields are required");
       setShowError(true);
-      return false;
+      return;
     }
 
     // Check if there are any validation errors
     if (errors.oldPassword || errors.newPassword || errors.confirmPassword) {
       setErrorMessage("Please fix all validation errors before submitting");
       setShowError(true);
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = useCallback(async (e: FormEvent) => {
-    e.preventDefault();
-    setShowError(false);
-    setShowSuccess(false);
-    
-    // Validate form before submitting
-    if (!validateForm()) {
       return;
     }
 
@@ -103,7 +100,7 @@ const PasswordForm: React.FC = () => {
       
       setTimeout(() => {
         setShowSuccess(false);
-      }, 8000);
+      }, 2000);
     } catch (error: unknown) {
       const errorMsg = typeof error === 'object' && error !== null && 'message' in error
         ? String(error.message)
@@ -113,15 +110,9 @@ const PasswordForm: React.FC = () => {
       
       setTimeout(() => {
         setShowError(false);
-      }, 3000);
+      }, 2000);
     }
-  }, [dispatch, formData]);
-
-  const validateConfirmPassword = useCallback((value: string) => {
-    if (!value) return "Confirm password is required";
-    if (value !== formData.newPassword) return "Passwords do not match";
-    return null;
-  }, [formData.newPassword]);
+  }, [dispatch, formData, validateConfirmPassword]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg">
@@ -191,7 +182,7 @@ const PasswordForm: React.FC = () => {
         <div className="w-full text-center md:text-right px-4 md:px-0">
           <button
             type="submit"
-            className="w-full md:w-auto px-8 py-4 bg-primary-green text-white rounded-lg font-medium hover:bg-[#8CE300] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            className="w-full md:w-auto px-8 py-4 bg-primary-green text-primary-black rounded-lg font-medium hover:bg-primary-green/90 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             disabled={isLoading || Object.values(formErrors).some(error => error !== null)}
           >
             {isLoading ? (

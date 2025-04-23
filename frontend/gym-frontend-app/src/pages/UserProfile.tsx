@@ -87,7 +87,7 @@ const DynamicUserProfile = () => {
           setProfileData(parsedDraft.data);
           setLastSaved(savedTime);
           setInfo("Restored your last unsaved changes");
-          setTimeout(() => setInfo(null), 4000);
+          setTimeout(() => setInfo(null), 2000);
           return true;
         } else {
           localStorage.removeItem(PROFILE_STORAGE_KEY);
