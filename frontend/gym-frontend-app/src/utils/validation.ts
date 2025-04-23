@@ -7,11 +7,14 @@ export const validateName = (value: string): string | null => {
     return "Name cannot exceed 50 characters";
   }
   
-  // Check if the name contains only letters, spaces, and hyphens
-  const nameRegex = /^[A-Za-z\s-]+$/;
-  
-  if (!nameRegex.test(value)) {
-    return "Name can only contain letters, spaces, and hyphens";
+  // Check for numbers
+  if (/\d/.test(value)) {
+    return "Name cannot contain numbers";
+  }
+
+  // Check for special characters (excluding hyphens)
+  if (/[^A-Za-z\s-]/.test(value)) {
+    return "Name cannot contain special characters";
   }
   
   // Check for consecutive spaces or hyphens
@@ -43,25 +46,39 @@ export const validateEmail = (email: string): { isValid: boolean; error?: string
 
 export const validatePassword = (password: string): { isValid: boolean; error?: string } => {
   if (!password) {
-    return { isValid: false, error: "Password is required. Please enter your password to continue." };
+    return { isValid: false, error: "Password is required" };
   }
   
-  const minLength = 8;
-  const maxLength = 16;
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*]/.test(password);
-  const hasInvalidChar = /[~\\]/.test(password);
-  const hasSpace = /\s/.test(password);
+  if (password.length < 8) {
+    return { isValid: false, error: "Password must be at least 8 characters long" };
+  }
 
-  if (password.length < minLength || password.length > maxLength || 
-      !hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar || 
-      hasInvalidChar || hasSpace) {
-    return { 
-      isValid: false, 
-      error: "Your password must be 8-16 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters." 
-    };
+  if (password.length > 16) {
+    return { isValid: false, error: "Password cannot exceed 16 characters" };
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return { isValid: false, error: "Password must contain at least one uppercase letter" };
+  }
+
+  if (!/[a-z]/.test(password)) {
+    return { isValid: false, error: "Password must contain at least one lowercase letter" };
+  }
+
+  if (!/\d/.test(password)) {
+    return { isValid: false, error: "Password must contain at least one number" };
+  }
+
+  if (!/[!@#$%^&*]/.test(password)) {
+    return { isValid: false, error: "Password must contain at least one special character (!@#$%^&*)" };
+  }
+
+  if (/[~\\]/.test(password)) {
+    return { isValid: false, error: "Password cannot contain ~ or \\" };
+  }
+
+  if (/\s/.test(password)) {
+    return { isValid: false, error: "Password cannot contain spaces" };
   }
 
   return { isValid: true };

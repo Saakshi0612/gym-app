@@ -136,6 +136,9 @@ export type UserProfileMockData = {
 export interface UnifiedUserProfileFormProps {
   role: UserRole;
   profileData: AdminProfileData | CoachProfileData | ClientProfileData;
+  onChange: (newData: AdminProfileData | CoachProfileData | ClientProfileData) => void;
+  onSaveSuccess: () => void;
+  lastSaved: Date | null;
 }
 
 // ✅ Renamed type

@@ -48,7 +48,9 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
 
     if (finalFiles.length > 0) {
       setUploadingIndex(certificates.length);
-      onDrop(finalFiles as File[]);
+      const dataTransfer = new DataTransfer();
+      finalFiles.forEach(file => dataTransfer.items.add(file));
+      onDrop(dataTransfer.files);
     }
   };
 
@@ -72,7 +74,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
   return (
     <div className="space-y-4">
       {/* Heading */}
-      <h3 className="text-body font-semibold text-[var(--color-neutral-800)]">
+      <h3 className="text-body font-semibold text-neutral-900">
         Add your certificates
       </h3>
 
@@ -85,7 +87,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
         className={`border border-dashed rounded-md p-6 text-center transition-all duration-300 ${
           isDragging 
             ? "border-primary-green bg-green-50" 
-            : "border-[var(--color-neutral-300)]"
+            : "border-neutral-400"
         }`}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
@@ -95,11 +97,11 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
           transition={{ duration: 0.3 }}
           className="flex flex-col items-center justify-center"
         >
-          <Upload size={24} className={`mb-2 ${isDragging ? "text-primary-green" : "text-[var(--color-neutral-500)]"}`} />
-          <p className="text-caption font-semibold text-[var(--color-neutral-700)]">
+          <Upload size={24} className={`mb-2 ${isDragging ? "text-primary-green" : "text-neutral-500"}`} />
+          <p className="text-caption font-semibold text-neutral-700">
             Drag & drop file here
           </p>
-          <p className="text-caption-2 text-[var(--color-neutral-500)] my-1">or</p>
+          <p className="text-caption-2 text-neutral-500 my-1">or</p>
           <label>
             <input
               type="file"
@@ -108,7 +110,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
               hidden
               onChange={(e) => handleFileDrop(e.target.files)}
             />
-            <div className="inline-block px-4 py-2 border border-[var(--color-neutral-400)] rounded-md text-caption text-[var(--color-neutral-800)] cursor-pointer hover:bg-[var(--color-neutral-100)] transition-all duration-200">
+            <div className="inline-block px-4 py-2 border border-neutral-400 rounded-md text-caption text-neutral-800 cursor-pointer hover:bg-neutral-200 transition-all duration-200">
               Select File
             </div>
           </label>
@@ -116,7 +118,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
       </motion.div>
 
       {/* Uploaded Certificates */}
-      <div className="divide-y divide-[var(--color-neutral-200)]">
+      <div className="divide-y divide-neutral-200">
         {certificates.map((file, index) => (
           <motion.div
             key={index}
@@ -126,10 +128,10 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
             className="flex items-center justify-between px-2 py-3 gap-3"
           >
             <div className="flex items-center gap-2 overflow-hidden w-full">
-              <FileText size={20} className="text-[var(--color-semantic-red)] min-w-[20px]" />
-              <p className="text-caption text-[var(--color-neutral-800)] truncate w-full">
+              <FileText size={20} className="text-semantic-red min-w-[20px]" />
+              <p className="text-caption text-neutral-800 truncate w-full">
                 {file.name}
-                <span className="text-caption-2 text-[var(--color-neutral-500)] ml-1">
+                <span className="text-caption-2 text-neutral-500 ml-1">
                   ({file.size})
                 </span>
               </p>
@@ -137,7 +139,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
 
             <div className="flex items-center gap-3 flex-shrink-0">
               {uploadingIndex === index ? (
-                <div className="w-24 h-1.5 bg-[var(--color-neutral-200)] rounded-full overflow-hidden relative">
+                <div className="w-24 h-1.5 bg-neutral-200 rounded-full overflow-hidden relative">
                   <motion.div
                     className="bg-primary-green h-full rounded-full"
                     initial={{ width: 0 }}
@@ -145,7 +147,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
                     transition={{ duration: 0.1 }}
                   />
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-white/30 to-transparent"
                     animate={{
                       x: ["0%", "100%"],
                     }}
@@ -166,7 +168,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
                   >
                     <Download
                       size={16}
-                      className="text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-900)]"
+                      className="text-neutral-500 hover:text-neutral-900"
                     />
                   </motion.button>
                   <motion.button
@@ -177,7 +179,7 @@ const CertificateUpload: React.FC<CertificateUploadProps> = ({
                   >
                     <Trash2
                       size={16}
-                      className="text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-900)]"
+                      className="text-neutral-500 hover:text-neutral-900"
                     />
                   </motion.button>
                 </>

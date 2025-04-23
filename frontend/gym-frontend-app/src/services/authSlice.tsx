@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
 
+
 interface StoredUser extends User {
   password: string;
 }
@@ -15,6 +16,16 @@ try {
   users.push(...storedUsers);
 } catch (e) {
   console.error('Error loading users from localStorage:', e);
+}
+
+// Utility function to remove password from user object
+function stripPassword<T extends { password: string }>(user: T): Omit<T, 'password'> {
+  // Create a shallow copy of the user object
+  const userCopy = { ...user };
+  // Remove the password property
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password, ...rest } = userCopy;
+  return rest as Omit<T, 'password'>;
 }
 
 export const loginUser = createAsyncThunk(
@@ -31,9 +42,8 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue("We couldn't log you in. Double-check your credentials and try again.");
       }
 
-      // Use object destructuring to exclude password
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
+      // Use utility function to remove password
+      return stripPassword(user);
     } catch (error) {
       console.error("Login error:", error);
       return rejectWithValue("We're experiencing technical difficulties. Please try again later.");
@@ -71,9 +81,6 @@ export const registerUser = createAsyncThunk(
       };
       
       users.push(newUser);
-
-      // Use object destructuring to exclude password
-      const { password, ...userWithoutPassword } = newUser;
       
       // Save to localStorage for persistence
       try {
@@ -84,7 +91,8 @@ export const registerUser = createAsyncThunk(
         console.error('Error saving to localStorage:', e);
       }
 
-      return userWithoutPassword;
+      // Use utility function to remove password
+      return stripPassword(newUser);
     } catch (error) {
       console.error("Registration error:", error);
       return rejectWithValue("Registration failed. Please try again later.");
@@ -110,15 +118,15 @@ export const updateUserProfile = createAsyncThunk(
       }
 
       // Update user profile in the list, preserving the password
-      const password = users[index].password;
-      users[index] = { ...updatedUser, password };
+      const updatedStoredUser = { ...updatedUser, password: users[index].password };
+      users[index] = updatedStoredUser;
       
       // Update localStorage
       try {
         const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
         const storedIndex = storedUsers.findIndex((u: User) => u.email === currentUser.email);
         if (storedIndex !== -1) {
-          storedUsers[storedIndex] = { ...updatedUser, password };
+          storedUsers[storedIndex] = updatedStoredUser;
           localStorage.setItem('users', JSON.stringify(storedUsers));
         }
       } catch (e) {
@@ -133,6 +141,8 @@ export const updateUserProfile = createAsyncThunk(
   }
 );
 
+
+
 export const updatePassword = createAsyncThunk(
   'auth/updatePassword',
   async ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }, { getState, rejectWithValue }) => {
@@ -144,32 +154,40 @@ export const updatePassword = createAsyncThunk(
         return rejectWithValue('No user is logged in.');
       }
 
-      const userIndex = users.findIndex(user => user.email === currentUser.email);
-
-      if (userIndex === -1) {
+      // Find user in the local storage
+      const index = users.findIndex(user => user.email === currentUser.email);
+      
+      if (index === -1) {
         return rejectWithValue('User not found.');
       }
 
-      if (users[userIndex].password !== oldPassword) {
+      // Verify old password
+      if (users[index].password !== oldPassword) {
         return rejectWithValue('Current password is incorrect.');
       }
 
-      // Update the password
-      users[userIndex].password = newPassword;
-      
+      // Check if new password is same as old password
+      if (oldPassword === newPassword) {
+        return rejectWithValue('New password must be different from current password.');
+      }
+
+      // Update password
+      users[index].password = newPassword;
+
       // Update localStorage
       try {
         const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-        const storedIndex = storedUsers.findIndex((u: User) => u.email === currentUser.email);
+        const storedIndex = storedUsers.findIndex((u: StoredUser) => u.email === currentUser.email);
         if (storedIndex !== -1) {
           storedUsers[storedIndex].password = newPassword;
           localStorage.setItem('users', JSON.stringify(storedUsers));
         }
       } catch (e) {
-        console.error('Error updating password in localStorage:', e);
+        console.error('Error updating localStorage:', e);
+        return rejectWithValue('Failed to save password.');
       }
 
-      return currentUser;
+      return { message: 'Password updated successfully' };
     } catch (error) {
       console.error("Error updating password:", error);
       return rejectWithValue('Failed to update password.');

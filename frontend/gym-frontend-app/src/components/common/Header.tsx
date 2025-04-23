@@ -67,7 +67,7 @@ const Header: React.FC = () => {
         <div>
           <div className="font-semibold">{`${user?.firstName} ${user?.lastName}`}</div>
           <div className="text-sm text-neutral-500">{user?.email}</div>
-          <div className="text-xs text-neutral-400">{user?.role}</div>
+          <div className="text-xs text-neutral-400">{user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}</div>
         </div>
       </div>
       
@@ -136,7 +136,7 @@ const Header: React.FC = () => {
             </div>
           )}
 
-          {isAuthenticated && (
+          {isAuthenticated && user && (
             <UserNavigation
               isAuthenticated={isAuthenticated}
               userName={`${user?.firstName} ${user?.lastName}`}

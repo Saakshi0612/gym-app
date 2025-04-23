@@ -45,10 +45,7 @@ export interface UserNavigationProps {
   isAuthenticated: boolean;
   userName?: string;
   userEmail?: string;
-  userDetail?: {
-    role?: string;
-    [key: string]: unknown; 
-  };
+  userDetail?: User| null ; // Add null as a possible type
   notification: string;
   profile: string;
   accountIcon: string;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
+import { ThunkDispatch, AnyAction } from "@reduxjs/toolkit";
 import {
   UserRole,
   UserProfileData,
@@ -7,7 +8,6 @@ import {
   AdminProfileData,
   CoachProfileData,
   ClientProfileData,
-  UserProfileFormState,
 } from "../../types/components/UserProfileSettings.types";
 
 import UserProfileHeader from "./shared/UserProfileHeader";
@@ -26,20 +26,44 @@ import { validateName } from '../../utils/validation';
 interface UnifiedUserProfileFormProps {
   role: UserRole;
   profileData: AdminProfileData | CoachProfileData | ClientProfileData;
-  onChange: (newData: AdminProfileData | CoachProfileData | ClientProfileData) => void;
   onSaveSuccess: () => void;
-  lastSaved: Date | null;
+}
+
+interface UserProfileFormState {
+  userData: UserProfileData | null;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  title: string;
+  about: string;
+  tags: string[];
+  certificates: Certificate[];
+  rating: number;
+  preferableActivity: string;
+  targets: string;
+  showSuccess: boolean;
+  saving: boolean;
+  error: string | null;
+  isSubmitSuccessful?: boolean;
+  hasBeenSaved?: boolean;
+}
+
+interface RootState {
+  // Add your root state type here
+  auth: {
+    user: User | null;
+  };
 }
 
 const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   role,
   profileData,
-  onChange,
   onSaveSuccess,
-  lastSaved,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>();
   const initialFormStateRef = useRef<UserProfileFormState | null>(null);
+  const successTimeoutRef = useRef<number | null>(null);
+  const lastSavedHashRef = useRef<string | null>(null);
 
   const [formState, setFormState] = useState<UserProfileFormState>({
     userData: null,
@@ -55,60 +79,90 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     targets: "",
     showSuccess: false,
     saving: false,
+    error: null,
   });
 
   // Track if form has been modified
   const [isDirty, setIsDirty] = useState(false);
 
+  // Initialize form state from profile data
   useEffect(() => {
+    if (!profileData) return;
+
     const userData: UserProfileData = {
       name: `${profileData.firstName} ${profileData.lastName}`,
       email: profileData.email,
       role: profileData.role,
-      avatarUrl: profileData.avatarUrl,
+      avatarUrl: profileData.avatarUrl || "",
     };
 
-    const newFormState = {
-      ...formState,
+    const newFormState: UserProfileFormState = {
       userData,
-      firstName: profileData.firstName,
-      lastName: profileData.lastName,
-      phoneNumber:
-        role === UserRole.ADMIN && "phoneNumber" in profileData
-          ? profileData.phoneNumber
-          : "",
-      title: role === UserRole.COACH ? (profileData as CoachProfileData).title : "",
-      about: role === UserRole.COACH ? (profileData as CoachProfileData).about : "",
-      tags: role === UserRole.COACH ? (profileData as CoachProfileData).tags : [],
-      certificates:
-        role === UserRole.COACH ? (profileData as CoachProfileData).certificates : [],
-      rating: role === UserRole.COACH ? (profileData as CoachProfileData).rating : 0,
-      preferableActivity:
-        role === UserRole.CLIENT ? (profileData as ClientProfileData).preferableActivity : "",
-      targets:
-        role === UserRole.CLIENT ? (profileData as ClientProfileData).targets : "",
+      firstName: profileData.firstName || "",
+      lastName: profileData.lastName || "",
+      phoneNumber: role === UserRole.ADMIN && "phoneNumber" in profileData
+        ? profileData.phoneNumber
+        : "",
+      title: role === UserRole.COACH && "title" in profileData
+        ? (profileData as CoachProfileData).title
+        : "",
+      about: role === UserRole.COACH && "about" in profileData
+        ? (profileData as CoachProfileData).about
+        : "",
+      tags: role === UserRole.COACH && "tags" in profileData
+        ? (profileData as CoachProfileData).tags
+        : [],
+      certificates: role === UserRole.COACH && "certificates" in profileData
+        ? (profileData as CoachProfileData).certificates
+        : [],
+      rating: role === UserRole.COACH && "rating" in profileData
+        ? (profileData as CoachProfileData).rating
+        : 0,
+      preferableActivity: role === UserRole.CLIENT && "preferableActivity" in profileData
+        ? (profileData as ClientProfileData).preferableActivity
+        : "",
+      targets: role === UserRole.CLIENT && "targets" in profileData
+        ? (profileData as ClientProfileData).targets
+        : "",
+      showSuccess: false,
+      saving: false,
+      error: null,
     };
 
     setFormState(newFormState);
     initialFormStateRef.current = newFormState;
     setIsDirty(false);
-  }, [role, profileData]);
+    
+    // Generate initial hash for the form state
+    const formHash = generateFormHash(newFormState);
+    lastSavedHashRef.current = formHash;
+  }, [profileData, role]);
+
+  // Helper function to generate a hash of the form state
+  const generateFormHash = (state: UserProfileFormState): string => {
+    const relevantData = {
+      firstName: state.firstName,
+      lastName: state.lastName,
+      phoneNumber: state.phoneNumber,
+      title: state.title,
+      about: state.about,
+      tags: state.tags,
+      certificates: state.certificates,
+      rating: state.rating,
+      preferableActivity: state.preferableActivity,
+      targets: state.targets,
+      avatarUrl: state.userData?.avatarUrl || "",
+    };
+    
+    return JSON.stringify(relevantData);
+  };
 
   // Check if form has been modified
   useEffect(() => {
     if (!initialFormStateRef.current) return;
     
-    const hasChanges = 
-      formState.firstName !== initialFormStateRef.current.firstName ||
-      formState.lastName !== initialFormStateRef.current.lastName ||
-      formState.phoneNumber !== initialFormStateRef.current.phoneNumber ||
-      formState.title !== initialFormStateRef.current.title ||
-      formState.about !== initialFormStateRef.current.about ||
-      formState.preferableActivity !== initialFormStateRef.current.preferableActivity ||
-      formState.targets !== initialFormStateRef.current.targets ||
-      formState.userData?.avatarUrl !== initialFormStateRef.current.userData?.avatarUrl ||
-      JSON.stringify(formState.tags) !== JSON.stringify(initialFormStateRef.current.tags) ||
-      JSON.stringify(formState.certificates) !== JSON.stringify(initialFormStateRef.current.certificates);
+    const currentHash = generateFormHash(formState);
+    const hasChanges = currentHash !== lastSavedHashRef.current;
     
     setIsDirty(hasChanges);
   }, [formState]);
@@ -147,49 +201,35 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<void> => {
     try {
-      // Validate first name before saving
+      // Validate required fields
+      if (!formState.firstName?.trim() || !formState.lastName?.trim()) {
+        setFormState(prev => ({ ...prev, error: "First name and last name are required" }));
+        return;
+      }
+
+      // Validate first name
       const firstNameError = validateName(formState.firstName);
       if (firstNameError) {
         setFormState(prev => ({ ...prev, error: firstNameError }));
         return;
       }
 
-      // Validate last name before saving
+      // Validate last name
       const lastNameError = validateName(formState.lastName);
       if (lastNameError) {
         setFormState(prev => ({ ...prev, error: lastNameError }));
         return;
       }
 
-      setFormState((prev) => ({ ...prev, saving: true }));
+      setFormState(prev => ({ ...prev, saving: true, error: null }));
 
-      await new Promise((res) => setTimeout(res, 600));
-
-      const updatedUserData = formState.userData
-        ? {
-            ...formState.userData,
-            name: `${formState.firstName} ${formState.lastName}`,
-          }
-        : null;
-
-      const updatedFormState: UserProfileFormState = {
-        ...formState,
-        saving: false,
-        showSuccess: true,
-        userData: updatedUserData,
-      };
-
-      setFormState(updatedFormState);
-      initialFormStateRef.current = updatedFormState;
-      setIsDirty(false);
-
-      const userPayload: User = {
+      const userPayload = {
         email: formState.userData?.email || "",
         firstName: formState.firstName,
         lastName: formState.lastName,
-        role: formState.userData?.role || UserRole.CLIENT,
+        role: role,
         phoneNumber: formState.phoneNumber,
         title: formState.title,
         about: formState.about,
@@ -199,34 +239,96 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         preferableActivity: formState.preferableActivity,
         target: formState.targets,
         avatarUrl: formState.userData?.avatarUrl || "",
-      };
+      } satisfies User;
 
-      dispatch(updateUserProfile(userPayload));
+      const result = await dispatch(updateUserProfile(userPayload));
+      
+      if ('payload' in result && result.payload) {
+        const updatedUserData: UserProfileData = {
+          name: `${formState.firstName} ${formState.lastName}`,
+          email: formState.userData?.email || "",
+          role: role,
+          avatarUrl: formState.userData?.avatarUrl || "",
+        };
 
-      setTimeout(() => {
-        setFormState((prev) => ({ ...prev, showSuccess: false }));
-      }, 4000);
+        const updatedFormState: UserProfileFormState = {
+          ...formState,
+          saving: false,
+          showSuccess: true,
+          userData: updatedUserData,
+          error: null,
+          isSubmitSuccessful: true,
+        };
 
-      console.log("✅ Data saved:", updatedFormState);
+        setFormState(updatedFormState);
+        
+        // Update the saved hash
+        const newHash = generateFormHash(updatedFormState);
+        lastSavedHashRef.current = newHash;
+        
+        setIsDirty(false);
+        onSaveSuccess();
 
-      onSaveSuccess();
+        // Clear any existing timeout
+        if (successTimeoutRef.current !== null) {
+          clearTimeout(successTimeoutRef.current);
+        }
+
+        // Set a new timeout with a longer duration
+        successTimeoutRef.current = window.setTimeout(() => {
+          setFormState(prev => ({ ...prev, showSuccess: false, isSubmitSuccessful: false }));
+        }, 2000); // Reduced to 2 seconds
+      } else {
+        throw new Error('Failed to update profile');
+      }
     } catch (error) {
-      setFormState(prev => ({ ...prev, error: "Error saving changes." }));
-      setFormState((prev) => ({ ...prev, saving: false }));
+      console.error('Error saving profile:', error);
+      setFormState(prev => ({
+        ...prev,
+        saving: false,
+        error: "Failed to save profile. Please try again.",
+      }));
     }
   };
 
-  if (!formState.userData)
+  // Clean up timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current !== null) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Reintroduce the problematic useEffect that causes the error
+  useEffect(() => {
+    if (formState.isSubmitSuccessful) {
+      setFormState(prev => ({ ...prev, showSuccess: true }));
+      const timeoutId = setTimeout(() => {
+        setFormState(prev => ({ 
+          ...prev, 
+          showSuccess: false, 
+          isSubmitSuccessful: false
+        }));
+      }, 2000); // Reduced to 2 seconds
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formState.isSubmitSuccessful]);
+
+  if (!formState.userData) {
     return <div className="p-4 text-center">Loading profile...</div>;
+  }
 
   return (
     <>
       {formState.showSuccess && (
         <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
           <SuccessAlert
+            type="success"
             message="Your profile has been updated successfully."
             onClose={() =>
-              setFormState((prev) => ({ ...prev, showSuccess: false }))
+              setFormState((prev) => ({ ...prev, showSuccess: false, isSubmitSuccessful: false }))
             }
           />
         </div>
@@ -234,6 +336,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       {formState.error && (
         <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
           <SuccessAlert
+            type="error"
             message={formState.error}
             onClose={() =>
               setFormState((prev) => ({ ...prev, error: null }))
@@ -343,11 +446,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
           <>
             <div className="mt-6">
               <DynamicSelect
+                id="preferable-activity"
                 label="Preferable Activity"
-                placeholder="Select Activity"
                 options={options.activityOptions}
                 selected={formState.preferableActivity}
-                onChange={(val) =>
+                onChange={(val: string) =>
                   setFormState((prev) => ({
                     ...prev,
                     preferableActivity: val,
@@ -357,11 +460,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             </div>
             <div className="mt-6">
               <DynamicSelect
+                id="target-goals"
                 label="Target Goals"
-                placeholder="Select Goal"
                 options={options.targetOptions}
                 selected={formState.targets}
-                onChange={(val) =>
+                onChange={(val: string) =>
                   setFormState((prev) => ({ ...prev, targets: val }))
                 }
               />
@@ -373,7 +476,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
           <ProfileSaveButton 
             saving={formState.saving} 
             onClick={handleSave} 
-            disabled={!isDirty}
+            disabled={!isDirty || formState.hasBeenSaved}
           />
         </div>
       </div>

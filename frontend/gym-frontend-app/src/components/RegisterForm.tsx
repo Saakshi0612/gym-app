@@ -78,11 +78,6 @@ const RegistrationForm: React.FC = () => {
     if (registerUser.fulfilled.match(resultAction)) {
       setShowSuccessAlert(true);
       reset();
-
-      setTimeout(() => {
-        setShowSuccessAlert(false);
-        navigate("/login");
-      }, 2500);
     } else {
       setShowErrorAlert(true);
     }
@@ -93,7 +88,7 @@ const RegistrationForm: React.FC = () => {
       const timer = setTimeout(() => {
         setShowErrorAlert(false);
         dispatch(clearError());
-      }, 2500);
+      }, 8000);
       return () => clearTimeout(timer);
     }
   }, [error, showErrorAlert, dispatch]);
@@ -103,7 +98,7 @@ const RegistrationForm: React.FC = () => {
       const timer = setTimeout(() => {
         setShowSuccessAlert(false);
         navigate('/login');
-      }, 2000);
+      }, 8000);
       return () => clearTimeout(timer);
     }
   }, [showSuccessAlert, navigate]);

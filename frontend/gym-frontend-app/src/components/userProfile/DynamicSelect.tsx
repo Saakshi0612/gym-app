@@ -22,15 +22,16 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
   onChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLUListElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setHighlightedIndex(-1);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -44,37 +45,66 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
         highlightedElement.scrollIntoView({ block: 'nearest' });
       }
     }
-  }, [highlightedIndex, isOpen]);
+  }, [isOpen, highlightedIndex]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [options]);
+
+  useEffect(() => {
     if (!isOpen) return;
 
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setHighlightedIndex((prev) => (prev + 1) % options.length);
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setHighlightedIndex((prev) =>
-          prev === 0 ? options.length - 1 : prev - 1
-        );
-        break;
-      case "Enter":
-        e.preventDefault();
-        onChange(options[highlightedIndex].value);
-        setIsOpen(false);
-        break;
-      case "Escape":
-        setIsOpen(false);
-        break;
-    }
-  };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          setIsOpen(true);
+          setHighlightedIndex(0);
+        }
+        return;
+      }
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setHighlightedIndex(prev => 
+            prev + 1 < options.length ? prev + 1 : 0
+          );
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setHighlightedIndex(prev => 
+            prev - 1 >= 0 ? prev - 1 : options.length - 1
+          );
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (highlightedIndex >= 0) {
+            onChange(options[highlightedIndex].value);
+            setIsOpen(false);
+            setHighlightedIndex(-1);
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          setIsOpen(false);
+          setHighlightedIndex(-1);
+          break;
+        case 'Tab':
+          setIsOpen(false);
+          setHighlightedIndex(-1);
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, highlightedIndex, options, onChange]);
 
   const selectedLabel = options.find((opt) => opt.value === selected)?.label || "";
 
   return (
-    <div className="relative">
+    <div className="relative" ref={wrapperRef}>
       <label
         htmlFor={id}
         className="absolute -top-2 left-3 z-10 bg-primary-white px-1 text-caption text-neutral-600 pointer-events-none"
@@ -84,9 +114,26 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
 
       {/* Trigger */}
       <div
+        ref={triggerRef}
         id={id}
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center justify-between w-full px-3 py-3 text-body border border-neutral-400 rounded-md cursor-pointer hover:border-primary-green focus:border-primary-green focus:ring-1 focus:ring-primary-green"
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-controls={`${id}-dropdown`}
+        aria-label={label}
+        tabIndex={0}
+        onClick={() => {
+          setIsOpen((prev) => !prev);
+          if (!isOpen) setHighlightedIndex(0);
+        }}
+        onKeyDown={(e) => {
+          if (!isOpen && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown')) {
+            e.preventDefault();
+            setIsOpen(true);
+            setHighlightedIndex(0);
+          }
+        }}
+        className="flex items-center justify-between w-full px-3 py-3 text-body border border-neutral-400 rounded-md cursor-pointer hover:border-primary-green focus:border-primary-green focus:ring-1 focus:ring-primary-green focus:outline-none"
       >
         <span className={selected ? "text-primary-black" : "text-neutral-400"}>
           {selectedLabel || "Select an option"}
@@ -103,11 +150,16 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
       {isOpen && (
         <ul
           ref={dropdownRef}
-          className="absolute z-20 w-full mt-1 bg-primary-white rounded-md border border-neutral-400 shadow-lg overflow-y-auto max-h-40"
+          id={`${id}-dropdown`}
+          role="listbox"
+          aria-label={`${label} options`}
+          className="absolute z-50 w-full mt-1 bg-primary-white rounded-md border border-neutral-400 shadow-lg overflow-y-auto max-h-40"
         >
           {options.map((option, index) => (
             <li
               key={option.value}
+              role="option"
+              aria-selected={index === highlightedIndex}
               className={`px-4 py-3 text-sm md:text-base cursor-pointer transition-colors duration-150 ${
                 index === highlightedIndex
                   ? "bg-primary-green text-primary-black"
@@ -116,6 +168,7 @@ const DynamicSelect: React.FC<DynamicSelectProps> = ({
               onMouseDown={() => {
                 onChange(option.value);
                 setIsOpen(false);
+                setHighlightedIndex(-1);
               }}
               onMouseEnter={() => setHighlightedIndex(index)}
             >

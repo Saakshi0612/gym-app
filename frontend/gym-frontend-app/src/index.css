@@ -27,6 +27,13 @@ button{
 
  --color-green-100: #f6ffe5;
  --color-green-50: #fbfff5;
+
+ --color-red-50: #fee2e2;
+ --color-red-100: #fecaca;
+ --color-red-500: #ef4444;
+ --color-red-600: #dc2626;
+ --color-red-800: #991b1b;
+ --color-red-900: #7f1d1d;
 }
 
 @plugin 'tailwind-scrollbar';
@@ -61,8 +68,7 @@ body {
  ); /* Darker lime green on hover from your original CSS */
 }
 
-@tailwind base;
-@tailwind components;
+
 @tailwind utilities;
 
 @layer utilities {
