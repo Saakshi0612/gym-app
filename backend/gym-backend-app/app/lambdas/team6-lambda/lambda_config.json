@@ -10,7 +10,9 @@
   "lambda_path": "lambdas\\team6-lambda",
   "dependencies": [],
   "event_sources": [],
-  "env_variables": {},
+  "env_variables": {
+    "MONGO_URI":"${MONGO_URI}"
+  },
   "publish_version": true,
   "alias": "${lambdas_alias_name}",
   "url_config": {},

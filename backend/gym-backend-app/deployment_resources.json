@@ -28,8 +28,34 @@
   "team6API": {
     "resource_type": "api_gateway",
     "deploy_stage": "dev",
-    "dependencies": [],
-    "resources": {},
+    "dependencies": [
+      {
+        "resource_type": "lambda",
+        "resource_name": "team6-lambda"
+      }
+    ],
+    "resources": {
+      "/auth/register": {
+        "enable_cors": true,
+        "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        }
+      },
+      "/auth/login": {
+        "enable_cors": true,
+        "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        }
+      }
+    },
     "tags": {}
   }
 }
