@@ -103,19 +103,19 @@ const MainSection: React.FC = () => {
     fetchCoaches();
   }, []);
 
-  const handleDropdownChange = (name: string, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+	const handleDropdownChange = (name: string, value: string) => {
+		setFilters((prev) => ({
+			...prev,
+			[name]: value,
+		}));
+	};
 
-  const handleDateChange = (date: Date) => {
-    setFilters((prev) => ({
-      ...prev,
-      date: date,
-    }));
-  };
+	const handleDateChange = (date: Date) => {
+		setFilters((prev) => ({
+			...prev,
+			date: date,
+		}));
+	};
 
   const handleSubmit = () => {
     const formattedDate = filters.date.toLocaleDateString("en-US", {
@@ -131,9 +131,9 @@ const MainSection: React.FC = () => {
         (!filters.date || session.date === formattedDate)
     );
 
-    setFilteredResults(results);
-    setShowResults(true);
-  };
+		setFilteredResults(results);
+		setShowResults(true);
+	};
 
   return (
     <div>
