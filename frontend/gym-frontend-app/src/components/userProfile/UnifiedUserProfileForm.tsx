@@ -27,6 +27,8 @@ interface UnifiedUserProfileFormProps {
   role: UserRole;
   profileData: AdminProfileData | CoachProfileData | ClientProfileData;
   onSaveSuccess: () => void;
+  onChange: (newData: AdminProfileData | CoachProfileData | ClientProfileData) => void;
+  lastSaved?: Date | null;
 }
 
 interface UserProfileFormState {
@@ -59,6 +61,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
   role,
   profileData,
   onSaveSuccess,
+  onChange,
+  lastSaved,
 }) => {
   const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>();
   const initialFormStateRef = useRef<UserProfileFormState | null>(null);
@@ -269,6 +273,45 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         setIsDirty(false);
         onSaveSuccess();
 
+        // Call the parent's onChange handler with the updated data
+        if (role === UserRole.ADMIN) {
+          const adminData: AdminProfileData = {
+            firstName: userPayload.firstName,
+            lastName: userPayload.lastName,
+            email: userPayload.email,
+            role: UserRole.ADMIN,
+            phoneNumber: userPayload.phoneNumber,
+            avatarUrl: userPayload.avatarUrl
+          };
+          onChange(adminData);
+        } else if (role === UserRole.COACH) {
+          const coachData: CoachProfileData = {
+            firstName: userPayload.firstName,
+            lastName: userPayload.lastName,
+            email: userPayload.email,
+            role: UserRole.COACH,
+            title: userPayload.title,
+            about: userPayload.about,
+            tags: userPayload.tags,
+            certificates: userPayload.certificates,
+            rating: userPayload.rating,
+            avatarUrl: userPayload.avatarUrl
+          };
+          onChange(coachData);
+        } else {
+          const clientData: ClientProfileData = {
+            firstName: userPayload.firstName,
+            lastName: userPayload.lastName,
+            email: userPayload.email,
+            role: UserRole.CLIENT,
+            phoneNumber: userPayload.phoneNumber,
+            preferableActivity: userPayload.preferableActivity,
+            targets: userPayload.target,
+            avatarUrl: userPayload.avatarUrl
+          };
+          onChange(clientData);
+        }
+
         // Clear any existing timeout
         if (successTimeoutRef.current !== null) {
           clearTimeout(successTimeoutRef.current);
@@ -315,6 +358,14 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       return () => clearTimeout(timeoutId);
     }
   }, [formState.isSubmitSuccessful]);
+
+  // Add a useEffect to display lastSaved information if available
+  useEffect(() => {
+    if (lastSaved) {
+      // You can use this to display when the profile was last saved
+      console.log(`Profile last saved: ${lastSaved.toLocaleString()}`);
+    }
+  }, [lastSaved]);
 
   if (!formState.userData) {
     return <div className="p-4 text-center">Loading profile...</div>;

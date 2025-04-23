@@ -19,7 +19,7 @@ const SuccessAlert: React.FC<SuccessAlertProps> = ({ message, onClose, type = 's
         subText: 'text-neutral-700',
         button: 'text-neutral-700 hover:bg-green-100',
         icon: <FaCheck className="text-primary-white text-xs" />,
-        dismissIcon: <FaCheck className="h-4 w-4" />,
+        dismissIcon: <FaCheck className="h-4 w-4 text-primary-green" />,
         heading: 'Success',
       }
     : {
@@ -30,7 +30,7 @@ const SuccessAlert: React.FC<SuccessAlertProps> = ({ message, onClose, type = 's
         subText: 'text-red-800',
         button: 'text-red-600 hover:bg-red-50',
         icon: <FaTimes className="text-primary-white text-xs" />,
-        dismissIcon: <FaTimes className="h-4 w-4" />,
+        dismissIcon: <FaTimes className="h-4 w-4 text-red-600" />,
         heading: 'Error',
       };
 

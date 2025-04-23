@@ -24,6 +24,8 @@ const ProfileFeedbackSection: React.FC = () => {
   });
   const sectionRef = useRef<HTMLDivElement>(null);
   const dragX = useMotionValue(0);
+  const retryCount = useRef(0);
+  const MAX_RETRIES = 2;
 
   const debouncedResize = useMemo(
     () => debounce(() => {
@@ -38,73 +40,138 @@ const ProfileFeedbackSection: React.FC = () => {
   useEffect(() => {
     const fetchFeedbacks = async (): Promise<void> => {
       try {
-        // Try fetching from public directory first
-        const response = await fetch('/mockFeedbacks.json');
-        if (!response.ok) throw new Error('Failed to load feedbacks');
+        setFeedbackState(prev => ({ ...prev, loading: true, error: null }));
         
-        const data = await response.json();
-        
-        // Validate the data structure
-        if (!Array.isArray(data)) {
-          throw new Error('Invalid feedback data format');
-        }
-
-        // Validate each feedback object
-        const validFeedbacks = data.filter((feedback: RawFeedback) => {
-          return (
-            typeof feedback.id === 'string' &&
-            typeof feedback.name === 'string' &&
-            typeof feedback.date === 'string' &&
-            typeof feedback.rating === 'number' &&
-            typeof feedback.review === 'string' &&
-            typeof feedback.avatarUrl === 'string'
-          );
-        });
-
-        if (validFeedbacks.length === 0) {
-          throw new Error('No valid feedback data found');
-        }
-
-        // Convert string IDs to numbers to match the Feedback type
-        const typedFeedbacks: Feedback[] = validFeedbacks.map(feedback => ({
-          ...feedback,
-          id: parseInt(feedback.id, 10) || 0
-        }));
-
-        setFeedbackState({
-          data: typedFeedbacks,
-          loading: false,
-          error: null
-        });
-      } catch (error) {
-        console.error('Error loading feedbacks:', error);
-        // Try fetching from assets directory as fallback
+        // Try fetching from assets directory first (more reliable)
         try {
           const data = await import('../../assets/JSON/mockFeedbacks.json');
           if (Array.isArray(data.default)) {
-            // Convert string IDs to numbers to match the Feedback type
-            const typedFeedbacks: Feedback[] = data.default.map(feedback => ({
-              ...feedback,
-              id: parseInt(feedback.id, 10) || 0
-            }));
+            // Process and validate the data
+            const processedFeedbacks = processFeedbackData(data.default);
             
-            setFeedbackState({
-              data: typedFeedbacks,
-              loading: false,
-              error: null
-            });
-            return;
+            if (processedFeedbacks.length > 0) {
+              setFeedbackState({
+                data: processedFeedbacks,
+                loading: false,
+                error: null
+              });
+              return;
+            }
           }
-          throw new Error('Invalid feedback data format in fallback');
-        } catch (fallbackError) {
-          console.error('Fallback error:', fallbackError);
+        } catch (importError) {
+          console.warn('Failed to import mockFeedbacks.json from assets:', importError);
+        }
+        
+        // Fallback to public directory
+        const response = await fetch('/mockFeedbacks.json');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Process and validate the data
+        const processedFeedbacks = processFeedbackData(data);
+        
+        if (processedFeedbacks.length > 0) {
+          setFeedbackState({
+            data: processedFeedbacks,
+            loading: false,
+            error: null
+          });
+        } else {
+          throw new Error('No valid feedback data found');
+        }
+        
+        // Reset retry count on success
+        retryCount.current = 0;
+      } catch (error) {
+        console.error('Error loading feedbacks:', error);
+        
+        // Try one more time if we haven't exceeded retries
+        if (retryCount.current < MAX_RETRIES) {
+          retryCount.current += 1;
+          console.log(`Retrying feedback fetch (attempt ${retryCount.current}/${MAX_RETRIES})...`);
+          setTimeout(fetchFeedbacks, 1000); // Wait 1 second before retrying
+        } else {
           setFeedbackState({
             data: [],
             loading: false,
-            error: 'Failed to load feedback. Please try again later.'
+            error: 'Unable to load feedback data. Please refresh the page or try again later.'
           });
         }
       }
+    };
+
+    // Helper function to process and validate feedback data
+    const processFeedbackData = (data: unknown): Feedback[] => {
+      if (!Array.isArray(data)) {
+        console.error('Invalid feedback data format: expected an array');
+        return [];
+      }
+
+      // Track unique reviews to avoid duplicates
+      const uniqueReviews = new Map<string, Feedback>();
+      
+      // Validate each feedback object
+      data.forEach((feedback: unknown) => {
+        // Type guard to ensure feedback is a RawFeedback
+        if (
+          typeof feedback === 'object' && 
+          feedback !== null &&
+          'id' in feedback &&
+          'name' in feedback &&
+          'date' in feedback &&
+          'rating' in feedback &&
+          'review' in feedback &&
+          'avatarUrl' in feedback
+        ) {
+          const rawFeedback = feedback as RawFeedback;
+          
+          // Create a unique key based on ID only to preserve entries with different IDs
+          const uniqueKey = rawFeedback.id;
+          
+          // Only process if it's a valid feedback object
+          if (
+            typeof rawFeedback.id === 'string' &&
+            typeof rawFeedback.name === 'string' &&
+            typeof rawFeedback.date === 'string' &&
+            typeof rawFeedback.rating === 'number' &&
+            typeof rawFeedback.review === 'string' &&
+            typeof rawFeedback.avatarUrl === 'string' &&
+            rawFeedback.rating >= 0 &&
+            rawFeedback.rating <= 5
+          ) {
+            // Convert string ID to number
+            const numericId = parseInt(rawFeedback.id, 10) || 0;
+            
+            // Only add if we haven't seen this ID before
+            if (!uniqueReviews.has(uniqueKey)) {
+              uniqueReviews.set(uniqueKey, {
+                ...rawFeedback,
+                id: numericId
+              });
+            }
+          } else {
+            console.warn('Invalid feedback entry:', rawFeedback);
+          }
+        } else {
+          console.warn('Invalid feedback object structure:', feedback);
+        }
+      });
+
+      // Convert map to array and sort by date (newest first)
+      const processedFeedbacks = Array.from(uniqueReviews.values());
+      
+      // Sort by date (newest first)
+      processedFeedbacks.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      console.log(`Processed ${data.length} feedback entries, found ${processedFeedbacks.length} unique valid entries`);
+      return processedFeedbacks;
     };
 
     fetchFeedbacks();
@@ -151,6 +218,13 @@ const ProfileFeedbackSection: React.FC = () => {
     else if (offset < -100) handlePageChange(currentPage + 1);
   };
 
+  const handleRetry = () => {
+    retryCount.current = 0;
+    setFeedbackState(prev => ({ ...prev, loading: true, error: null }));
+    // Trigger a re-fetch by updating the state
+    setCurrentPage(prev => prev);
+  };
+
   return (
     <div
       ref={sectionRef}
@@ -165,10 +239,16 @@ const ProfileFeedbackSection: React.FC = () => {
         </div>
       ) : feedbackState.error ? (
         <div 
-          className="flex justify-center items-center py-8 text-red-600"
+          className="flex flex-col justify-center items-center py-8 text-red-600 gap-4"
           role="alert"
         >
-          {feedbackState.error}
+          <p>{feedbackState.error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-md transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       ) : (
         <>
