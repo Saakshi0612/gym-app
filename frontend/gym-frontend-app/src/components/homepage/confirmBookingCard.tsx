@@ -32,13 +32,13 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
     month: "long",
   });
 
-  const formattedTime = new Date(`${date}T${selectedTime}`).toLocaleTimeString(
-    "en-US",
-    {
-      hour: "numeric",
-      minute: "2-digit",
-    }
-  );
+  // const formattedTime = new Date(`${date}T${selectedTime}`).toLocaleTimeString(
+  //   "en-US",
+  //   {
+  //     hour: "numeric",
+  //     minute: "2-digit",
+  //   }
+  // );
 
   const handleConfirm = () => {
     console.log("Booking confirmed:", coach);
