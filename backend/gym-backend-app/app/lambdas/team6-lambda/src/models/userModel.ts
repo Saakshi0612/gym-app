@@ -1,40 +1,7 @@
-import mongoose, { Document, Schema, model } from 'mongoose';
+import {  Schema, model } from 'mongoose';
+import { IAdmin, IClient, ICoach, IUser } from 'src/types/db.types';
 
-// Base User interface
-interface IUser extends Document {
-  email: string;
-  firstName: string;
-  lastName: string;
-  passwordHash: string;
-  profileImageUrl?: string;
-  role: 'CLIENT' | 'COACH' | 'ADMIN';  // Removed 'USER'
-  createdAt: Date;
-  updatedAt: Date;
-}
 
-// Client interface extending User
-interface IClient extends IUser {
-  role: 'CLIENT';
-  preferableActivity?: string;
-  target?: string;
-}
-
-// Coach interface extending User
-interface ICoach extends IUser {
-  role: 'COACH';
-  title?: string;
-  about?: string;
-  summary?: string;
-  rating?: number;
-  specializations?: string[];
-  certificateUrls?: string[];
-}
-
-// Admin interface extending User
-interface IAdmin extends IUser {
-  role: 'ADMIN';
-  phoneNumber?: string;
-}
 
 // Base User schema
 const userSchema = new Schema<IUser>(
