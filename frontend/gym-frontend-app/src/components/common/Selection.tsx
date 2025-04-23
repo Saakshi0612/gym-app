@@ -73,7 +73,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <fieldset
-        className={`border rounded-md border-[#DADADA] h-16 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white ${containerClassName || ""}`}
+        className={`border rounded-md border-[#DADADA] py-1 font-[lexend] text-[#323A3A] text-[14px] font-[300] leading-[20px] bg-white ${containerClassName || ""}`}
       >
         <legend className="block font-[lexend] text-[12px] font-[300] leading-[16px] ml-1 px-1 bg-white text-[#4B5563]">
           {label}
