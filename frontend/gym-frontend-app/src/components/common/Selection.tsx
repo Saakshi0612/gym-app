@@ -84,7 +84,7 @@ const DropdownField: React.FC<DropdownFieldProps> = ({
             ref={useDynamicHeight ? buttonRef : undefined}
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
-            className="w-full h-full px-4 rounded bg-white flex justify-between items-center font-light"
+            className="w-full p-2 pt-0 rounded bg-white flex justify-between items-center font-light"
             aria-haspopup="listbox"
             aria-expanded={isDropdownOpen}
           >
