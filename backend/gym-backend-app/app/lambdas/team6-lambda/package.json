@@ -4,15 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "sd:build": "npm install && vite build &&rm -rf node_modules && syndicate build",
+    "sd:deploy": "syndicate deploy",
+    "sd:clean": "syndicate clean",
+    "sd:dev": "npm run sd:clean && npm run sd:build && npm run sd:deploy"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "mongoose": "^8.13.2"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "aws-lambda": "^1.0.7",
     "vite": "^6.2.5"
   }
 }

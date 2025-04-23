@@ -7,6 +7,6 @@
     ],
     "resource_type": "iam_role",
     "tags": {}
-  },
+  }
   
 }
