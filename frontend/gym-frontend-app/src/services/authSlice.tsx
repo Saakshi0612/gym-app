@@ -1,6 +1,8 @@
 // src/services/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
+
+
 interface StoredUser extends User {
   password: string;
 }
