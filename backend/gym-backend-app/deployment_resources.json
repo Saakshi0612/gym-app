@@ -54,6 +54,28 @@
           "api_key_required": false,
           "enable_proxy": true
         }
+      },
+      "/admin/add-coach-email": {
+        "enable_cors": true,
+        "POST": {
+          "authorization_type": "NONE", 
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+          
+        }
+      },
+      "/admin/add-admin-email": {
+        "enable_cors": true,
+        "POST": {
+          "authorization_type": "NONE", 
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+          
+        }
       }
     },
     "tags": {}

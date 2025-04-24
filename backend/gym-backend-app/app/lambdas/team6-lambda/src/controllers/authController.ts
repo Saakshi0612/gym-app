@@ -1,6 +1,8 @@
 // src/controllers/authController.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { UserModel, ClientModel, CoachModel } from "../models/userModel";
+import { UserModel, ClientModel, CoachModel, AdminModel } from "../models/userModel";
+import { CoachEmailModel } from "../models/coachEmailModel";
+import { AdminEmailModel } from "../models/adminEmailModel";
 import { hashPassword, comparePassword } from "../utils/passwordUtils";
 
 // Helper function to parse request body
@@ -47,27 +49,77 @@ export const registerUser = async (
     // Hash the password
     const passwordHash = await hashPassword(password);
 
-    // Create a new client user
-    const newUser = await ClientModel.create({
-      email,
-      firstName,
-      lastName,
-      passwordHash,
-      role: "CLIENT",
-      preferableActivity: activity,
-      target,
-    });
-
-    // Remove password from response
-    const userResponse = {
-      id: newUser._id,
-      email: newUser.email,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      role: newUser.role,
-      preferableActivity: newUser.preferableActivity,
-      target: newUser.target,
-    };
+    // Check if email exists in admin or coach tables to determine role
+    const isAdmin = await AdminEmailModel.findOne({ email });
+    const isCoach = await CoachEmailModel.findOne({ email });
+    
+    let newUser;
+    let userResponse;
+    
+    if (isAdmin) {
+      console.log(`Creating ADMIN user for email: ${email}`);
+      newUser = await AdminModel.create({
+        email,
+        firstName,
+        lastName,
+        passwordHash,
+        role: "ADMIN"
+      });
+      
+      userResponse = {
+        id: newUser._id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        role: newUser.role
+      };
+    } else if (isCoach) {
+      console.log(`Creating COACH user for email: ${email}`);
+      newUser = await CoachModel.create({
+        email,
+        firstName,
+        lastName,
+        passwordHash,
+        role: "COACH",
+        title: "",
+        about: "",
+        summary: "",
+        rating: 0,
+        specializations: []
+      });
+      
+      userResponse = {
+        id: newUser._id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        role: newUser.role,
+        title: newUser.title,
+        about: newUser.about,
+        rating: newUser.rating
+      };
+    } else {
+      console.log(`Creating CLIENT user for email: ${email}`);
+      newUser = await ClientModel.create({
+        email,
+        firstName,
+        lastName,
+        passwordHash,
+        role: "CLIENT",
+        preferableActivity: activity,
+        target
+      });
+      
+      userResponse = {
+        id: newUser._id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        role: newUser.role,
+        preferableActivity: newUser.preferableActivity,
+        target: newUser.target
+      };
+    }
 
     return {
       statusCode: 201,
@@ -82,7 +134,10 @@ export const registerUser = async (
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ message: "Error registering user" }),
+      body: JSON.stringify({ 
+        message: "Error registering user",
+        error: error instanceof Error ? error.message : String(error)
+      }),
     };
   }
 };

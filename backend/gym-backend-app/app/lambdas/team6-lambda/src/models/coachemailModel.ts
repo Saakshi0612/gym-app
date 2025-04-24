@@ -1,5 +1,5 @@
 import  {  Schema, model } from 'mongoose';
-import { ICoachEmail } from 'src/types/db.types';
+import { ICoachEmail } from '../types/db.types';
 // Coach Email schema
 
 const coachEmailSchema = new Schema<ICoachEmail>({
