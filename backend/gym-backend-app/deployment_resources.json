@@ -14,7 +14,8 @@
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "cognito-idp:*"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -58,25 +59,47 @@
       "/admin/add-coach-email": {
         "enable_cors": true,
         "POST": {
-          "authorization_type": "NONE", 
+          "authorization_type": "NONE",
           "integration_type": "lambda",
           "lambda_name": "team6-lambda",
           "api_key_required": false,
           "enable_proxy": true
-          
         }
       },
       "/admin/add-admin-email": {
         "enable_cors": true,
         "POST": {
-          "authorization_type": "NONE", 
+          "authorization_type": "NONE",
           "integration_type": "lambda",
           "lambda_name": "team6-lambda",
           "api_key_required": false,
           "enable_proxy": true
-          
         }
       }
+    },
+    "tags": {}
+  },
+  "my-user-pool": {
+    "resource_type": "cognito_idp",
+    "password_policy": {
+      "minimum_length": 8,
+      "require_uppercase": true,
+      "require_symbols": true,
+      "require_lowercase": true,
+      "require_numbers": true
+    },
+    "mfa_configuration": "OFF",
+    "auto_verified_attributes": ["email"],
+    "sms_configuration": {},
+    "username_attributes": [],
+    "custom_attributes": [],
+    "client": {
+      "client_name": "client-app",
+      "generate_secret": false,
+      "explicit_auth_flows": [
+        "ALLOW_USER_PASSWORD_AUTH",
+        "ALLOW_REFRESH_TOKEN_AUTH"
+      ]
     },
     "tags": {}
   }

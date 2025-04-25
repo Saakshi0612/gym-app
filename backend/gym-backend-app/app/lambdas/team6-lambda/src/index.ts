@@ -1,10 +1,12 @@
 // src/index.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { connectDB } from "./config/db";
-import { registerUser, loginUser } from "./controllers/authController";
-import { addCoachEmail, addAdminEmail } from "./controllers/adminController";
-import { CoachEmailModel } from "./models/coachEmailModel";
 import { AdminEmailModel } from "./models/adminEmailModel";
+import { CoachEmailModel } from "./models/coachEmailModel";
+import { addAdminEmail, addCoachEmail } from "./controllers/adminController";
+import { loginUser, registerUser } from "./controllers/authController";
+
+
 
 // Connect to MongoDB when the Lambda container initializes
 let isConnected = false;
