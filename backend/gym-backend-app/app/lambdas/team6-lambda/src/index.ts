@@ -3,9 +3,9 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { connectDB } from "./config/db";
 import { AdminEmailModel } from "./models/adminEmailModel";
 import { CoachEmailModel } from "./models/coachEmailModel";
+import { loginHandler, registerHandler } from "./handler/authHandler";
 import { addAdminEmail, addCoachEmail } from "./controllers/adminController";
-import { loginUser, registerUser } from "./controllers/authController";
-
+import { requireAdmin } from "./middleware/authMiddleware";
 
 
 // Connect to MongoDB when the Lambda container initializes
@@ -43,30 +43,35 @@ const initializeDatabase = async () => {
   }
 };
 
-// Define route handlers based on HTTP method and path
-const routeHandlers: Record<
-  string,
-  Record<
-    string,
-    (
-      event: APIGatewayProxyEvent,
-      headers: Record<string, string>
-    ) => Promise<APIGatewayProxyResult>
-  >
-> = {
-  "/auth/register": {
-    POST: registerUser
+// Define route handlers with middleware
+const routes = [
+  {
+    path: "/auth/register",
+    method: "POST",
+    handler: registerHandler,
+    middleware: [] // No middleware for registration
   },
-  "/auth/login": {
-    POST: loginUser
+  {
+    path: "/auth/login",
+    method: "POST",
+    handler: loginHandler,
+    middleware: [] // No middleware for login
   },
-  "/admin/add-coach-email": {
-    POST: addCoachEmail
+  {
+    path: "/admin/add-coach-email",
+    method: "POST",
+    handler: async (event: APIGatewayProxyEvent, headers: Record<string, string>) => 
+      await addCoachEmail(event, headers),
+    middleware: [requireAdmin] // Require admin role
   },
-  "/admin/add-admin-email": {
-    POST: addAdminEmail
+  {
+    path: "/admin/add-admin-email",
+    method: "POST",
+    handler: async (event: APIGatewayProxyEvent, headers: Record<string, string>) => 
+      await addAdminEmail(event, headers),
+    middleware: [requireAdmin] // Require admin role
   }
-};
+];
 
 // Main handler function
 export const handler = async (
@@ -100,10 +105,23 @@ export const handler = async (
     const method = event.httpMethod;
     console.log(`Processing ${method} request to ${path}`);
 
-    // Check if the path exists in our route handlers
-    if (routeHandlers[path] && routeHandlers[path][method]) {
+    // Find the matching route
+    const route = routes.find(r => r.path === path && r.method === method);
+    
+    if (route) {
       console.log(`Handler found for ${method} ${path}`);
-      return await routeHandlers[path][method](event, headers);
+      
+      // Apply middleware
+      for (const middleware of route.middleware) {
+        const middlewareResult = await middleware(event, headers);
+        if (middlewareResult) {
+          // Middleware returned a response, so return it
+          return middlewareResult;
+        }
+      }
+      
+      // Execute the handler
+      return await route.handler(event, headers);
     }
 
     // If no route matches
