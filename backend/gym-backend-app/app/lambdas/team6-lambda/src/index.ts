@@ -1,11 +1,13 @@
 // src/index.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { connectDB } from "./config/db";
 import { AdminEmailModel } from "./models/adminEmailModel";
 import { CoachEmailModel } from "./models/coachemailModel";
 import { loginHandler, registerHandler } from "./handler/authHandler";
 import { addAdminEmail, addCoachEmail } from "./controllers/adminController";
 import { requireAdmin } from "./middleware/authMiddleware";
+import { DatabaseService } from "./services/database.service";
+import { workoutBookingHandler } from "./handler/workout-booking.handler";
+import { getBookingHandler } from "./handler/getWorkout.handler";
 
 
 // Connect to MongoDB when the Lambda container initializes
@@ -58,6 +60,18 @@ const routes = [
     method: "POST",
     handler: loginHandler,
     middleware: [] // No middleware for login
+  },
+  {
+    path: "/workout",
+    method: "POST",
+    handler: workoutBookingHandler,
+    middleware: [] // No middleware for registration
+  },
+  {
+    path: "/workout",
+    method: "GET",
+    handler: getBookingHandler,
+    middleware: [] // No middleware for registration
   },
   {
     path: "/admin/add-coach-email",
