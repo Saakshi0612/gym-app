@@ -1,16 +1,19 @@
 // src/index.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { connectDB } from "./config/db";
 import { registerUser, loginUser } from "./controllers/authController";
+import { DatabaseService } from "./services/database.service";
+import { workoutBookingHandler } from "./handler/workout-booking.handler";
 
 // Connect to MongoDB when the Lambda container initializes
+const dbService = DatabaseService.getInstance();
 let isConnected = false;
 
 const connectToDatabase = async () => {
   if (isConnected) {
     return;
   }
-  await connectDB();
+  await dbService.connect();
+  console.info("db connected successfully");
   isConnected = true;
 };
 
@@ -23,6 +26,23 @@ const routes: Record<
 > = {
   "/auth/register": registerUser,
   "/auth/login": loginUser,
+  "/workout":(event: APIGatewayProxyEvent,
+    headers: Record<string, string>)=>{
+      if(event.httpMethod==="POST"){
+        return workoutBookingHandler(event,headers);
+      }
+
+      if(event.httpMethod==="GET"){
+        // get workouts for search
+      }
+
+      if(event.httpMethod==="DELETE"){
+        //cancel the workout handler
+      }
+
+      throw Error("Invalid Method");
+  }
+  
 };
 
 // Main handler function

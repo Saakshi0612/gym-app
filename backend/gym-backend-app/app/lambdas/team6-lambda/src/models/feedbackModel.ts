@@ -1,5 +1,5 @@
 import  { Schema, model } from 'mongoose';
-import { IFeedback } from 'src/types/db.types';
+import { IFeedback } from '../types/db.types';
 
 
 const feedbackSchema = new Schema<IFeedback>({
