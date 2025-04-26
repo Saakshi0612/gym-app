@@ -51,5 +51,20 @@ export class WorkoutController{
           throw error;
       }
   }
+
+  async deleteWorkout(body: { id: String }) {
+    try {
+        // We will use zod to validate the data
+        
+        const workoutService = new WorkoutService();
+        return await workoutService.deleteWorkout(body.id);
+    } catch (error) {
+        // error handling for zod
+        
+        console.error(error);
+        
+        throw error;
+    }
+  }
 }
 

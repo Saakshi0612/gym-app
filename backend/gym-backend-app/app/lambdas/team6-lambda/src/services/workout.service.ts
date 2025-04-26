@@ -31,6 +31,39 @@ export class WorkoutService {
       }
     }
   }
+  //for deleting the workouts
+  async deleteWorkout(workoutId: String): Promise<{ success: boolean, message: string }> {
+    try {
+      await this.dbService.connect();
+   
+      // Find and delete the workout by ID
+      const deletedWorkout = await WorkoutModel.findByIdAndDelete(workoutId);
+      
+      // Check if workout was found and deleted
+      if (!deletedWorkout) {
+        throw {
+          message: "Workout not found or already deleted.",
+          type: "RESPONSE",
+          statusCode: 404
+        };
+      }
+      
+      return {
+        success: true,
+        message: "Workout successfully deleted."
+      };
+    } catch (error) {
+      console.error("Error deleting workout:", error);
+      if (error.type === "RESPONSE") {
+        throw error;
+      }
+      throw {
+        message: "Failed to delete workout. Please try again.",
+        type: "RESPONSE",
+        statusCode: 400
+      };
+    }
+  }
 
   async bookWorkout({activity, coach, client, date, slot}: WorkoutBookingRequest): Promise<IWorkout> {
     try {

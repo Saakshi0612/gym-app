@@ -8,6 +8,7 @@ import { requireAdmin } from "./middleware/authMiddleware";
 import { DatabaseService } from "./services/database.service";
 import { workoutBookingHandler } from "./handler/workout-booking.handler";
 import { getBookingHandler } from "./handler/getWorkout.handler";
+import { deleteWorkoutHandler } from "./handler/deleteWorkout.handler";
 
 
 // Connect to MongoDB when the Lambda container initializes
@@ -71,6 +72,12 @@ const routes = [
     path: "/workout",
     method: "GET",
     handler: getBookingHandler,
+    middleware: [] // No middleware for registration
+  },
+  {
+    path: "/workout",
+    method: "DELETE",
+    handler: deleteWorkoutHandler,
     middleware: [] // No middleware for registration
   },
   {
