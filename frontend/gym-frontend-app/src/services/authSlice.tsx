@@ -6,6 +6,33 @@ import axios from 'axios';
 // API base URL - replace with your actual API endpoint
 const API_URL = "https://9t23wu6vi5.execute-api.ap-southeast-1.amazonaws.com/dev";
 
+// Helper function to persist auth state
+const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
+  if (isAuthenticated && user) {
+    localStorage.setItem('authUser', JSON.stringify(user));
+    localStorage.setItem('isAuthenticated', 'true');
+  } else {
+    localStorage.removeItem('authUser');
+    localStorage.removeItem('isAuthenticated');
+  }
+};
+
+// Helper function to load auth state
+const loadAuthState = (): { user: User | null, isAuthenticated: boolean } => {
+  try {
+    const authUser = localStorage.getItem('authUser');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    return {
+      user: authUser ? JSON.parse(authUser) : null,
+      isAuthenticated: isAuthenticated
+    };
+  } catch (error) {
+    console.error('Error loading auth state:', error);
+    return { user: null, isAuthenticated: false };
+  }
+};
+
 // In-memory storage for users (temporary until backend is implemented)
 const users: StoredUser[] = [];
 
@@ -31,11 +58,31 @@ function stripPassword<T extends { password: string }>(user: T): Omit<T, 'passwo
   return rest as Omit<T, 'password'>;
 }
 
+// Configure axios instance with interceptors
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor for adding token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, credentials);
+      const response = await api.post(`/auth/login`, credentials);
       
       // Extract user data from response
       const userData = response.data.user;
@@ -46,6 +93,11 @@ export const loginUser = createAsyncThunk(
       }
       if (userData.refreshToken) {
         localStorage.setItem('refreshToken', userData.refreshToken);
+      }
+      
+      // Normalize role to lowercase if needed
+      if (userData.role) {
+        userData.role = userData.role.toLowerCase();
       }
       
       return userData;
@@ -74,11 +126,11 @@ export const registerUser = createAsyncThunk(
         lastName: userData.lastName,
         password: userData.password,
         confirmPassword: userData.confirmPassword,
-        target: userData.target || '',
-        activity: userData.activity || ''
+        target: userData.targets || '',
+        activity: userData.preferableActivity || ''
       };
       
-      const response = await axios.post(`${API_URL}/auth/register`, registerPayload);
+      const response = await api.post(`/auth/register`, registerPayload);
       
       return response.data.user;
     } catch (error: any) {
@@ -189,9 +241,12 @@ export const updatePassword = createAsyncThunk(
   }
 );
 
+// Load initial state from localStorage
+const savedAuthState = loadAuthState();
+
 const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
+  user: savedAuthState.user,
+  isAuthenticated: savedAuthState.isAuthenticated,
   isLoading: false,
   error: null,
 };
@@ -204,13 +259,16 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload;
       state.error = null;
+      // Persist the state
+      persistAuthState(action.payload, true);
     },
     logout: (state) => {
       state.isAuthenticated = false;
       state.user = null;
-      // Clear tokens from localStorage
+      // Clear tokens and auth state from localStorage
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      persistAuthState(null, false);
     },
     clearError: (state) => {
       state.error = null;
@@ -227,6 +285,8 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload;
         state.error = null;
+        // Persist the state
+        persistAuthState(action.payload, true);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -256,6 +316,8 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = action.payload;
         state.error = null;
+        // Persist the updated user
+        persistAuthState(action.payload, true);
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.isLoading = false;
@@ -276,5 +338,35 @@ const authSlice = createSlice({
   },
 });
 
+// Create a function to check auth status on app load
+export const checkAuthStatus = async (dispatch: any) => {
+  const token = localStorage.getItem('accessToken');
+  const savedState = loadAuthState();
+  
+  if (!token || !savedState.user) {
+    // No token or user, clear any potentially inconsistent state
+    dispatch(logout());
+    return;
+  }
+  
+  try {
+    // Validate token by making a request to a protected endpoint
+    // This is optional - you can implement it if your API has a user info endpoint
+    // const response = await api.get('/users/me');
+    // If the request succeeds, the token is valid
+    // You could update the user data here if needed
+    // dispatch(login(response.data));
+    
+    // For now, just use the saved user data
+    dispatch(login(savedState.user));
+  } catch (error) {
+    // If the token is invalid, log the user out
+    console.error('Token validation failed:', error);
+    dispatch(logout());
+  }
+};
+
 export const { login, logout, clearError } = authSlice.actions;
 export default authSlice.reducer;
+
+
