@@ -1,21 +1,26 @@
 // src/index.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { connectDB } from "./config/db";
 import { AdminEmailModel } from "./models/adminEmailModel";
-import { CoachEmailModel } from "./models/coachEmailModel";
+import { CoachEmailModel } from "./models/coachemailModel";
 import { loginHandler, registerHandler } from "./handler/authHandler";
 import { addAdminEmail, addCoachEmail } from "./controllers/adminController";
 import { requireAdmin } from "./middleware/authMiddleware";
+import { DatabaseService } from "./services/database.service";
+import { workoutBookingHandler } from "./handler/workout-booking.handler";
+import { getBookingHandler } from "./handler/getWorkout.handler";
+import { deleteWorkoutHandler } from "./handler/deleteWorkout.handler";
 
 
 // Connect to MongoDB when the Lambda container initializes
+const dbService = DatabaseService.getInstance();
 let isConnected = false;
 
 const connectToDatabase = async () => {
   if (isConnected) {
     return;
   }
-  await connectDB();
+  await dbService.connect();
+  console.info("db connected successfully");
   isConnected = true;
 };
 
@@ -56,6 +61,24 @@ const routes = [
     method: "POST",
     handler: loginHandler,
     middleware: [] // No middleware for login
+  },
+  {
+    path: "/workout",
+    method: "POST",
+    handler: workoutBookingHandler,
+    middleware: [] // No middleware for registration
+  },
+  {
+    path: "/workout",
+    method: "GET",
+    handler: getBookingHandler,
+    middleware: [] // No middleware for registration
+  },
+  {
+    path: "/workout",
+    method: "DELETE",
+    handler: deleteWorkoutHandler,
+    middleware: [] // No middleware for registration
   },
   {
     path: "/admin/add-coach-email",

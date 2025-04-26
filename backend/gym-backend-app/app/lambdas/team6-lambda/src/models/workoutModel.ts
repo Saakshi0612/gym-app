@@ -1,12 +1,10 @@
 import { Schema, model } from 'mongoose';
-import { IWorkout } from 'src/types/db.types';
-
+import { IWorkout } from '../types/db.types';
 
 // Workout schema
 
   const workoutSchema = new Schema<IWorkout>(
     {
-      name: { type: String, required: true },
       description: { type: String },
       activity: { type: String, required: true },
       coach: { type: Schema.Types.ObjectId, ref: 'User', required: true },

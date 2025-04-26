@@ -1,5 +1,5 @@
 import {  Schema, model } from 'mongoose';
-import { IAdmin, IClient, ICoach, IUser } from 'src/types/db.types';
+import { IAdmin, IClient, ICoach, IUser } from '../types/db.types';
 
 
 
@@ -64,3 +64,4 @@ export {
     CoachModel,
     AdminModel
   };
+  
