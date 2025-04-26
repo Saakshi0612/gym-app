@@ -3,8 +3,9 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
 import axios from 'axios';
 
+
 // API base URL - replace with your actual API endpoint
-const API_URL = import.meta.env.API_URL
+const API_URL :string = import.meta.env.VITE_API_URL || "https://9t23wu6vi5.execute-api.ap-southeast-1.amazonaws.com/dev"
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
