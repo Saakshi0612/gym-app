@@ -36,5 +36,20 @@ export class WorkoutController{
             throw error;
         }
     }
+
+    async getWorkout(body:{id:String}){
+      try {
+          //we will use zod to validate the data
+
+          const workoutService = new WorkoutService();
+          return await workoutService.MyBookedWorkouts(body)
+      } catch (error) {
+          // error handling for zod
+         
+          console.error(error);
+
+          throw error;
+      }
+  }
 }
 

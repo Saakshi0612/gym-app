@@ -3,6 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { registerUser, loginUser } from "./controllers/authController";
 import { DatabaseService } from "./services/database.service";
 import { workoutBookingHandler } from "./handler/workout-booking.handler";
+import { getBookingHandler } from "./handler/getWorkout.handler";
 
 // Connect to MongoDB when the Lambda container initializes
 const dbService = DatabaseService.getInstance();
@@ -33,7 +34,7 @@ const routes: Record<
       }
 
       if(event.httpMethod==="GET"){
-        // get workouts for search
+        return getBookingHandler(event, headers)
       }
 
       if(event.httpMethod==="DELETE"){
