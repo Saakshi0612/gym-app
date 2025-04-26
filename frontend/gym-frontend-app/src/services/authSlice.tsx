@@ -1,11 +1,10 @@
 // src/services/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
+import axios from 'axios';
 
-
-interface StoredUser extends User {
-  password: string;
-}
+// API base URL - replace with your actual API endpoint
+const API_URL = "https://9t23wu6vi5.execute-api.ap-southeast-1.amazonaws.com/dev";
 
 // In-memory storage for users (temporary until backend is implemented)
 const users: StoredUser[] = [];
@@ -16,6 +15,10 @@ try {
   users.push(...storedUsers);
 } catch (e) {
   console.error('Error loading users from localStorage:', e);
+}
+
+interface StoredUser extends User {
+  password: string;
 }
 
 // Utility function to remove password from user object
@@ -32,21 +35,30 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const user = users.find(
-        u => u.email === credentials.email && u.password === credentials.password
-      );
-
-      if (!user) {
-        return rejectWithValue("We couldn't log you in. Double-check your credentials and try again.");
+      const response = await axios.post(`${API_URL}/auth/login`, credentials);
+      
+      // Extract user data from response
+      const userData = response.data.user;
+      
+      // Store tokens in localStorage for future authenticated requests
+      if (userData.accessToken) {
+        localStorage.setItem('accessToken', userData.accessToken);
       }
-
-      // Use utility function to remove password
-      return stripPassword(user);
-    } catch (error) {
+      if (userData.refreshToken) {
+        localStorage.setItem('refreshToken', userData.refreshToken);
+      }
+      
+      return userData;
+    } catch (error: any) {
       console.error("Login error:", error);
-      return rejectWithValue("We're experiencing technical difficulties. Please try again later.");
+      
+      // Handle specific error messages from the API
+      if (error.response && error.response.data && error.response.data.message) {
+        return rejectWithValue(error.response.data.message);
+      }
+      
+      // Generic error message
+      return rejectWithValue("We couldn't log you in. Double-check your credentials and try again.");
     }
   }
 );
@@ -55,51 +67,35 @@ export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData: RegisterData, { rejectWithValue }) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      if (users.some((u) => u.email === userData.email)) {
-        return rejectWithValue("Email already exists");
-      }
-
-      const coachEmails = ['coach1@example.com', 'coach2@example.com', 'coach3@example.com'];
-      const role = coachEmails.includes(userData.email) ? 'coach' : 'client';
-
-      const newUser: StoredUser = { 
-        ...userData, 
-        role,
-        // Add default values for role-specific properties
-        phoneNumber: '',
-        title: '',
-        about: '',
-        tags: [],
-        certificates: [],
-        rating: 0,
-        // Store the activity and target from registration for clients
-        preferableActivity: role === 'client' ? userData.activity || '' : '',
-        target: role === 'client' ? userData.target || '' : '',
-        avatarUrl: 'https://t4.ftcdn.net/jpg/02/62/46/55/240_F_262465578_xxIWQunF7zDbFpJDzSiYWJBwzMzPuEFh.jpg'
+      // Format the data according to your API requirements
+      const registerPayload = {
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        password: userData.password,
+        confirmPassword: userData.confirmPassword,
+        target: userData.target || '',
+        activity: userData.activity || ''
       };
       
-      users.push(newUser);
+      const response = await axios.post(`${API_URL}/auth/register`, registerPayload);
       
-      // Save to localStorage for persistence
-      try {
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-        storedUsers.push(newUser);
-        localStorage.setItem('users', JSON.stringify(storedUsers));
-      } catch (e) {
-        console.error('Error saving to localStorage:', e);
-      }
-
-      // Use utility function to remove password
-      return stripPassword(newUser);
-    } catch (error) {
+      return response.data.user;
+    } catch (error: any) {
       console.error("Registration error:", error);
+      
+      // Handle specific error messages from the API
+      if (error.response && error.response.data && error.response.data.message) {
+        return rejectWithValue(error.response.data.message);
+      }
+      
+      // Generic error message
       return rejectWithValue("Registration failed. Please try again later.");
     }
   }
 );
 
+// Keep the original updateUserProfile function
 export const updateUserProfile = createAsyncThunk(
   'auth/updateProfile',
   async (updatedUser: User, { getState, rejectWithValue }) => {
@@ -140,8 +136,6 @@ export const updateUserProfile = createAsyncThunk(
     }
   }
 );
-
-
 
 export const updatePassword = createAsyncThunk(
   'auth/updatePassword',
@@ -214,6 +208,9 @@ const authSlice = createSlice({
     logout: (state) => {
       state.isAuthenticated = false;
       state.user = null;
+      // Clear tokens from localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     },
     clearError: (state) => {
       state.error = null;
@@ -239,10 +236,12 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state) => {
         state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload;
+        // Don't set isAuthenticated to true after registration
+        // User should log in after registration
+        state.isAuthenticated = false;
+        state.user = null;
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {

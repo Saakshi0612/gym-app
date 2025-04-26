@@ -44,19 +44,19 @@ export const useHeaderProps = (
   } else {
     // Logged in - show different tabs based on role
     switch (userRole) {
-      case "coach":
+      case "COACH":
         navItems = [
           { label: "Workouts", path: "/workout" }
         ];
         break;
-      case "client":
+      case "CLIENT":
         navItems = [
           { label: "Home", path: "/" },
           { label: "Workouts", path: "/workout" },
           { label: "Coaches", path: "/coaches" }
         ];
         break;
-      case "admin":
+      case "ADMIN":
         navItems = [
           { label: "Home", path: "/" },
           { label: "Reports", path: "/reports" }
