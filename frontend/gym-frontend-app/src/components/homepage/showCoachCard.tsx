@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Dumbbell, Calendar, Clock } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAppSelector } from '../../store/store';
 import Button from '../common/ButtonComponent';
-import ConfirmBookingCard from './confirmBookingCard';
 import LoginPromptModal from './isLoggedInCard';
 
 interface Slot {
@@ -25,17 +24,19 @@ interface CoachProps {
 
 interface ShowCochesCardProps {
 	coach: CoachProps;
+	onBookingClick: (coach: CoachProps) => void;
 }
 
-const ShowCochesCard: React.FC<ShowCochesCardProps> = ({ coach }) => {
-	const [showModal, setShowModal] = useState(false);
+const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
+	coach,
+	onBookingClick,
+}) => {
 	const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 	const { isAuthenticated } = useAppSelector((state) => state.auth);
-	const navigate = useNavigate();
 
 	const handleBookingClick = () => {
 		if (isAuthenticated) {
-			setShowModal(true);
+			onBookingClick(coach);
 		} else {
 			setShowLoginPrompt(true);
 		}
@@ -44,6 +45,7 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({ coach }) => {
 	return (
 		<>
 			<div className="w-full max-w-3xl p-4 shadow-xl rounded-2xl text-gray-700 bg-white relative z-10">
+				{/* Coach Card Content */}
 				<div className="flex flex-col md:flex-row justify-between gap-4">
 					<div className="flex gap-4 md:gap-5 items-center lg:w-[300px]">
 						<div className="h-[80px] w-[80px] md:h-[100px] md:w-[100px] rounded-full overflow-hidden border shrink-0">
@@ -79,7 +81,7 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({ coach }) => {
 									<p>
 										<strong>Type:</strong>{' '}
 										{coach.specializations?.length > 0
-											? coach.specializations[0] // Show only the first specialization if there's more than one
+											? coach.specializations[0]
 											: 'N/A'}
 									</p>
 								</div>
@@ -151,15 +153,12 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({ coach }) => {
 				</div>
 			</div>
 
-			{showModal && (
-				<ConfirmBookingCard coach={coach} onClose={() => setShowModal(false)} />
+			{showLoginPrompt && (
+				<LoginPromptModal
+					isOpen={showLoginPrompt}
+					onCancel={() => setShowLoginPrompt(false)}
+				/>
 			)}
-
-			<LoginPromptModal
-				isOpen={showLoginPrompt}
-				onCancel={() => setShowLoginPrompt(false)}
-				onLogin={() => navigate('/login')}
-			/>
 		</>
 	);
 };
