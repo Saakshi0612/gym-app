@@ -1,0 +1,794 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="SwaggerUI"/>
+    <title>GYM - SwaggerUI</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css"/>
+</head>
+<style>
+    .opblock.opblock-options {
+        display: none;
+    }
+</style>
+<body>
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
+<script id="data" type="application/json">
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Gym API",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "https://9t23wu6vi5.execute-api.ap-southeast-1.amazonaws.com/dev",
+      "description": "AWS API Gateway"
+    },
+    {
+      "url": "{protocol}://{host}:{port}/{basePath}",
+      "description": "custom server",
+      "variables": {
+        "protocol": {
+          "enum": ["http", "https"],
+          "default": "https",
+          "description": "The protocol to use"
+        },
+        "host": {
+          "default": "api.example.com",
+          "description": "The host name or IP address"
+        },
+        "port": {
+          "enum": ["80", "443", "8080", "8443"],
+          "default": "443",
+          "description": "The port number"
+        },
+        "basePath": {
+          "default": "api/v1",
+          "description": "Api version"
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "description": "Authentication operations",
+      "name": "Auth"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "operationId": "registerUser",
+        "summary": "Creates a new user account with role-based registration (CLIENT, COACH, ADMIN)",
+        "description": "Registers a new user. The role is determined by checking if the email exists in admin or coach email lists. Returns different response structures based on the assigned role.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequestBody"
+              }
+            }
+          },
+          "description": "User registration parameters",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ClientRegisterResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CoachRegisterResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AdminRegisterResponse"
+                    }
+                  ]
+                },
+                "examples": {
+                  "clientResponse": {
+                    "summary": "Response for CLIENT role",
+                    "value": {
+                      "success": true,
+                      "statusCode": 201,
+                      "message": "User registered successfully",
+                      "user": {
+                        "id": "680a42bb3d5b05494f02416c",
+                        "email": "client@example.com",
+                        "firstName": "John",
+                        "lastName": "Doe",
+                        "role": "CLIENT",
+                        "preferableActivity": "YOGA",
+                        "target": "LOSE_WEIGHT"
+                      }
+                    }
+                  },
+                  "coachResponse": {
+                    "summary": "Response for COACH role",
+                    "value": {
+                      "success": true,
+                      "statusCode": 201,
+                      "message": "User registered successfully",
+                      "user": {
+                        "id": "680a42bb3d5b05494f02416d",
+                        "email": "coach@example.com",
+                        "firstName": "Jane",
+                        "lastName": "Smith",
+                        "role": "COACH",
+                        "title": "",
+                        "about": "",
+                        "rating": 0
+                      }
+                    }
+                  },
+                  "adminResponse": {
+                    "summary": "Response for ADMIN role",
+                    "value": {
+                      "success": true,
+                      "statusCode": 201,
+                      "message": "User registered successfully",
+                      "user": {
+                        "id": "680a42bb3d5b05494f02416e",
+                        "email": "admin@example.com",
+                        "firstName": "Admin",
+                        "lastName": "User",
+                        "role": "ADMIN"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, passwords don't match, or user already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "loginUser",
+        "summary": "Authenticates users and returns role-specific user profile data",
+        "description": "Authenticates a user and returns different response structures based on the user's role (CLIENT, COACH, or ADMIN).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestBody"
+              }
+            }
+          },
+          "description": "User login parameters",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ClientLoginResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CoachLoginResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AdminLoginResponse"
+                    }
+                  ]
+                },
+                "examples": {
+                  "clientLogin": {
+                    "summary": "Response for CLIENT role",
+                    "value": {
+                      "success": true,
+                      "statusCode": 200,
+                      "message": "Login successful (Cognito authentication)",
+                      "user": {
+                        "id": "680a42bb3d5b05494f02416c",
+                        "email": "client@example.com",
+                        "firstName": "John",
+                        "lastName": "Doe",
+                        "role": "CLIENT",
+                        "preferableActivity": "YOGA",
+                        "target": "LOSE_WEIGHT",
+                        "accessToken": "eyJraWQiOiJLTzRVMWZs...",
+                        "refreshToken": "eyJjdHkiOiJKV1QiLCJl...",
+                        "idToken": "eyJraWQiOiJLTzRVMWZs...",
+                        "tokenType": "Bearer",
+                        "expiresIn": 3600
+                      }
+                    }
+                  },
+                  "coachLogin": {
+                    "summary": "Response for COACH role",
+                    "value": {
+                      "success": true,
+                      "statusCode": 200,
+                      "message": "Login successful (Cognito authentication)",
+                      "user": {
+                        "id": "680a42bb3d5b05494f02416d",
+                        "email": "coach@example.com",
+                        "firstName": "Jane",
+                        "lastName": "Smith",
+                        "role": "COACH",
+                        "title": "Senior Yoga Instructor",
+                        "about": "Experienced yoga instructor with 5 years of teaching.",
+                        "rating": 4.8,
+                        "specializations": ["YOGA", "PILATES"],
+                        "accessToken": "eyJraWQiOiJLTzRVMWZs...",
+                        "refreshToken": "eyJjdHkiOiJKV1QiLCJl...",
+                        "idToken": "eyJraWQiOiJLTzRVMWZs...",
+                        "tokenType": "Bearer",
+                        "expiresIn": 3600
+                      }
+                    }
+                  },
+                  "adminLogin": {
+                    "summary": "Response for ADMIN role",
+                    "value": {
+                      "success": true,
+                      "statusCode": 200,
+                      "message": "Login successful (Cognito authentication)",
+                      "user": {
+                        "id": "680a42bb3d5b05494f02416e",
+                        "email": "admin@example.com",
+                        "firstName": "Admin",
+                        "lastName": "User",
+                        "role": "ADMIN",
+                        "accessToken": "eyJraWQiOiJLTzRVMWZs...",
+                        "refreshToken": "eyJjdHkiOiJKV1QiLCJl...",
+                        "idToken": "eyJraWQiOiJLTzRVMWZs...",
+                        "tokenType": "Bearer",
+                        "expiresIn": 3600
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing email or password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterRequestBody": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "example": "user@example.com"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "User first name",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "User last name",
+            "example": "Doe"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "Password123!"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "description": "Confirm password (must match password)",
+            "example": "Password123!"
+          },
+          "target": {
+            "type": "string",
+            "description": "User target (only for CLIENT role)",
+            "example": "LOSE_WEIGHT",
+            "enum": [
+              "LOSE_WEIGHT",
+              "GAIN_WEIGHT",
+              "IMPROVE_FLEXIBILITY",
+              "GENERAL_FITNESS",
+              "BUILD_MUSCLE",
+              "REHABILITATION_RECOVERY"
+            ]
+          },
+          "activity": {
+            "type": "string",
+            "description": "User preferred activity (only for CLIENT role)",
+            "example": "YOGA",
+            "enum": [
+              "YOGA",
+              "PILATES",
+              "CARDIO",
+              "WEIGHTS",
+              "STRENGTH",
+              "FLEXIBILITY"
+            ]
+          }
+        },
+        "required": ["email", "firstName", "lastName", "password", "confirmPassword"]
+      },
+      "BaseRegisterResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 201
+          },
+          "message": {
+            "type": "string",
+            "example": "User registered successfully"
+          }
+        }
+      },
+      "ClientRegisterResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRegisterResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "680a42bb3d5b05494f02416c"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "client@example.com"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "John"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe"
+                  },
+                  "role": {
+                    "type": "string",
+                    "example": "CLIENT"
+                  },
+                  "preferableActivity": {
+                    "type": "string",
+                    "example": "YOGA"
+                  },
+                  "target": {
+                    "type": "string",
+                    "example": "LOSE_WEIGHT"
+                  },
+                  "cognitoId": {
+                    "type": "string",
+                    "example": "12345678-1234-1234-1234-123456789012"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "CoachRegisterResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRegisterResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "680a42bb3d5b05494f02416d"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "coach@example.com"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "Jane"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Smith"
+                  },
+                  "role": {
+                    "type": "string",
+                    "example": "COACH"
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "about": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "rating": {
+                    "type": "number",
+                    "example": 0
+                  },
+                  "cognitoId": {
+                    "type": "string",
+                    "example": "12345678-1234-1234-1234-123456789012"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AdminRegisterResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRegisterResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "680a42bb3d5b05494f02416e"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "admin@example.com"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "Admin"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "User"
+                  },
+                  "role": {
+                    "type": "string",
+                    "example": "ADMIN"
+                  },
+                  "cognitoId": {
+                    "type": "string",
+                    "example": "12345678-1234-1234-1234-123456789012"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "LoginRequestBody": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "Password123!"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "BaseLoginResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Login successful (Cognito authentication)"
+          }
+        }
+      },
+      "CognitoTokens": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJraWQiOiJLTzRVMWZs..."
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJjdHkiOiJKV1QiLCJl..."
+          },
+          "idToken": {
+            "type": "string",
+            "example": "eyJraWQiOiJLTzRVMWZs..."
+          },
+          "tokenType": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "example": 3600
+          }
+        }
+      },
+      "ClientLoginResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseLoginResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "680a42bb3d5b05494f02416c"
+                      },
+                      "email": {
+                        "type": "string",
+                        "example": "client@example.com"
+                      },
+                      "firstName": {
+                        "type": "string",
+                        "example": "John"
+                      },
+                      "lastName": {
+                        "type": "string",
+                        "example": "Doe"
+                      },
+                      "role": {
+                        "type": "string",
+                        "example": "CLIENT"
+                      },
+                      "preferableActivity": {
+                        "type": "string",
+                        "example": "YOGA"
+                      },
+                      "target": {
+                        "type": "string",
+                        "example": "LOSE_WEIGHT"
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/CognitoTokens"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "CoachLoginResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseLoginResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "680a42bb3d5b05494f02416d"
+                      },
+                      "email": {
+                        "type": "string",
+                        "example": "coach@example.com"
+                      },
+                      "firstName": {
+                        "type": "string",
+                        "example": "Jane"
+                      },
+                      "lastName": {
+                        "type": "string",
+                        "example": "Smith"
+                      },
+                      "role": {
+                        "type": "string",
+                        "example": "COACH"
+                      },
+                      "title": {
+                        "type": "string",
+                        "example": "Senior Yoga Instructor"
+                      },
+                      "about": {
+                        "type": "string",
+                        "example": "Experienced yoga instructor with 5 years of teaching."
+                      },
+                      "rating": {
+                        "type": "number",
+                        "example": 4.8
+                      },
+                      "specializations": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "example": "YOGA"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/CognitoTokens"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "AdminLoginResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseLoginResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "680a42bb3d5b05494f02416e"
+                      },
+                      "email": {
+                        "type": "string",
+                        "example": "admin@example.com"
+                      },
+                      "firstName": {
+                        "type": "string",
+                        "example": "Admin"
+                      },
+                      "lastName": {
+                        "type": "string",
+                        "example": "User"
+                      },
+                      "role": {
+                        "type": "string",
+                        "example": "ADMIN"
+                      }
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/CognitoTokens"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 400
+          },
+          "message": {
+            "type": "string",
+            "example": "Please provide all required fields: email, firstName, lastName, password, confirmPassword"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "bearerFormat": "JWT",
+        "in": "header",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  }
+}
+</script>
+<script>
+    window.onload = () => {
+        const dataElement = document.getElementById('data');
+        const spec = JSON.parse(dataElement.textContent);
+        window.ui = SwaggerUIBundle({
+            spec: spec,
+            dom_id: '#swagger-ui',
+        });
+    };
+</script>
+</body>
+</html>
