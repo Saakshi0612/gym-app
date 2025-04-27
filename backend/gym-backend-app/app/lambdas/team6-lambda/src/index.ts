@@ -3,7 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { getCoachName } from "./controllers/coachNameController";
 import { getCoachSpecializations } from "./controllers/sportController";
 import { getAvailableTimeSlots } from "./controllers/availableTimeSlotsController";
-import { getWorkout } from "./controllers/searchWorkoutController";
+import { searchWorkout } from "./controllers/searchWorkoutController";
 import { getAllWorkout } from "./controllers/allWorkoutController";
 import { loginHandler, registerHandler } from "./handler/authHandler";
 import { addAdminEmail, addCoachEmail } from "./controllers/adminController";
@@ -125,7 +125,7 @@ const routes = [
   {
     path: "/workout/searchWorkout",
     method: "POST",
-    handler: getWorkout,
+    handler: searchWorkout,
     middleware: []
   }
 

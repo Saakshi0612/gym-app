@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { CoachModel } from "../models/userModel";
 import { WorkoutModel } from "../models/workoutModel";
 import { AvailableSlotModel } from "../models/availableSlotModel";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz"; // Import formatInTimeZone for time zone formatting
 
 export const getAllWorkout = async (
   event: APIGatewayProxyEvent,
@@ -44,10 +44,24 @@ export const getAllWorkout = async (
         // Find slots that are NOT booked
         const freeSlots = availableTimeSlots
           .filter((slot) => !bookedSlots.has(slot._id.toString()))
-          .map((slot) => ({
-            _id: slot._id,
-            time: `${format(new Date(slot.startTime), "hh:mm a")} - ${format(new Date(slot.endTime), "hh:mm a")}`,
-          }));
+          .map((slot) => {
+            // Format the times to IST (Asia/Kolkata)
+            const startTimeFormatted = formatInTimeZone(
+              new Date(slot.startTime),
+              "Asia/Kolkata",
+              "hh:mm a"
+            );
+            const endTimeFormatted = formatInTimeZone(
+              new Date(slot.endTime),
+              "Asia/Kolkata",
+              "hh:mm a"
+            );
+
+            return {
+              _id: slot._id,
+              time: `${startTimeFormatted} - ${endTimeFormatted}`,
+            };
+          });
 
         if (freeSlots.length === 0) {
           // Coach has no free slots
