@@ -2,6 +2,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { connectDB } from "./config/db";
 import { registerUser, loginUser } from "./controllers/authController";
+import { getCoachName } from "./controllers/coachNameController";
+import { getCoachSpecializations } from "./controllers/sportController";
+import { getAvailableTimeSlots } from "./controllers/availableTimeSlotsController";
+import { getWorkout } from "./controllers/searchWorkoutController";
+import { getAllWorkout } from "./controllers/allWorkoutController";
 
 // Connect to MongoDB when the Lambda container initializes
 let isConnected = false;
@@ -16,13 +21,18 @@ const connectToDatabase = async () => {
 
 const routes: Record<
   string,
-(
+  (
     event: APIGatewayProxyEvent,
     headers: Record<string, string>
   ) => Promise<APIGatewayProxyResult>
 > = {
   "/auth/register": registerUser,
   "/auth/login": loginUser,
+  "/workout/getCoachName": getCoachName,
+  "/workout/getSportName": getCoachSpecializations,
+  "/workout/getAvailableTimeSlots": getAvailableTimeSlots,
+  "/workout/searchWorkout": getWorkout,
+  "/workout/getAllWorkout": getAllWorkout,
 };
 
 // Main handler function
@@ -30,7 +40,7 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    console.log(event)
+    console.log(event);
     // Connect to the database
     await connectToDatabase();
 
@@ -57,7 +67,6 @@ export const handler = async (
     console.log(method);
 
     // "POST /auth/register":registerUser
-
     const routeHandler = routes[event.path];
 
     if (routeHandler) {
