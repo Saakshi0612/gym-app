@@ -1,5 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { AvailableSlotModel } from "../models/availableSlotModel";
+import { formatInTimeZone } from "date-fns-tz"; // Import the date-fns-tz package
 
 export const getAvailableTimeSlots = async (
   event: APIGatewayProxyEvent,
@@ -9,21 +10,21 @@ export const getAvailableTimeSlots = async (
     const slots = await AvailableSlotModel.find();
 
     const Available_Time_Slots = slots.map((slot: any) => {
-      const start = new Date(slot.startTime).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-
-      const end = new Date(slot.endTime).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
+      // Format the start and end time to IST (Asia/Kolkata)
+      const start = formatInTimeZone(
+        new Date(slot.startTime),
+        "Asia/Kolkata",
+        "hh:mm a"
+      );
+      const end = formatInTimeZone(
+        new Date(slot.endTime),
+        "Asia/Kolkata",
+        "hh:mm a"
+      );
 
       return {
         id: slot._id.toString(), // Add the _id as id in the response
-        slot: `${start} - ${end}`, // The formatted time range
+        slot: `${start} - ${end}`, // The formatted time range in IST
       };
     });
 

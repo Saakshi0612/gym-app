@@ -5,7 +5,7 @@ import { registerUser, loginUser } from "./controllers/authController";
 import { getCoachName } from "./controllers/coachNameController";
 import { getCoachSpecializations } from "./controllers/sportController";
 import { getAvailableTimeSlots } from "./controllers/availableTimeSlotsController";
-import { getWorkout } from "./controllers/searchWorkoutController";
+import { searchWorkout } from "./controllers/searchWorkoutController";
 import { getAllWorkout } from "./controllers/allWorkoutController";
 
 // Connect to MongoDB when the Lambda container initializes
@@ -31,7 +31,7 @@ const routes: Record<
   "/workout/getCoachName": getCoachName,
   "/workout/getSportName": getCoachSpecializations,
   "/workout/getAvailableTimeSlots": getAvailableTimeSlots,
-  "/workout/searchWorkout": getWorkout,
+  "/workout/searchWorkout": searchWorkout,
   "/workout/getAllWorkout": getAllWorkout,
 };
 
