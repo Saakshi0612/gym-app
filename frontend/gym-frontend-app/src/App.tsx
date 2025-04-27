@@ -1,7 +1,9 @@
 // src/App.tsx
 
 import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
-
+// src/App.tsx or src/index.tsx
+import { useEffect } from 'react';
+import { initializeAuth } from './services/authService';
 import RegisterForm from "./components/RegisterForm";
 import LoginForm from "./components/LoginForm";
 import { useAppSelector } from "./store/store";
@@ -21,6 +23,9 @@ const ProtectedRoute = () => {
   
 // Main app content
 function AppContent() {
+    useEffect(() => {
+      initializeAuth();
+    }, []);
 
   const location = useLocation();
   const hideHeaderRoutes = ["/login", "/register"];
@@ -35,7 +40,6 @@ function AppContent() {
         <Route path="/coaches" element={<CoachesPage />} />
         <Route path="/coaches/:id" element={<CoachProfilePage />} />
         <Route path="/workout" element={<ScheduledWorkoutPage />} />
-     
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>

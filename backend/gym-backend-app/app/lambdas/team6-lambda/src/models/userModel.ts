@@ -1,5 +1,5 @@
-import { Schema, model } from "mongoose";
-import { IAdmin, IClient, ICoach, IUser } from "src/types/db.types";
+import {  Schema, model } from 'mongoose';
+import { IAdmin, IClient, ICoach, IUser } from '../types/db.types';
 
 // Base User schema
 const userSchema = new Schema<IUser>(
@@ -55,4 +55,11 @@ const AdminModel = UserModel.discriminator<IAdmin>(
   })
 );
 
-export { UserModel, ClientModel, CoachModel, AdminModel };
+
+export {
+    UserModel,
+    ClientModel,
+    CoachModel,
+    AdminModel
+  };
+  

@@ -42,6 +42,10 @@ export interface ICoachEmail extends Document {
   email: string;
 }
 
+export interface IAdminEmail extends Document {
+  email: string;
+}
+
 // Available Slot interface
 export interface IAvailableSlot extends Document {
   startTime: Date;
