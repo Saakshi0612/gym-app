@@ -1,18 +1,15 @@
 // src/index.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { getCoachName } from "./controllers/coachNameController";
-import { getCoachSpecializations } from "./controllers/sportController";
-import { getAvailableTimeSlots } from "./controllers/availableTimeSlotsController";
-import { searchWorkout } from "./controllers/searchWorkoutController";
-import { getAllWorkout } from "./controllers/allWorkoutController";
+import { AdminEmailModel } from "./models/adminEmailModel";
+import { CoachEmailModel } from "./models/coachemailModel";
 import { loginHandler, registerHandler } from "./handler/authHandler";
 import { addAdminEmail, addCoachEmail } from "./controllers/adminController";
 import { requireAdmin } from "./middleware/authMiddleware";
+import { getUserProfileHandler, updateUserProfileHandler } from "./handler/userHandler";
 import { DatabaseService } from "./services/database.service";
 import { workoutBookingHandler } from "./handler/workout-booking.handler";
 import { getBookingHandler } from "./handler/getWorkout.handler";
 import { deleteWorkoutHandler } from "./handler/deleteWorkout.handler";
-
 
 
 // Connect to MongoDB when the Lambda container initializes
@@ -34,13 +31,13 @@ const initializeDatabase = async () => {
     // Check if initialization has been done
     const adminCount = await AdminEmailModel.countDocuments();
     const coachCount = await CoachEmailModel.countDocuments();
-
+    
     if (adminCount === 0) {
       // Add default admin emails
       await AdminEmailModel.create({ email: 'admin@example.com' });
       console.log('Added default admin email');
     }
-
+    
     if (coachCount === 0) {
       // Add default coach emails
       await CoachEmailModel.create({ email: 'coach1@example.com' });
@@ -87,48 +84,29 @@ const routes = [
   {
     path: "/admin/add-coach-email",
     method: "POST",
-    handler: async (event: APIGatewayProxyEvent, headers: Record<string, string>) =>
+    handler: async (event: APIGatewayProxyEvent, headers: Record<string, string>) => 
       await addCoachEmail(event, headers),
     middleware: [requireAdmin] // Require admin role
   },
   {
     path: "/admin/add-admin-email",
     method: "POST",
-    handler: async (event: APIGatewayProxyEvent, headers: Record<string, string>) =>
+    handler: async (event: APIGatewayProxyEvent, headers: Record<string, string>) => 
       await addAdminEmail(event, headers),
     middleware: [requireAdmin] // Require admin role
   },
   {
-    path: "/workout/getCoachName",
+    path: "/users/{userId}",
     method: "GET",
-    handler: getCoachName,
-    middleware: []
+    handler: getUserProfileHandler,
+    middleware: [] // No middleware for public profile viewing
   },
   {
-    path: "/workout/getSportName",
-    method: "GET",
-    handler: getCoachSpecializations,
-    middleware: []
-  },
-  {
-    path: "/workout/getAvailableTimeSlots",
-    method: "GET",
-    handler: getAvailableTimeSlots,
-    middleware: []
-  },
-  {
-    path: "/workout/getAllWorkout",
-    method: "GET",
-    handler: getAllWorkout,
-    middleware: []
-  },
-  {
-    path: "/workout/searchWorkout",
-    method: "POST",
-    handler: searchWorkout,
-    middleware: []
+    path: "/users/{userId}",
+    method: "PUT",
+    handler: updateUserProfileHandler,
+    middleware: [] // No middleware for profile updates
   }
-
 ];
 
 // Main handler function
@@ -137,7 +115,7 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   try {
     console.log("Event received:", JSON.stringify(event, null, 2));
-
+    
     // Connect to the database
     await connectToDatabase();
     console.log("Database connected successfully");
@@ -163,12 +141,55 @@ export const handler = async (
     const method = event.httpMethod;
     console.log(`Processing ${method} request to ${path}`);
 
-    // Find the matching route
-    const route = routes.find(r => r.path === path && r.method === method);
+    // Check for specific path patterns first
+    const userIdMatch = path.match(/^\/users\/([a-fA-F0-9]{24})$/);
+    if (method === "GET" && userIdMatch) {
+      event.pathParameters = { userId: userIdMatch[1] };
+      return await getUserProfileHandler(event, headers);
+    }
+    
+    if (method === "PUT" && userIdMatch) {
+      event.pathParameters = { userId: userIdMatch[1] };
+      return await updateUserProfileHandler(event, headers);
+    }
 
+    // Find the matching route
+    let route = routes.find(r => r.method === method && r.path === path);
+    
+    // If no exact match, try to match routes with path parameters
+    if (!route) {
+      route = routes.find(r => {
+        if (r.method !== method) return false;
+        
+        // Convert route path pattern to regex
+        const routePathPattern = r.path.replace(/\{([^}]+)\}/g, '([^/]+)');
+        const routeRegex = new RegExp(`^${routePathPattern}$`);
+        
+        // Check if the path matches the regex
+        const match = path.match(routeRegex);
+        
+        if (match) {
+          // Extract path parameters
+          const paramNames = r.path.match(/\{([^}]+)\}/g) || [];
+          const paramValues = match.slice(1);
+          
+          // Set path parameters in the event
+          event.pathParameters = event.pathParameters || {};
+          paramNames.forEach((param, index) => {
+            const paramName = param.replace(/[{}]/g, '');
+            event.pathParameters![paramName] = paramValues[index];
+          });
+          
+          return true;
+        }
+        
+        return false;
+      });
+    }
+    
     if (route) {
       console.log(`Handler found for ${method} ${path}`);
-
+      
       // Apply middleware
       for (const middleware of route.middleware) {
         const middlewareResult = await middleware(event, headers);
@@ -177,7 +198,7 @@ export const handler = async (
           return middlewareResult;
         }
       }
-
+      
       // Execute the handler
       return await route.handler(event, headers);
     }
@@ -187,10 +208,10 @@ export const handler = async (
     return {
       statusCode: 404,
       headers,
-      body: JSON.stringify({
-        message: "Route not found",
-        path: path,
-        method: method
+      body: JSON.stringify({ 
+        message: "Route not found", 
+        path: path, 
+        method: method 
       }),
     };
   } catch (error) {
@@ -200,7 +221,7 @@ export const handler = async (
       headers: {
         "Access-Control-Allow-Origin": "*",
       },
-      body: JSON.stringify({
+      body: JSON.stringify({ 
         message: "Internal server error",
         error: error instanceof Error ? error.message : String(error)
       }),

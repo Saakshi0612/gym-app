@@ -26,6 +26,24 @@
     "resource_type": "iam_policy",
     "tags": {}
   },
+  "lambda-s3-execution": {
+    "policy_content": {
+      "Statement": [
+        {
+          "Action": [
+            "s3:PutObject",
+            "s3:GetObject",
+            "s3:DeleteObject"
+          ],
+          "Effect": "Allow",
+          "Resource": "arn:aws:s3:::team6-backend-bucket-dev1/*"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "resource_type": "iam_policy",
+    "tags": {}
+  },
   "team6API": {
     "resource_type": "api_gateway",
     "deploy_stage": "dev",
@@ -49,6 +67,23 @@
       "/auth/login": {
         "enable_cors": true,
         "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        }
+      },
+      "/users/{userId}": {
+        "enable_cors": true,
+        "GET": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        },
+        "PUT": {
           "authorization_type": "NONE",
           "integration_type": "lambda",
           "lambda_name": "team6-lambda",
@@ -98,81 +133,6 @@
           "lambda_name": "team6-lambda",
           "api_key_required": false,
           "enable_proxy": true
-        }
-      },
-      "/workout/getCoachName": {
-        "enable_cors": true,
-        "GET": {
-          "enable_proxy": true,
-          "authorization_type": "NONE",
-          "integration_type": "lambda",
-          "lambda_name": "team6-lambda",
-          "api_key_required": false,
-          "method_request_parameters": {},
-          "integration_request_body_template": {},
-          "responses": [],
-          "integration_responses": [],
-          "default_error_pattern": true
-        }
-      },
-      "/workout/getSportName": {
-        "enable_cors": true,
-        "GET": {
-          "enable_proxy": true,
-          "authorization_type": "NONE",
-          "integration_type": "lambda",
-          "lambda_name": "team6-lambda",
-          "api_key_required": false,
-          "method_request_parameters": {},
-          "integration_request_body_template": {},
-          "responses": [],
-          "integration_responses": [],
-          "default_error_pattern": true
-        }
-      },
-      "/workout/getAvailableTimeSlots": {
-        "enable_cors": true,
-        "GET": {
-          "enable_proxy": true,
-          "authorization_type": "NONE",
-          "integration_type": "lambda",
-          "lambda_name": "team6-lambda",
-          "api_key_required": false,
-          "method_request_parameters": {},
-          "integration_request_body_template": {},
-          "responses": [],
-          "integration_responses": [],
-          "default_error_pattern": true
-        }
-      },
-      "/workout/searchWorkout": {
-        "enable_cors": true,
-        "POST": {
-          "enable_proxy": true,
-          "authorization_type": "NONE",
-          "integration_type": "lambda",
-          "lambda_name": "team6-lambda",
-          "api_key_required": false,
-          "method_request_parameters": {},
-          "integration_request_body_template": {},
-          "responses": [],
-          "integration_responses": [],
-          "default_error_pattern": true
-        }
-      },
-      "/workout/getAllWorkout": {
-        "enable_cors": true,
-        "GET": {
-          "enable_proxy": true,
-          "authorization_type": "NONE",
-          "integration_type": "lambda",
-          "lambda_name": "team6-lambda",
-          "api_key_required": false,
-          "method_request_parameters": {},
-          "integration_request_body_template": {},
-          "responses": [],
-          "integration_responses": [],
-          "default_error_pattern": true
         }
       }
     },
