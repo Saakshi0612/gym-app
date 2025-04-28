@@ -148,7 +148,6 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// Keep the original updateUserProfile function
 export const updateUserProfile = createAsyncThunk(
   'auth/updateProfile',
   async (updatedUser: User, { getState, rejectWithValue }) => {
@@ -160,31 +159,48 @@ export const updateUserProfile = createAsyncThunk(
         return rejectWithValue('No user is logged in.');
       }
 
-      const index = users.findIndex(client => client.email === currentUser.email);
+      // Prepare the update payload based on user role
+      const updatePayload: any = {
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+      };
 
-      if (index === -1) {
-        return rejectWithValue('User not found.');
-      }
-
-      // Update user profile in the list, preserving the password
-      const updatedStoredUser = { ...updatedUser, password: users[index].password };
-      users[index] = updatedStoredUser;
-      
-      // Update localStorage
-      try {
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-        const storedIndex = storedUsers.findIndex((u: User) => u.email === currentUser.email);
-        if (storedIndex !== -1) {
-          storedUsers[storedIndex] = updatedStoredUser;
-          localStorage.setItem('users', JSON.stringify(storedUsers));
+      // Add role-specific fields
+      if (currentUser.role === 'client') {
+        updatePayload.preferableActivity = updatedUser.preferableActivity;
+        updatePayload.target = updatedUser.target;
+      } else if (currentUser.role === 'coach') {
+        updatePayload.title = updatedUser.title;
+        updatePayload.about = updatedUser.about;
+        updatePayload.specializations = updatedUser.tags;
+        
+        // Handle certificates if they exist
+        if (updatedUser.certificates && updatedUser.certificates.length > 0) {
+          updatePayload.base64encodedFiles = updatedUser.certificates.map(cert => cert.url);
         }
-      } catch (e) {
-        console.error('Error updating localStorage:', e);
       }
 
-      return updatedUser;
-    } catch (error) {
+      // Handle profile image if it exists
+      if (updatedUser.avatarUrl) {
+        updatePayload.base64encodedImage = updatedUser.avatarUrl;
+      }
+
+      // Make API call to update profile
+      const response = await api.put(`/users/${currentUser.id}`, updatePayload);
+      
+      // Update local storage with new user data
+      const updatedUserData = response.data;
+      persistAuthState(updatedUserData, true);
+
+      return updatedUserData;
+    } catch (error: any) {
       console.error("Error updating user profile:", error);
+      
+      // Handle specific error messages from the API
+      if (error.response && error.response.data && error.response.data.message) {
+        return rejectWithValue(error.response.data.message);
+      }
+      
       return rejectWithValue('Failed to update user profile.');
     }
   }
@@ -238,6 +254,36 @@ export const updatePassword = createAsyncThunk(
     } catch (error) {
       console.error("Error updating password:", error);
       return rejectWithValue('Failed to update password.');
+    }
+  }
+);
+
+export const fetchUserProfile = createAsyncThunk(
+  'auth/fetchProfile',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const currentUser = state.auth.user;
+
+      if (!currentUser || !currentUser.id) {
+        return rejectWithValue('No user is logged in.');
+      }
+
+      const response = await api.get(`/users/${currentUser.id}`);
+      const userData = response.data;
+
+      // Update local storage with fresh user data
+      persistAuthState(userData, true);
+
+      return userData;
+    } catch (error: any) {
+      console.error("Error fetching user profile:", error);
+      
+      if (error.response && error.response.data && error.response.data.message) {
+        return rejectWithValue(error.response.data.message);
+      }
+      
+      return rejectWithValue('Failed to fetch user profile.');
     }
   }
 );
@@ -333,6 +379,19 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(updatePassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchUserProfile.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+      })
+      .addCase(fetchUserProfile.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });

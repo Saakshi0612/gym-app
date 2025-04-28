@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, memo, lazy, Suspense } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
 import { UserRole } from "../types/components/UserProfileSettings.types";
 import { SidebarTab } from "../types/components/sidebar.types";
@@ -7,6 +7,8 @@ import Sidebar from '../components/userProfile/Sidebar';
 import { AdminProfileData, CoachProfileData, ClientProfileData } from "../types/components/UserProfileSettings.types";
 import SuccessAlert from '../components/userProfile/shared/SuccessAlert';
 import { motion } from "framer-motion";
+import { fetchUserProfile, updateUserProfile } from "../services/authSlice";
+import { AppDispatch } from "../store/store";
 
 // Lazy load components that aren't immediately needed
 const UnifiedUserProfileForm = lazy(() => import('../components/userProfile/UnifiedUserProfileForm'));
@@ -71,6 +73,7 @@ const DynamicUserProfile = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
 
   // Load saved draft from localStorage
   const loadSavedDraft = useCallback(() => {
@@ -182,6 +185,22 @@ const DynamicUserProfile = () => {
     }
   }, [generateProfileData, loadSavedDraft, setError, setIsLoading]);
 
+  // Fetch user profile from API
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true);
+        await dispatch(fetchUserProfile());
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [dispatch]);
+
   // Handle profile data changes
   const handleProfileChange = useCallback((newData: AdminProfileData | CoachProfileData | ClientProfileData) => {
     setProfileData(newData);
@@ -200,12 +219,57 @@ const DynamicUserProfile = () => {
     return () => clearTimeout(timer);
   }, [isDirty, profileData, saveDraft, setIsDirty]);
 
-  // Clear draft on successful save
+  // Handle successful save
   const handleSuccessfulSave = useCallback(() => {
     localStorage.removeItem(PROFILE_STORAGE_KEY);
     setIsDirty(false);
     setLastSaved(null);
   }, [setIsDirty, setLastSaved]);
+
+  // Handle profile save
+  const handleSave = useCallback(async () => {
+    if (!profileData || !user) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Convert profile data to the format expected by the API
+      const userData = {
+        ...user,
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        avatarUrl: profileData.avatarUrl,
+      };
+      
+      // Add role-specific fields
+      if (user.role === 'client') {
+        userData.preferableActivity = (profileData as ClientProfileData).preferableActivity;
+        userData.target = (profileData as ClientProfileData).targets;
+      } else if (user.role === 'coach') {
+        userData.title = (profileData as CoachProfileData).title;
+        userData.about = (profileData as CoachProfileData).about;
+        userData.tags = (profileData as CoachProfileData).tags;
+        userData.certificates = (profileData as CoachProfileData).certificates;
+      }
+      
+      // Dispatch the update action
+      await dispatch(updateUserProfile(userData));
+      
+      // Update last saved time
+      setLastSaved(new Date());
+      setInfo("Profile updated successfully");
+      setTimeout(() => setInfo(null), 3000);
+      
+      // Clear draft
+      handleSuccessfulSave();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error saving profile';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [profileData, user, dispatch, handleSuccessfulSave, setIsLoading, setError, setInfo, setLastSaved]);
 
   // Handle tab changes with unsaved changes warning
   const handleTabChange = useCallback((newTab: SidebarTab) => {
@@ -256,7 +320,7 @@ const DynamicUserProfile = () => {
       default:
         return null;
     }
-  }, [activeTab, profileData, user, isLoading, error, handleProfileChange, handleSuccessfulSave, lastSaved]);
+  }, [activeTab, profileData, user, isLoading, error, handleProfileChange, handleSave, handleSuccessfulSave, lastSaved]);
 
   // Memoize sidebar props
   const sidebarProps = useMemo(() => ({
@@ -287,6 +351,25 @@ const DynamicUserProfile = () => {
       <main className="flex-1 px-4 md:px-8 pt-6 md:pt-8 pb-16 transition-all duration-300 ease-in-out">
         <div className="max-w-4xl mx-auto transition-opacity duration-300 ease-in-out">
           {tabContent}
+          {isDirty && (
+            <div className="fixed bottom-8 right-8 z-50">
+              <button
+                onClick={handleSave}
+                disabled={isLoading}
+                className="px-6 py-3 bg-primary-green text-white rounded-lg shadow-lg hover:bg-primary-green-dark transition-colors duration-200 flex items-center space-x-2"
+              >
+                {isLoading ? (
+                  <motion.div
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                ) : (
+                  <span>Save Changes</span>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </main>
       {error && (
