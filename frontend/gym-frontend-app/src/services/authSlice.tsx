@@ -6,7 +6,7 @@ import axios from 'axios';
 // API base URL - replace with your actual API endpoint
 const API_URL: string =
 	import.meta.env.VITE_API_URL ||
-	'https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev';
+	'https://3ji3br590e.execute-api.ap-southeast-1.amazonaws.com/dev';
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
@@ -129,6 +129,13 @@ export const registerUser = createAsyncThunk(
 	'auth/register',
 	async (userData: RegisterData, { rejectWithValue }) => {
 		try {
+			// Log the raw form data to debug
+			console.log('Raw userData from form:', {
+				...userData,
+				password: '***REDACTED***',
+				confirmPassword: '***REDACTED***'
+			});
+
 			// Format the data according to your API requirements
 			const registerPayload = {
 				email: userData.email,
@@ -136,11 +143,19 @@ export const registerUser = createAsyncThunk(
 				lastName: userData.lastName,
 				password: userData.password,
 				confirmPassword: userData.confirmPassword,
-				target: userData.targets || '',
-				activity: userData.preferableActivity || '',
+				target: userData.targets,
+				preferableActivity: userData.preferableActivity,
 			};
 
+			console.log('Sending registration data:', {
+				...registerPayload,
+				password: '***REDACTED***',
+				confirmPassword: '***REDACTED***'
+			});
+
 			const response = await api.post(`/auth/register`, registerPayload);
+			
+			console.log('Registration response:', response.data);
 
 			return response.data.user;
 		} catch (error: any) {
@@ -149,10 +164,15 @@ export const registerUser = createAsyncThunk(
 			// Handle specific error messages from the API
 			if (
 				error.response &&
-				error.response.data &&
-				error.response.data.message
+				error.response.data
 			) {
-				return rejectWithValue(error.response.data.message);
+				if (error.response.data.errors) {
+					// If there are multiple validation errors
+					return rejectWithValue(error.response.data.errors.join('\n'));
+				} else if (error.response.data.message) {
+					// If there's a single error message
+					return rejectWithValue(error.response.data.message);
+				}
 			}
 
 			// Generic error message
