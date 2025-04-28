@@ -76,7 +76,6 @@ const MainSection: React.FC = () => {
 		})),
 	];
 
-	console.log(timeOptions);
 
 	const sportOptions: DropdownOption[] = [
 		{ value: 'All', label: 'All' },
