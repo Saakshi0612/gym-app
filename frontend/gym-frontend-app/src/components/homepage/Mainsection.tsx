@@ -93,7 +93,11 @@ const MainSection: React.FC = () => {
 		console.log('Current date in state:', filters.date);
 
 		// Format the date as YYYY-MM-DD for the API
-		const formattedDate = filters.date.toISOString().split('T')[0];
+		const formattedDate = filters.date
+			.toLocaleDateString('en-IN')
+			.split('/')
+			.reverse()
+			.join('-');
 
 		const payload = {
 			coach_id: selectedCoach.value === 'All' ? '' : selectedCoach.value,
