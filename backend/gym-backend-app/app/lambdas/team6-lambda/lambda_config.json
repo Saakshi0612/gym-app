@@ -8,10 +8,23 @@
   "memory": 128,
   "timeout": 100,
   "lambda_path": "lambdas\\team6-lambda",
-  "dependencies": [],
+  "dependencies": [{
+    "resource_name":"my-user-pool",
+    "resource_type":"cognito_idp"
+  }],
   "event_sources": [],
   "env_variables": {
-    "MONGO_URI":"mongodb+srv://katukurishreya03:shreya7777@team6.tum9bqc.mongodb.net/?retryWrites=true&w=majority&appName=Team6"
+    "MONGO_URI":"${MONGO_URI}",
+    "USER_POOL_ID":{
+      "resource_name":"my-user-pool",
+      "resource_type":"cognito_idp",
+      "parameter":"id"
+    },
+    "CLIENT_ID":{
+      "resource_name":"my-user-pool",
+      "resource_type":"cognito_idp",
+      "parameter":"client_id"
+    }
   },
   "publish_version": true,
   "alias": "${lambdas_alias_name}",

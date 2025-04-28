@@ -1,5 +1,5 @@
 {
-  "team6-lambda-role": {
+    "team6-lambda-role": {
     "predefined_policies": [],
     "principal_service": "lambda",
     "custom_policies": [
@@ -7,6 +7,5 @@
     ],
     "resource_type": "iam_role",
     "tags": {}
-  }
-  
+}
 }

@@ -14,7 +14,8 @@
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "cognito-idp:*"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -53,6 +54,125 @@
           "lambda_name": "team6-lambda",
           "api_key_required": false,
           "enable_proxy": true
+        }
+      },
+      "/workout": {
+        "enable_cors": true,
+        "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        },
+        "GET": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        },
+        "DELETE": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        }
+      },
+      "/admin/add-coach-email": {
+        "enable_cors": true,
+        "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        }
+      },
+      "/admin/add-admin-email": {
+        "enable_cors": true,
+        "POST": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        }
+      },
+      "/workout/getCoachName": {
+        "enable_cors": true,
+        "GET": {
+          "enable_proxy": true,
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true
+        }
+      },
+      "/workout/getSportName": {
+        "enable_cors": true,
+        "GET": {
+          "enable_proxy": true,
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true
+        }
+      },
+      "/workout/getAvailableTimeSlots": {
+        "enable_cors": true,
+        "GET": {
+          "enable_proxy": true,
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true
+        }
+      },
+      "/workout/searchWorkout": {
+        "enable_cors": true,
+        "POST": {
+          "enable_proxy": true,
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true
+        }
+      },
+      "/workout/getAllWorkout": {
+        "enable_cors": true,
+        "GET": {
+          "enable_proxy": true,
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true
         }
       },
       "/coaches": {
@@ -95,6 +215,32 @@
           "api_key_required": false
         }
       }
+
+    },
+    "tags": {}
+  },
+  "my-user-pool": {
+    "resource_type": "cognito_idp",
+    "password_policy": {
+      "minimum_length": 8,
+      "require_uppercase": true,
+      "require_symbols": true,
+      "require_lowercase": true,
+      "require_numbers": true
+    },
+    "mfa_configuration": "OFF",
+    "auto_verified_attributes": ["email"],
+    "sms_configuration": {},
+    "username_attributes": [],
+    "custom_attributes": [],
+    "client": {
+      "client_name": "client-app",
+      "generate_secret": false,
+      "explicit_auth_flows": [
+        "ALLOW_USER_PASSWORD_AUTH",
+        "ALLOW_REFRESH_TOKEN_AUTH",
+        "ALLOW_ADMIN_USER_PASSWORD_AUTH"
+      ]
     },
     "tags": {}
   }
