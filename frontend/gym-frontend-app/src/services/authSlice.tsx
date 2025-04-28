@@ -5,7 +5,7 @@ import axios from 'axios';
 
 
 // API base URL - replace with your actual API endpoint
-const API_URL :string = import.meta.env.VITE_API_URL || "https://9t23wu6vi5.execute-api.ap-southeast-1.amazonaws.com/dev"
+const API_URL :string = import.meta.env.VITE_API_URL || "https://q2cuqtgs3l.execute-api.ap-southeast-1.amazonaws.com/dev"
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
@@ -160,16 +160,16 @@ export const updateUserProfile = createAsyncThunk(
       }
 
       // Prepare the update payload based on user role
-      const updatePayload: any = {
+      const updatePayload: Record<string, unknown> = {
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
       };
 
-      // Add role-specific fields
-      if (currentUser.role === 'client') {
+      // Add role-specific fields - handle case sensitivity
+      if (currentUser.role.toLowerCase() === 'client') {
         updatePayload.preferableActivity = updatedUser.preferableActivity;
         updatePayload.target = updatedUser.target;
-      } else if (currentUser.role === 'coach') {
+      } else if (currentUser.role.toLowerCase() === 'coach') {
         updatePayload.title = updatedUser.title;
         updatePayload.about = updatedUser.about;
         updatePayload.specializations = updatedUser.tags;
@@ -193,11 +193,13 @@ export const updateUserProfile = createAsyncThunk(
       persistAuthState(updatedUserData, true);
 
       return updatedUserData;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating user profile:", error);
       
       // Handle specific error messages from the API
-      if (error.response && error.response.data && error.response.data.message) {
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'data' in error.response &&
+          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
         return rejectWithValue(error.response.data.message);
       }
       
@@ -271,15 +273,27 @@ export const fetchUserProfile = createAsyncThunk(
 
       const response = await api.get(`/users/${currentUser.id}`);
       const userData = response.data;
+      
+      // Normalize role to lowercase for frontend consistency
+      if (userData.role) {
+        userData.role = userData.role.toLowerCase();
+      }
+      
+      // Map specializations to tags for coach role
+      if (userData.role === 'coach' && userData.specializations) {
+        userData.tags = userData.specializations;
+      }
 
       // Update local storage with fresh user data
       persistAuthState(userData, true);
 
       return userData;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching user profile:", error);
       
-      if (error.response && error.response.data && error.response.data.message) {
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'data' in error.response &&
+          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
         return rejectWithValue(error.response.data.message);
       }
       

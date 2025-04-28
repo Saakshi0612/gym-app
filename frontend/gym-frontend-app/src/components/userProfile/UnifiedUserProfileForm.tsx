@@ -173,16 +173,25 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
   const handleDrop = (files: FileList | null) => {
     if (!files) return;
-    const newCerts: Certificate[] = Array.from(files).map((file) => ({
-      name: file.name,
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      url: URL.createObjectURL(file),
-    }));
-
-    setFormState((prev) => ({
-      ...prev,
-      certificates: [...prev.certificates, ...newCerts],
-    }));
+    
+    // Convert each file to base64
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        const newCert: Certificate = {
+          name: file.name,
+          size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+          url: base64String
+        };
+        
+        setFormState(prev => ({
+          ...prev,
+          certificates: [...prev.certificates, newCert]
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleRemove = (index: number) => {
@@ -194,14 +203,18 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
   const handleProfilePhotoChange = (file: File | null) => {
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setFormState((prev) => ({
-        ...prev,
-        userData: prev.userData ? {
-          ...prev.userData,
-          avatarUrl: imageUrl
-        } : null
-      }));
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        setFormState((prev) => ({
+          ...prev,
+          userData: prev.userData ? {
+            ...prev.userData,
+            avatarUrl: base64String
+          } : null
+        }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 

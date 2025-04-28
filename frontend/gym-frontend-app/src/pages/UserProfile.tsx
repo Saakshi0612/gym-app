@@ -245,7 +245,7 @@ const DynamicUserProfile = () => {
       // Add role-specific fields
       if (user.role === 'client') {
         userData.preferableActivity = (profileData as ClientProfileData).preferableActivity;
-        userData.target = (profileData as ClientProfileData).targets;
+        userData.target = (profileData as ClientProfileData).target;
       } else if (user.role === 'coach') {
         userData.title = (profileData as CoachProfileData).title;
         userData.about = (profileData as CoachProfileData).about;
@@ -351,25 +351,6 @@ const DynamicUserProfile = () => {
       <main className="flex-1 px-4 md:px-8 pt-6 md:pt-8 pb-16 transition-all duration-300 ease-in-out">
         <div className="max-w-4xl mx-auto transition-opacity duration-300 ease-in-out">
           {tabContent}
-          {isDirty && (
-            <div className="fixed bottom-8 right-8 z-50">
-              <button
-                onClick={handleSave}
-                disabled={isLoading}
-                className="px-6 py-3 bg-primary-green text-white rounded-lg shadow-lg hover:bg-primary-green-dark transition-colors duration-200 flex items-center space-x-2"
-              >
-                {isLoading ? (
-                  <motion.div
-                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  />
-                ) : (
-                  <span>Save Changes</span>
-                )}
-              </button>
-            </div>
-          )}
         </div>
       </main>
       {error && (
