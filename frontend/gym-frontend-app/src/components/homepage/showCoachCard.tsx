@@ -20,7 +20,23 @@ interface CoachProps {
 	title: string;
 	about: string;
 	availableSlots: Slot[];
+	selectedTime: string;
+	selectedDate: Date;
 }
+
+const months = [
+	'January',
+	'February',
+	'March',
+	'April',
+	'May',
+	'June',
+	'August',
+	'October',
+	'September',
+	'November',
+	'December',
+];
 
 interface ShowCochesCardProps {
 	coach: CoachProps;
@@ -33,7 +49,13 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 }) => {
 	const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 	const { isAuthenticated } = useAppSelector((state) => state.auth);
+	const { filterWorkout } = useAppSelector((state) => state.workout);
 
+	const selectedDate = coach.selectedDate
+		? `${months[new Date(coach.selectedDate).getMonth()]}, ${new Date(coach.selectedDate).getDate()}`
+		: `${months[new Date().getMonth()]}, ${new Date().getDate()}`;
+
+	console.log('Show coach card Date', selectedDate);
 	const handleBookingClick = () => {
 		if (isAuthenticated) {
 			onBookingClick(coach);
@@ -89,22 +111,14 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 								<div className="flex items-center gap-2 text-sm mt-2">
 									<Clock className="w-5 h-5" />
 									<p>
-										<strong>Time: </strong>1hr,{' '}
-										{coach.availableSlots?.length > 0
-											? (coach.availableSlots[0].time?.split('-')[0]?.trim() ??
-												'N/A')
-											: 'N/A'}
+										<strong>Time: </strong>1hr {coach.selectedTime}
 									</p>
 								</div>
 
 								<div className="flex items-center gap-2 text-sm mt-2 ">
 									<Calendar className="w-5 h-5" />
 									<p>
-										<strong>Date:</strong>{' '}
-										{new Date().toLocaleDateString('en-US', {
-											month: 'long',
-											day: 'numeric',
-										})}
+										<strong>Date:</strong> {selectedDate}
 									</p>
 								</div>
 							</div>

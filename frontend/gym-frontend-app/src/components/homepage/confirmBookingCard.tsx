@@ -18,14 +18,18 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
 		rating,
 		specializations,
 		availableSlots,
+		selectedTime,
+		selectedDate,
 	} = coach;
 
-	const formattedDate = new Date().toLocaleDateString('en-GB', {
-		day: 'numeric',
-		month: 'long',
+	const formattedDate = new Date(selectedDate).toLocaleDateString('en-IN', {
+		month: 'long', // Full month name
+		day: 'numeric', // Day of the month
 	});
 
-	const selectedTime = availableSlots?.[0]?.time || 'N/A';
+	console.log('selected : ', selectedDate);
+
+	// const selectedTime = availableSlots?.[0]?.time || 'N/A';
 
 	const handleConfirm = () => {
 		console.log('Booking confirmed:', coach);
