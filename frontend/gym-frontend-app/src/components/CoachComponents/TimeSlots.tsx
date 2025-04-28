@@ -28,17 +28,16 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
       </div>
 
       {/* Time Slots */}
-      <div className="space-y-2">
+      <div className="space-y-2 max-h-80 overflow-y-auto pr-2 scrollbar-hide">
         {timeSlots.map((slot) => (
           <button
             key={slot.id}
             onClick={() => onTimeSlotSelect(slot)}
             disabled={!slot.isAvailable}
-            className={`w-full py-4 px-4 bg-[#f6ffe5] rounded-md text-center transition-colors text-sm
-              ${
-                selectedTimeSlotId === slot.id
-                  ? " border border-green-500 text-gray-800"
-                  : slot.isAvailable
+            className={`w-full py-4 px-4 bg-[#eef9db] rounded-md text-center transition-colors text-sm
+        ${selectedTimeSlotId === slot.id
+                ? " border border-green-500 text-gray-800"
+                : slot.isAvailable
                   ? " hover:bg-green-100 text-gray-800"
                   : "bg-gray-50 text-gray-400 cursor-not-allowed"
               }`}

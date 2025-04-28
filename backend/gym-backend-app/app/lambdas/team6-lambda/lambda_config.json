@@ -11,7 +11,7 @@
   "dependencies": [],
   "event_sources": [],
   "env_variables": {
-    "MONGO_URI":"${MONGO_URI}"
+    "MONGO_URI":"mongodb+srv://katukurishreya03:shreya7777@team6.tum9bqc.mongodb.net/?retryWrites=true&w=majority&appName=Team6"
   },
   "publish_version": true,
   "alias": "${lambdas_alias_name}",

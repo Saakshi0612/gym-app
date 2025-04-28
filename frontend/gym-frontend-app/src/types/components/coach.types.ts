@@ -130,3 +130,64 @@ export interface CalendarProps {
   onDateSelect: (date: Date) => void;
   onMonthChange: (date: Date) => void;
 }
+
+
+export interface CoachFromApi {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl: string; // optional
+  title: string;
+  about: string;
+  summary: string;
+  rating: number;
+  specializations: string[];
+  certificateUrls: string[];
+  createdAt: string;
+  updatedAt: string;
+  __v?: number; // optional
+}
+
+
+
+export interface BookedWorkout {
+  _id: string;
+  name: string;
+  activity: string;
+  date: string;
+  slot: string;
+  slotDetails: {
+    startTime: string;
+    endTime: string;
+  };
+}
+
+export interface BookedWorkoutsResponse {
+  success: boolean;
+  count: number;
+  bookings: BookedWorkout[];
+}
+
+// Define the structure for upcoming workouts response
+export interface UpcomingWorkout {
+  _id: string;
+  name: string;
+  description: string;
+  activity: string;
+  date: string;
+  slot: string;
+  state: string;
+  slotDetails: {
+    startTime: string;
+    endTime: string;
+  } | null;
+}
+
+export interface UpcomingWorkoutsResponse {
+  success: boolean;
+  count: number;
+  workouts: UpcomingWorkout[];
+}
+
+

@@ -2,6 +2,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { connectDB } from "./config/db";
 import { registerUser, loginUser } from "./controllers/authController";
+import { getAllCoaches, getCoachById, getBookedWorkouts, getCoachWorkouts } from "./controllers/CoachController";
 
 // Connect to MongoDB when the Lambda container initializes
 let isConnected = false;
@@ -16,13 +17,17 @@ const connectToDatabase = async () => {
 
 const routes: Record<
   string,
-(
+  (
     event: APIGatewayProxyEvent,
     headers: Record<string, string>
   ) => Promise<APIGatewayProxyResult>
 > = {
   "/auth/register": registerUser,
   "/auth/login": loginUser,
+  "/coaches": getAllCoaches,
+  "/coaches/{coachId}": getCoachById,
+  "/coaches/{coachId}/booked-workouts/{date}": getBookedWorkouts,
+  "/coaches/{coachId}/workouts": getCoachWorkouts,
 };
 
 // Main handler function
@@ -53,6 +58,30 @@ export const handler = async (
     // Route the request based on the path and method
     const path = event.path;
     const method = event.httpMethod;
+
+    const coachIdMatch = path.match(/^\/coaches\/([a-fA-F0-9]{24})$/);
+
+    if (method === "GET" && coachIdMatch) {
+      event.pathParameters = { coachId: coachIdMatch[1] };
+      return await getCoachById(event, headers);
+    }
+
+    const availableSlotsMatch = path.match(/^\/coaches\/([a-fA-F0-9]{24})\/booked-workouts\/([\d-]+)$/);
+    if (method === "GET" && availableSlotsMatch) {
+      event.pathParameters = {
+        coachId: availableSlotsMatch[1],
+        date: availableSlotsMatch[2],
+      };
+      return await getBookedWorkouts(event, headers);
+    }
+
+    const coachWorkoutsMatch = path.match(/^\/coaches\/([a-fA-F0-9]{24})\/workouts$/);
+    if (method === "GET" && coachWorkoutsMatch) {
+      event.pathParameters = {
+        coachId: coachWorkoutsMatch[1],
+      };
+      return await getCoachWorkouts(event, headers);
+    }
     console.log(path);
     console.log(method);
 

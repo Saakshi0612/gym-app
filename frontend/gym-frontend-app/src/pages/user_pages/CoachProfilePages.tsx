@@ -5,70 +5,177 @@ import CoachSidebar from '../../components/CoachComponents/CoachSideBar';
 import AvatarImg from '../../assets/images/Avatar.jpg';
 import CoachAvailabilityCalendar from '../../components/CoachComponents/CoachCalendar';
 import FeedbackSection from '../../components/FeedBack/FeedBack';
-import { TimeSlot } from '../../types/components/coach.types';
-import { Coach } from '../../types/components/coach.types';
-import ConfirmBookingCard from '../../components/homepage/confirmBookingCard';
+import { BookedWorkout, BookedWorkoutsResponse, CoachFromApi, TimeSlot, UpcomingWorkout, UpcomingWorkoutsResponse } from '../../types/components/coach.types';
 import LoginPromptModal from '../../components/homepage/isLoggedInCard';
 import { ChevronRightIcon } from 'lucide-react';
 import SystemAlert from '../../components/SystemAlert';
+import axios from 'axios';
+import ConfirmBook from '../../components/homepage/confirmBook';
 
-// Define the structure of the JSON file
-interface CoachesData {
-  coaches: Coach[];
-}
 
 const CoachProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [coach, setCoach] = useState<Coach | null>(null);
+  const [coach, setCoach] = useState<CoachFromApi | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Set default date to today
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  
+
   // Track if user has actively selected a date
   const [dateSelected, setDateSelected] = useState<boolean>(true);
-  
+
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [showConfirmCard, setShowConfirmCard] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState<'success' | 'error'>('success');
-  
+
   // Get authentication state from Redux
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  // State for available time slots
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState<boolean>(false);
+  
+  // State for upcoming workouts
+  const [upcomingWorkouts, setUpcomingWorkouts] = useState<UpcomingWorkout[]>([]);
+  const [upcomingWorkoutsLoading, setUpcomingWorkoutsLoading] = useState<boolean>(false);
+  
+  // Format date and time for display
+  const formatDateTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    return `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
+  };
+  
+  // Generate all time slots from 8 AM to 8 PM
+  const generateAllTimeSlots = (): TimeSlot[] => {
+    return Array.from({ length: 12 }, (_, index) => {
+      const startHour = 8 + index;
+      const endHour = startHour + 1;
+      return {
+        id: `${startHour}`,
+        startTime: `${startHour}:00`,
+        endTime: `${endHour}:00`,
+        isAvailable: true,
+      };
+    });
+  };
+
+  // Format date for API call (YYYY-MM-DD)
+  const formatDateForApi = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+  };
+
+  // Fetch booked slots for the selected date
+  const fetchBookedSlots = async (date: Date) => {
+    if (!id) return;
+    
+    setSlotsLoading(true);
+    
+    try {
+      const formattedDate = formatDateForApi(date);
+      const response = await axios.get<BookedWorkoutsResponse>(
+        `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}/booked-workouts/${formattedDate}`
+      );
+      
+      if (response.data.success) {
+        updateAvailableTimeSlots(response.data.bookings);
+      } else {
+        console.error("API returned error:", response.data);
+        setAvailableTimeSlots(generateAllTimeSlots());
+      }
+    } catch (err) {
+      console.error("Error fetching booked slots:", err);
+      setAvailableTimeSlots(generateAllTimeSlots());
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
+  // Fetch upcoming workouts for the coach
+  const fetchUpcomingWorkouts = async (coachId: string) => {
+    if (!coachId) return;
+    
+    setUpcomingWorkoutsLoading(true);
+    
+    try {
+      const response = await axios.get<UpcomingWorkoutsResponse>(
+        `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${coachId}/workouts`
+      );
+      
+      if (response.data.success) {
+        setUpcomingWorkouts(response.data.workouts);
+        console.log('Upcoming workouts:', response.data.workouts);
+      } else {
+        console.error("API returned error:", response.data);
+        setUpcomingWorkouts([]);
+      }
+    } catch (err) {
+      console.error("Error fetching upcoming workouts:", err);
+      setUpcomingWorkouts([]);
+    } finally {
+      setUpcomingWorkoutsLoading(false);
+    }
+  };
+
+  // Update available time slots based on booked slots
+  const updateAvailableTimeSlots = (bookedWorkouts: BookedWorkout[]) => {
+    // Start with all slots available
+    const allTimeSlots = generateAllTimeSlots();
+    
+    // Mark booked slots as unavailable
+    bookedWorkouts.forEach(booking => {
+      if (booking.slotDetails) {
+        const startTime = new Date(booking.slotDetails.startTime);
+        const hour = startTime.getHours();
+        
+        // Find the slot that matches this hour and mark it as unavailable
+        const slotIndex = allTimeSlots.findIndex(slot => 
+          parseInt(slot.id) === hour
+        );
+        
+        if (slotIndex !== -1) {
+          allTimeSlots[slotIndex].isAvailable = false;
+        }
+      }
+    });
+    
+    setAvailableTimeSlots(allTimeSlots);
+  };
 
   // Log authentication state for debugging
   useEffect(() => {
     console.log('Auth state in CoachProfilePage:', { isAuthenticated });
   }, [isAuthenticated]);
 
-  // Sample time slots data
-  const [availableTimeSlots] = useState<TimeSlot[]>([
-    { id: '1', startTime: '8:00', endTime: '9:00 AM', isAvailable: true },
-    { id: '2', startTime: '9:00', endTime: '10:00 AM', isAvailable: true },
-    { id: '3', startTime: '10:00', endTime: '11:00 AM', isAvailable: true },
-    { id: '4', startTime: '3:00', endTime: '4:00 PM', isAvailable: true },
-    { id: '5', startTime: '4:00', endTime: '5:00 PM', isAvailable: false },
-    { id: '6', startTime: '5:00', endTime: '6:00 PM', isAvailable: true }
-  ]);
+  // Initialize available time slots
+  useEffect(() => {
+    setAvailableTimeSlots(generateAllTimeSlots());
+  }, []);
 
+  // Fetch coach data and upcoming workouts
   useEffect(() => {
     const fetchCoachData = async () => {
       try {
-        const response = await import('../../assets/JSON/Coaches.json');
-        const coachesData: CoachesData = response.default;
+        setLoading(true);
 
-        const coachId = parseInt(id || '0', 10);
-        const foundCoach = coachesData.coaches.find(c => c.id === coachId);
+        const response = await fetch(`https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}`);
 
-        if (foundCoach) {
-          setCoach(foundCoach);
-        } else {
-          setError('Coach not found');
+        if (!response.ok) {
+          throw new Error('Failed to fetch coach data');
         }
+
+        const data: CoachFromApi = await response.json();
+        console.log('Fetched coach data:', data);
+
+        setCoach(data);
+        
+        // After fetching coach data, fetch booked slots for today
+        fetchBookedSlots(selectedDate);
+        
+        // Also fetch upcoming workouts
+        fetchUpcomingWorkouts(id as string);
       } catch (err) {
         setError('Failed to load coach data');
         console.error('Error fetching coach data:', err);
@@ -77,8 +184,18 @@ const CoachProfilePage: React.FC = () => {
       }
     };
 
-    fetchCoachData();
+    if (id) {
+      fetchCoachData();
+    }
   }, [id]);
+
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
+    setDateSelected(true); // Mark that user has selected a date
+    setSelectedTimeSlot(null); // Clear selected time slot when date changes
+    fetchBookedSlots(date); // Fetch booked slots for the new date
+    console.log(`Date changed to: ${date.toDateString()}`);
+  };
 
   const handleTimeSlotSelect = (timeSlot: TimeSlot) => {
     console.log(`Selected time slot: ${timeSlot.startTime} - ${timeSlot.endTime}`);
@@ -91,25 +208,25 @@ const CoachProfilePage: React.FC = () => {
       setAlertType('error');
       setAlertMessage("Please select a date for your workout.");
       setShowAlert(true);
-      
+
       setTimeout(() => {
         setShowAlert(false);
       }, 5000);
       return;
     }
-    
+
     // Check if user has selected a time slot
     if (!selectedTimeSlot) {
       setAlertType('error');
       setAlertMessage("Please select a time slot before booking.");
       setShowAlert(true);
-      
+
       setTimeout(() => {
         setShowAlert(false);
       }, 5000);
       return;
     }
-    
+
     // Check if user is authenticated
     if (isAuthenticated) {
       setShowConfirmCard(true);
@@ -121,25 +238,25 @@ const CoachProfilePage: React.FC = () => {
   const handleBookingConfirmed = () => {
     // Close the confirmation modal
     setShowConfirmCard(false);
-    
+
     // Show success alert
     setAlertType('success');
-    setAlertMessage(`Your workout with ${coach?.name_of_coach} has been booked successfully!`);
+    setAlertMessage(`Your workout with ${`${coach?.firstName} ${coach?.lastName}`} has been booked successfully!`);
     setShowAlert(true);
-    
+
     // Automatically hide the alert after 5 seconds
     setTimeout(() => {
       setShowAlert(false);
     }, 5000);
-  };
-
-  const upcomingWorkouts = [
-    {
-      type: "Yoga",
-      date: "July 9, 9:30",
-      duration: "1 hour"
+    
+    // Refresh the available time slots after booking
+    fetchBookedSlots(selectedDate);
+    
+    // Refresh upcoming workouts after booking
+    if (id) {
+      fetchUpcomingWorkouts(id);
     }
-  ];
+  };
 
   if (loading) {
     return (
@@ -161,17 +278,17 @@ const CoachProfilePage: React.FC = () => {
     <div className="p-4 min-h-screen bg-gray-50">
       {/* Alert Component */}
       {showAlert && (
-        <SystemAlert 
+        <SystemAlert
           type={alertType}
-          message={alertMessage} 
-          onDismiss={() => setShowAlert(false)} 
+          message={alertMessage}
+          onDismiss={() => setShowAlert(false)}
         />
       )}
-      
+
       <p className="flex items-center space-x-2 p-4">
         <span>Coaches</span>
         <ChevronRightIcon className="h-5 w-5 text-gray-500" />
-        <span className="text-gray-600">{coach.name_of_coach}</span>
+        <span className="text-gray-600">{`${coach.firstName} ${coach.lastName}`}</span>
       </p>
 
       <div className="max-w-7xl mx-auto">
@@ -181,22 +298,16 @@ const CoachProfilePage: React.FC = () => {
           <div className="lg:col-span-1">
             <div className="max-w-sm mx-auto md:max-w-md lg:max-w-full">
               <CoachSidebar
-                name_of_coach={coach.name_of_coach}
+                name_of_coach={`${coach.firstName} ${coach.lastName}`}
                 rating={coach.rating}
                 title={coach.title}
-                about={"I have 8 years of experience in the field, having studied various styles of yoga and completed rigorous training programs. I have taught diverse groups, from beginners to advanced practitioners, in both studio and private settings. I have regularly engaged in community events and wellness retreats, inspiring others on their yoga journeys."}
-                specializations={[coach.type_of_sport]}
-                certificates={[
-                  {
-                    name: "Mindfulness-Based Stress Reduction (MBSR) Certification.pdf",
-                    file: "/certificates/mbsr.pdf"
-                  },
-                  {
-                    name: "Integrative Yoga Therapy Certification.pdf",
-                    file: "/certificates/yoga-therapy.pdf"
-                  }
-                ]}
-                profileImage={coach.imageUrl || AvatarImg}
+                about={coach.about}
+                specializations={coach.specializations}
+                certificates={coach.certificateUrls.map((url) => ({
+                  name: url.split('/').pop() || 'Certificate',
+                  file: url,
+                }))}
+                profileImage={coach.profileImageUrl || AvatarImg}
                 onBookWorkout={handleBookWorkoutClick}
               />
             </div>
@@ -206,35 +317,48 @@ const CoachProfilePage: React.FC = () => {
           <div className="lg:col-span-3 space-y-6">
             {/* Calendar Section */}
             <div className="overflow-hidden">
-              <CoachAvailabilityCalendar
-                initialDate={selectedDate}
-                availableTimeSlots={availableTimeSlots}
-                onTimeSlotSelect={handleTimeSlotSelect}
-                onDateChange={(date) => {
-                  setSelectedDate(date);
-                  setDateSelected(true); // Mark that user has selected a date
-                  console.log(`Date changed to: ${date.toDateString()}`);
-                }}
-              />
+              {slotsLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              ) : (
+                <CoachAvailabilityCalendar
+                  initialDate={selectedDate}
+                  availableTimeSlots={availableTimeSlots}
+                  onTimeSlotSelect={handleTimeSlotSelect}
+                  onDateChange={handleDateChange}
+                />
+              )}
             </div>
 
             {/* Upcoming Workouts Section */}
             <div>
               <h2 className="text-lg font-medium uppercase mb-4">Upcoming Workouts</h2>
-              {upcomingWorkouts.map((workout, index) => (
-                <div key={index} className="flex justify-between items-center border-l-4 border-blue-400 bg-blue-50 p-3 rounded-r-md">
-                  <div>
-                    <h3 className="font-medium">{workout.type}</h3>
-                    <p className="text-sm text-gray-600">{workout.date}</p>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {workout.duration}
-                  </div>
+              {upcomingWorkoutsLoading ? (
+                <div className="flex justify-center items-center h-16">
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
-              ))}
+              ) : upcomingWorkouts.length > 0 ? (
+                upcomingWorkouts.map((workout) => (
+                  <div 
+                    key={workout._id} 
+                    className="flex justify-between items-center border-l-4 border-blue-400 bg-blue-50 p-3 rounded-r-md mb-2"
+                  >
+                    <div>
+                      <h3 className="font-medium">{workout.activity || workout.name}</h3>
+                      <p className="text-sm text-gray-600">{formatDateTime(workout.date)}</p>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {workout.slotDetails ? `${workout.slotDetails.startTime} - ${workout.slotDetails.endTime}` : '1 hour'}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 italic">No upcoming workouts scheduled</p>
+              )}
             </div>
 
             {/* Feedback Section */}
@@ -244,10 +368,10 @@ const CoachProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Confirmation Card Modal */}
       {showConfirmCard && selectedTimeSlot && (
-        <ConfirmBookingCard
+        <ConfirmBook
           coach={{
             ...coach,
             selectedTime: selectedTimeSlot.startTime,
@@ -257,7 +381,7 @@ const CoachProfilePage: React.FC = () => {
           onConfirm={handleBookingConfirmed}
         />
       )}
-      
+
       {/* Login Prompt Modal */}
       <LoginPromptModal
         isOpen={showLoginPrompt}

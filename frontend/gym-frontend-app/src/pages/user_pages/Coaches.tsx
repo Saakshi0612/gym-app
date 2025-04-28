@@ -2,15 +2,30 @@ import React, { useState, useEffect } from "react";
 import {  useNavigate } from "react-router-dom";
 import CoachCard from "../../components/CoachComponents/CoachCard";
 import coachesData from "../../assets/JSON/Coaches.json";
-import { Coach } from "../../types/components/coach.types";
+import { Coach, CoachFromApi } from "../../types/components/coach.types";
 import Button from "../../components/common/ButtonComponent";
 
 // API simulation
 const coachesApi = {
-  fetchCoaches: async (): Promise<Coach[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return coachesData.coaches;
-  },
+  fetchCoaches: async (): Promise<CoachFromApi[]> => {
+    try {
+      const response = await fetch("https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches");
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch coaches data");
+      }
+      
+      const data = await response.json();  // Only parse JSON once
+
+  
+      return data as CoachFromApi[];  // Ensure the response structure matches your data
+    } catch (error) {
+      console.error("Error fetching coaches data:", error);
+      return [];  // Return an empty array in case of failure
+    }
+  }
+,  
+  
 
   bookCoachWorkout: async (
     coachId: number
@@ -29,10 +44,11 @@ const coachesApi = {
 };
 
 const CoachesPage: React.FC = () => {
-  const [coaches, setCoaches] = useState<Coach[]>([]);
+  const [coaches, setCoaches] = useState<CoachFromApi[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate =useNavigate();
+  const navigate = useNavigate();
+
   useEffect(() => {
     const loadCoaches = async () => {
       try {
@@ -50,15 +66,9 @@ const CoachesPage: React.FC = () => {
     loadCoaches();
   }, []);
 
-  // const handleBookWorkout = async (coachId: number) => {
-  //   try {
-  //     const result = await coachesApi.bookCoachWorkout(coachId);
-  //     alert(result.message);
-  //   } catch (err) {
-  //     console.error("Error booking workout:", err);
-  //     alert("An error occurred while booking. Please try again.");
-  //   }
-  // };
+  const handleNavigate = (coachId: string) => {
+    navigate(`/coaches/${coachId}`);
+  };
 
   if (loading) {
     return (
@@ -67,10 +77,6 @@ const CoachesPage: React.FC = () => {
       </div>
     );
   }
-
-  const handleNavigate = (coachId: number) => {
-    navigate(`/coaches/${coachId}`);
-  };
 
   if (error) {
     return (
@@ -91,16 +97,16 @@ const CoachesPage: React.FC = () => {
     <div className="max-w-full px-4 py-6 bg-gray-50">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {coaches.map((coach) => (
-            <div className="h-full">
-              <CoachCard
-                name_of_coach={coach.name_of_coach}
-                rating={coach.rating}
-                title={coach.title}
-                description={coach.description}
-                imageUrl={coach.imageUrl}
-                onBookWorkout={()=>handleNavigate(coach.id)}
-              />
-            </div>
+          <div key={coach._id} className="h-full">
+            <CoachCard
+              name_of_coach={`${coach.firstName} ${coach.lastName}`}
+              rating={coach.rating}
+              title={coach.title}
+              description={coach.about}  
+              imageUrl={coach.profileImageUrl}
+              onBookWorkout={() => handleNavigate(coach._id)}
+            />
+          </div>
         ))}
       </div>
     </div>
