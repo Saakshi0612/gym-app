@@ -91,6 +91,16 @@
           "enable_proxy": true
         }
       },
+      "/users/{userId}/password": {
+        "enable_cors": true,
+        "PUT": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "team6-lambda",
+          "api_key_required": false,
+          "enable_proxy": true
+        }
+      },
       "/workout": {
         "enable_cors": true,
         "POST": {

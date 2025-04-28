@@ -5,7 +5,7 @@ import axios from 'axios';
 
 
 // API base URL - replace with your actual API endpoint
-const API_URL :string = import.meta.env.VITE_API_URL || "https://q2cuqtgs3l.execute-api.ap-southeast-1.amazonaws.com/dev"
+const API_URL :string = import.meta.env.VITE_API_URL || "https://z45liyzdtl.execute-api.ap-southeast-1.amazonaws.com/dev"
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
@@ -178,6 +178,8 @@ export const updateUserProfile = createAsyncThunk(
         if (updatedUser.certificates && updatedUser.certificates.length > 0) {
           updatePayload.base64encodedFiles = updatedUser.certificates.map(cert => cert.url);
         }
+      } else if (currentUser.role.toLowerCase() === 'admin') {
+        updatePayload.phoneNumber = updatedUser.phoneNumber;
       }
 
       // Handle profile image if it exists
@@ -219,42 +221,23 @@ export const updatePassword = createAsyncThunk(
         return rejectWithValue('No user is logged in.');
       }
 
-      // Find user in the local storage
-      const index = users.findIndex(user => user.email === currentUser.email);
-      
-      if (index === -1) {
-        return rejectWithValue('User not found.');
-      }
+      // Make API call to update password
+      const response = await api.put(`/users/${currentUser.id}/password`, {
+        oldPassword,
+        newPassword
+      });
 
-      // Verify old password
-      if (users[index].password !== oldPassword) {
-        return rejectWithValue('Current password is incorrect.');
-      }
-
-      // Check if new password is same as old password
-      if (oldPassword === newPassword) {
-        return rejectWithValue('New password must be different from current password.');
-      }
-
-      // Update password
-      users[index].password = newPassword;
-
-      // Update localStorage
-      try {
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-        const storedIndex = storedUsers.findIndex((u: StoredUser) => u.email === currentUser.email);
-        if (storedIndex !== -1) {
-          storedUsers[storedIndex].password = newPassword;
-          localStorage.setItem('users', JSON.stringify(storedUsers));
-        }
-      } catch (e) {
-        console.error('Error updating localStorage:', e);
-        return rejectWithValue('Failed to save password.');
-      }
-
-      return { message: 'Password updated successfully' };
-    } catch (error) {
+      return response.data;
+    } catch (error: unknown) {
       console.error("Error updating password:", error);
+      
+      // Handle specific error messages from the API
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'data' in error.response &&
+          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        return rejectWithValue(error.response.data.message);
+      }
+      
       return rejectWithValue('Failed to update password.');
     }
   }

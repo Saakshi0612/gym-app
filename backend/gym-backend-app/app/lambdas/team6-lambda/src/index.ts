@@ -5,7 +5,7 @@ import { CoachEmailModel } from "./models/coachemailModel";
 import { loginHandler, registerHandler } from "./handler/authHandler";
 import { addAdminEmail, addCoachEmail } from "./controllers/adminController";
 import { requireAdmin } from "./middleware/authMiddleware";
-import { getUserProfileHandler, updateUserProfileHandler } from "./handler/userHandler";
+import { getUserProfileHandler, updateUserProfileHandler, updateUserPasswordHandler } from "./handler/userHandler";
 import { DatabaseService } from "./services/database.service";
 import { workoutBookingHandler } from "./handler/workout-booking.handler";
 import { getBookingHandler } from "./handler/getWorkout.handler";
@@ -99,13 +99,19 @@ const routes = [
     path: "/users/{userId}",
     method: "GET",
     handler: getUserProfileHandler,
-    middleware: [] // No middleware for public profile viewing
+    middleware: [] // No middleware for getting user profile
   },
   {
     path: "/users/{userId}",
     method: "PUT",
     handler: updateUserProfileHandler,
-    middleware: [] // No middleware for profile updates
+    middleware: [] // No middleware for updating user profile
+  },
+  {
+    path: "/users/{userId}/password",
+    method: "PUT",
+    handler: updateUserPasswordHandler,
+    middleware: [] // No middleware for updating password
   }
 ];
 

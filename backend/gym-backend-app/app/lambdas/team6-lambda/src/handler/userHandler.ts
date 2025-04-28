@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { getUserById, updateUserById } from "../controllers/userController";
+import { getUserById, updateUserById, updateUserPassword } from "../controllers/userController";
 
 export const getUserProfileHandler = async (
   event: APIGatewayProxyEvent,
@@ -33,6 +33,25 @@ export const updateUserProfileHandler = async (
       headers,
       body: JSON.stringify({
         message: "Error updating user profile",
+        error: error instanceof Error ? error.message : String(error)
+      }),
+    };
+  }
+};
+
+export const updateUserPasswordHandler = async (
+  event: APIGatewayProxyEvent,
+  headers: Record<string, string>
+): Promise<APIGatewayProxyResult> => {
+  try {
+    return await updateUserPassword(event, headers);
+  } catch (error) {
+    console.error("Error in updateUserPasswordHandler:", error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        message: "Error updating user password",
         error: error instanceof Error ? error.message : String(error)
       }),
     };

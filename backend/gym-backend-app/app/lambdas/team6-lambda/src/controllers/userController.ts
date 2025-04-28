@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { UserModel, ClientModel, CoachModel } from "../models/userModel";
+import { UserModel, ClientModel, CoachModel, AdminModel } from "../models/userModel";
 import mongoose from 'mongoose';
 import { 
   uploadToS3, 
@@ -9,6 +9,7 @@ import {
 } from "../utils/s3Utils";
 import { v4 as uuidv4 } from 'uuid';
 import { IClient, ICoach } from "../types/db.types";
+import { comparePassword, hashPassword, validatePassword } from "../utils/passwordUtils";
 
 /**
  * Get user profile by ID
@@ -83,6 +84,11 @@ export const getUserById = async (
         title: coachUser.title || null,
         specializations: coachUser.specializations || [],
         fileUrls: coachUser.certificateUrls || [],
+      };
+    } else if (user.role === 'ADMIN') {
+      userResponse = {
+        ...userResponse,
+        phoneNumber: user.phoneNumber || null,
       };
     }
 
@@ -237,6 +243,16 @@ export const updateUserById = async (
       if (Object.keys(filteredCoachFields).length > 0) {
         await CoachModel.updateOne({ _id: userId }, { $set: filteredCoachFields });
       }
+    } else if (user.role === 'ADMIN') {
+      const adminUpdateFields = {
+        phoneNumber: updateData.phoneNumber,
+      };
+      const filteredAdminFields = Object.fromEntries(
+        Object.entries(adminUpdateFields).filter(([_, v]) => v !== undefined)
+      );
+      if (Object.keys(filteredAdminFields).length > 0) {
+        await AdminModel.updateOne({ _id: userId }, { $set: filteredAdminFields });
+      }
     }
 
     // Fetch the updated user to return in the response
@@ -279,6 +295,11 @@ export const updateUserById = async (
         specializations: coachUser.specializations || [],
         fileUrls: coachUser.certificateUrls || [],
       };
+    } else if (updatedUser.role === 'ADMIN') {
+      userResponse = {
+        ...userResponse,
+        phoneNumber: updatedUser.phoneNumber || null,
+      };
     }
 
     return {
@@ -292,6 +313,106 @@ export const updateUserById = async (
       statusCode: 500,
       headers,
       body: JSON.stringify({ message: "Error updating user profile" }),
+    };
+  }
+};
+
+/**
+ * Update user password
+ * Handles PUT /users/{userId}/password requests
+ */
+export const updateUserPassword = async (
+  event: APIGatewayProxyEvent,
+  headers: Record<string, string>
+): Promise<APIGatewayProxyResult> => {
+  try {
+    // Extract the userId from the path parameters
+    const userId = event.pathParameters?.userId;
+    console.log(`Updating password for user with ID: ${userId}`);
+
+    // Validate userId
+    if (!userId) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ message: "User ID is required" }),
+      };
+    }
+
+    // Check if userId is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ message: "Invalid user ID format" }),
+      };
+    }
+
+    // Parse request body
+    const body = event.body ? JSON.parse(event.body) : {};
+    const { oldPassword, newPassword } = body;
+
+    // Validate required fields
+    if (!oldPassword || !newPassword) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ message: "Old password and new password are required" }),
+      };
+    }
+
+    // Find the user by ID
+    const user = await UserModel.findById(userId);
+
+    // Check if user exists
+    if (!user) {
+      return {
+        statusCode: 404,
+        headers,
+        body: JSON.stringify({ message: "User not found" }),
+      };
+    }
+
+    // Verify old password
+    const isPasswordValid = await comparePassword(oldPassword, user.passwordHash);
+    if (!isPasswordValid) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ message: "Current password is incorrect" }),
+      };
+    }
+
+    // Validate new password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ message: passwordValidation.message }),
+      };
+    }
+
+    // Hash the new password
+    const newPasswordHash = await hashPassword(newPassword);
+
+    // Update the user's password
+    await UserModel.updateOne({ _id: userId }, { $set: { passwordHash: newPasswordHash } });
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ message: "Password updated successfully" }),
+    };
+  } catch (error) {
+    console.error("Error in updateUserPassword:", error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        message: "Error updating password",
+        error: error instanceof Error ? error.message : String(error)
+      }),
     };
   }
 };
