@@ -49,18 +49,29 @@ const CoachProfilePage: React.FC = () => {
   };
   
   // Generate all time slots from 8 AM to 8 PM
-  const generateAllTimeSlots = (): TimeSlot[] => {
-    return Array.from({ length: 12 }, (_, index) => {
-      const startHour = 8 + index;
-      const endHour = startHour + 1;
-      return {
-        id: `${startHour}`,
-        startTime: `${startHour}:00`,
-        endTime: `${endHour}:00`,
-        isAvailable: true,
-      };
-    });
-  };
+const generateAllTimeSlots = (): TimeSlot[] => {
+  return Array.from({ length: 12 }, (_, index) => {
+    const startHour = 8 + index;
+    const endHour = startHour + 1;
+    
+    // Format start time in 12-hour format
+    const startHour12 = startHour > 12 ? startHour - 12 : startHour;
+    const startPeriod = startHour >= 12 ? 'PM' : 'AM';
+    const formattedStartTime = `${startHour12}:00 ${startPeriod}`;
+    
+    // Format end time in 12-hour format
+    const endHour12 = endHour > 12 ? endHour - 12 : endHour;
+    const endPeriod = endHour >= 12 ? 'PM' : 'AM';
+    const formattedEndTime = `${endHour12}:00 ${endPeriod}`;
+    
+    return {
+      id: `${startHour}`,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
+      isAvailable: true,
+    };
+  });
+};
 
   // Format date for API call (YYYY-MM-DD)
   const formatDateForApi = (date: Date): string => {
@@ -78,6 +89,7 @@ const CoachProfilePage: React.FC = () => {
       const response = await axios.get<BookedWorkoutsResponse>(
         `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}/booked-workouts/${formattedDate}`
       );
+      console.log(response.data.bookings);
       
       if (response.data.success) {
         updateAvailableTimeSlots(response.data.bookings);
