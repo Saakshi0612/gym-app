@@ -1,8 +1,1 @@
 node_modules
-.syndicate
-.build
-dist
-*.zip
-.env
-.env.*
-!.env.example

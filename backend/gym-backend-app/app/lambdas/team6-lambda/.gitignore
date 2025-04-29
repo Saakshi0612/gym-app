@@ -1,9 +1,3 @@
 node_modules
 dist
 src/scripts/seedEmails.js
-.syndicate
-.build
-*.zip
-.env
-.env.*
-!.env.example
