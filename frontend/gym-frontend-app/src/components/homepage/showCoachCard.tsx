@@ -47,12 +47,23 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 	coach,
 	onBookingClick,
 }) => {
+	console.log(coach);
 	const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 	const { isAuthenticated } = useAppSelector((state) => state.auth);
 	const { filterWorkout } = useAppSelector((state) => state.workout);
 	const navigate = useNavigate();
 
-	const selectedDate = coach.selectedDate	
+	console.log('Selected timfe', coach);
+	let selectedTime;
+	if (coach.selectedTime) {
+		if (coach.selectedTime.label) {
+			selectedTime = coach.selectedTime.label;
+		} else if (coach.selectedTime.time) {
+			selectedTime = coach.selectedTime.time;
+		}
+	}
+
+	const selectedDate = coach.selectedDate
 		? `${months[new Date(coach.selectedDate).getMonth()]}, ${new Date(coach.selectedDate).getDate()}`
 		: `${months[new Date().getMonth()]}, ${new Date().getDate()}`;
 
@@ -111,7 +122,8 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 								<div className="flex items-center gap-2 text-sm mt-2">
 									<Clock className="w-5 h-5" />
 									<p>
-										<strong>Time: </strong>1hr {coach.selectedTime.time.split("-")[0]}
+										<strong>Time: </strong>1hr {selectedTime}
+										{/* {selectedTime} */}
 									</p>
 								</div>
 
@@ -171,7 +183,7 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 				<LoginPromptModal
 					isOpen={showLoginPrompt}
 					onCancel={() => setShowLoginPrompt(false)}
-					onLogin={()=> navigate("/login")}
+					onLogin={() => navigate('/login')}
 				/>
 			)}
 		</>
