@@ -13,6 +13,7 @@ import MainSection from "./components/homepage/Mainsection";
 import ScheduledWorkoutPage from "./components/workouts/scheduledWorkoutPage";
 import Header from "./components/common/Header";
 import DynamicUserProfile from "./pages/UserProfile";
+import axios from "axios";
 
 // Protected route component using Outlet
 const ProtectedRoute = () => {
@@ -26,6 +27,8 @@ function AppContent() {
     useEffect(() => {
       initializeAuth();
     }, []);
+
+   
 
   const location = useLocation();
   const hideHeaderRoutes = ["/login", "/register"];

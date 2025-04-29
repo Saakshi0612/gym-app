@@ -69,7 +69,7 @@ export default function ShowWorkouts({
 								key={coach._id}
 								coach={{
 									...coach,
-									selectedTime: time?.label || undefined,
+									selectedTime: time || coach.availableSlots[0],
 								}}
 								onBookingClick={handleBookingClick}
 							/>
@@ -80,7 +80,9 @@ export default function ShowWorkouts({
 
 			{selectedCoach && (
 				<ConfirmBookingCard
-					coach={selectedCoach} // selectedCoach includes the selectedTime now
+				coach={{
+					...selectedCoach,
+				}} // selectedCoach includes the selectedTime now
 					onClose={() => setSelectedCoach(null)}
 				/>
 			)}
