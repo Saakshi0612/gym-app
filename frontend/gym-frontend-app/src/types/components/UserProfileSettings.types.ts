@@ -118,15 +118,13 @@ export type CoachProfileData = BaseUserProfile & {
   certificates: Certificate[];
 };
 
-export interface ClientProfileData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  preferableActivity: PreferableActivity;
-  target: TargetGoal;
-  profileImage?: string;
-}
+export type ClientProfileData = BaseUserProfile & {
+  role: UserRole.CLIENT;
+  phoneNumber: string;
+  preferableActivity: string;
+  targets: string;
+  avatarUrl: string;
+};
 
 // Unified Mock Data Structure
 export type UserProfileMockData = {
