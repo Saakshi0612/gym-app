@@ -311,7 +311,6 @@ const initialState: AuthState = {
 };
 
 const authSlice = createSlice({
-<<<<<<< HEAD
 	name: 'auth',
 	initialState,
 	reducers: {
@@ -396,105 +395,6 @@ const authSlice = createSlice({
 				state.error = action.payload as string;
 			});
 	},
-=======
-  name: 'auth',
-  initialState,
-  reducers: {
-    login: (state, action: PayloadAction<User>) => {
-      state.isAuthenticated = true;
-      state.user = action.payload;
-      state.error = null;
-      // Persist the state
-      persistAuthState(action.payload, true);
-    },
-    logout: (state) => {
-      state.isAuthenticated = false;
-      state.user = null;
-      // Clear tokens and auth state from localStorage
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      persistAuthState(null, false);
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(loginUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload;
-        state.error = null;
-        // Persist the state
-        persistAuthState(action.payload, true);
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state) => {
-        state.isLoading = false;
-        // Don't set isAuthenticated to true after registration
-        // User should log in after registration
-        state.isAuthenticated = false;
-        state.user = null;
-        state.error = null;
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(updateUserProfile.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload;
-        state.error = null;
-        // Persist the updated user
-        persistAuthState(action.payload, true);
-      })
-      .addCase(updateUserProfile.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(updatePassword.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updatePassword.fulfilled, (state) => {
-        state.isLoading = false;
-        state.error = null;
-      })
-      .addCase(updatePassword.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(fetchUserProfile.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchUserProfile.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload;
-        state.isAuthenticated = true;
-      })
-      .addCase(fetchUserProfile.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
-  },
->>>>>>> aba950c0e73c7365786b8c25e131e9a530a6db95
 });
 
 // Create a function to check auth status on app load
