@@ -21,7 +21,7 @@ import DynamicSelect from "./DynamicSelect";
 import options from "../../assets/JSON/DropdownSelect.json";
 import { updateUserProfile } from "../../services/authSlice";
 import { User } from "../../types/auth.types";
-import { validateName } from '../../utils/validation';
+import { validateName, validatePhoneNumber } from '../../utils/validation';
 
 interface UnifiedUserProfileFormProps {
   role: UserRole;
@@ -445,10 +445,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
               id="phoneNumber"
               label="Phone Number"
               value={formState.phoneNumber}
-              placeholder="e.g. +1 234 567 8901"
+              placeholder="e.g. 1234567890"
               onChange={(val) =>
                 setFormState((prev) => ({ ...prev, phoneNumber: val }))
               }
+              validation={validatePhoneNumber}
             />
           </div>
         )}

@@ -10,6 +10,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { IClient, ICoach } from "../types/db.types";
 import { comparePassword, hashPassword, validatePassword } from "../utils/passwordUtils";
+import { validatePhoneNumber } from '../utils/validationUtils';
 
 /**
  * Get user profile by ID
@@ -244,6 +245,18 @@ export const updateUserById = async (
         await CoachModel.updateOne({ _id: userId }, { $set: filteredCoachFields });
       }
     } else if (user.role === 'ADMIN') {
+      // Validate phone number if it's being updated
+      if (updateData.phoneNumber !== undefined) {
+        const phoneValidation = validatePhoneNumber(updateData.phoneNumber);
+        if (!phoneValidation.isValid) {
+          return {
+            statusCode: 400,
+            headers,
+            body: JSON.stringify({ message: phoneValidation.message }),
+          };
+        }
+      }
+      
       const adminUpdateFields = {
         phoneNumber: updateData.phoneNumber,
       };
