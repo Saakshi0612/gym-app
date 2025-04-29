@@ -1,37 +1,41 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { WorkoutController } from "../controllers/workout.controller";
 
-export const workoutBookingHandler = 
+export const cancelWorkoutHandler = 
 async (event: APIGatewayProxyEvent, headers: Record<string, string>): Promise<APIGatewayProxyResult> => {
     try {
-        if (!event.body) {
+        // Get workout ID and client ID from query parameters
+        const query = event.queryStringParameters || {};
+        if(!query.id || !query.clientId){
             return {
                 statusCode: 400,
                 headers,
                 body: JSON.stringify({
-                    message: "Missing request body",
+                    message: "Missing workout id or client id",
                     status: "error"
                 })
             };
         }
-
-        const body = JSON.parse(event.body);
+        
         const controller = new WorkoutController();
-        const workoutBookingData = await controller.bookWorkout(body);
-        console.info(workoutBookingData);
+        const result = await controller.cancelWorkout({
+            id: query.id,
+            clientId: query.clientId
+        });
+        console.info("Workout cancelled:", result);
 
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                message: "Workout successfully booked",
-                data: workoutBookingData,
+                message: "Workout successfully cancelled",
+                data: result,
                 status: "success"
             })
         };
 
     } catch (error) {
-        console.error("Error in workoutBookingHandler:", error);
+        console.error("Error in cancelWorkoutHandler:", error);
         if(error.type === "RESPONSE"){
             return {
                 statusCode: error.statusCode,
