@@ -17,8 +17,15 @@
     "aws-jwt-verify": "^5.0.0",
     "aws-sdk": "^2.1692.0",
     "bcryptjs": "^3.0.2",
+<<<<<<< HEAD
     "mongoose": "^8.13.2",
     "zod": "^3.24.3"
+=======
+    "date-fns": "^4.1.0",
+    "zod": "^3.24.3",
+    "date-fns-tz": "^3.2.0",
+    "mongoose": "^8.14.0"
+>>>>>>> 6c0ef12b7ea1744470c39fb9597c3d75985fa614
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.149",

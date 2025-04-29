@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/store';
-import { fetchWorkoutData, filterWorkout } from '../../services/workoutSlice'; // 👈 import both thunks
+import { fetchWorkoutData, filterWorkout } from '../../services/workoutSlice';
 import Arrow from '../../assets/images/arrow.svg';
 import Underlined from '../../assets/images/fitnessg.svg';
 
@@ -10,7 +10,7 @@ import Button from '../common/ButtonComponent';
 import DatePickerField from '../common/DatePickerField';
 
 // Types
-type DropdownOption = {
+export type DropdownOption = {
 	value: string;
 	label: string;
 };
@@ -32,7 +32,12 @@ const MainSection: React.FC = () => {
 	});
 
 	const handleDateChange = (selectedDate: Date) => {
-		setFilters((prev) => ({ ...prev, date: selectedDate }));
+		console.log('New date selected:', selectedDate);
+		setFilters((prev) => {
+			const newFilters = { ...prev, date: selectedDate };
+			console.log('Updated filters:', newFilters);
+			return newFilters;
+		});
 	};
 
 	const [selectedSport, setSelectedSport] = useState<DropdownOption>({
@@ -82,12 +87,24 @@ const MainSection: React.FC = () => {
 	];
 
 	const handleFindWorkout = () => {
+		// Make sure we're using the most current date from state
+		console.log('Current date in state:', filters.date);
+
+		// Format the date as YYYY-MM-DD for the API
+		const formattedDate = filters.date
+			.toLocaleDateString('en-IN')
+			.split('/')
+			.reverse()
+			.join('-');
+
 		const payload = {
 			coach_id: selectedCoach.value === 'All' ? '' : selectedCoach.value,
 			sport_name: selectedSport.value === 'All' ? '' : selectedSport.value,
-			date: filters.date.toISOString(),
+			date: formattedDate,
 			time_slot: selectedTime.value === 'All' ? '' : selectedTime.value,
 		};
+
+		console.log('payload with formatted date:', payload);
 
 		dispatch(filterWorkout(payload)); // Dispatch the filtering action with the updated payload
 	};
@@ -181,7 +198,7 @@ const MainSection: React.FC = () => {
 						</div>
 					</div>
 
-					<ShowWorkouts />
+					<ShowWorkouts timeOptions={timeOptions} />
 				</div>
 			</main>
 		</div>
