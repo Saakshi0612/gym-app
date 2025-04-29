@@ -209,59 +209,65 @@ const DynamicUserProfile = () => {
 
   // Autosave effect with debounce
   useEffect(() => {
-    if (!isDirty || !profileData) return;
+    if (!isDirty || !profileData || isLoading) return;
 
     const timer = setTimeout(() => {
-      saveDraft(profileData);
-      setIsDirty(false);
+      // Only save draft if we're not currently saving
+      if (!isLoading) {
+        saveDraft(profileData);
+        setIsDirty(false);
+      }
     }, AUTOSAVE_DELAY);
 
     return () => clearTimeout(timer);
-  }, [isDirty, profileData, saveDraft, setIsDirty]);
+  }, [isDirty, profileData, saveDraft, setIsDirty, isLoading]);
 
   // Handle successful save
   const handleSuccessfulSave = useCallback(() => {
+    // Clear draft only after successful save
     localStorage.removeItem(PROFILE_STORAGE_KEY);
     setIsDirty(false);
-    setLastSaved(null);
-  }, [setIsDirty, setLastSaved]);
+    setLastSaved(new Date());
+    setInfo("Profile updated successfully");
+    setTimeout(() => setInfo(null), 3000);
+  }, [setIsDirty, setLastSaved, setInfo]);
 
   // Handle profile save
   const handleSave = useCallback(async () => {
-    if (!profileData || !user) return;
+    if (!profileData || !user || isLoading) return;
     
     try {
       setIsLoading(true);
       setError(null);
       
-      // Convert profile data to the format expected by the API
+      // Create base user data object that preserves ALL existing user data
       const userData = {
-        ...user,
+        ...user,  // Keep all existing user data as base
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         avatarUrl: profileData.avatarUrl,
+        role: user.role,  // Explicitly preserve the role
+        email: user.email, // Preserve email
+        rating: user.rating, // Preserve rating
+        phoneNumber: user.phoneNumber, // Preserve phone number if exists
       };
       
-      // Add role-specific fields
+      // Add role-specific fields based on user role
       if (user.role === 'client') {
-        userData.preferableActivity = (profileData as ClientProfileData).preferableActivity;
-        userData.target = (profileData as ClientProfileData).target;
+        userData.preferableActivity = (profileData as ClientProfileData).preferableActivity || user.preferableActivity;
+        userData.target = (profileData as ClientProfileData).target || user.target;
       } else if (user.role === 'coach') {
-        userData.title = (profileData as CoachProfileData).title;
-        userData.about = (profileData as CoachProfileData).about;
-        userData.tags = (profileData as CoachProfileData).tags;
-        userData.certificates = (profileData as CoachProfileData).certificates;
+        userData.title = (profileData as CoachProfileData).title || user.title;
+        userData.about = (profileData as CoachProfileData).about || user.about;
+        userData.tags = (profileData as CoachProfileData).tags || user.tags || [];
+        userData.certificates = (profileData as CoachProfileData).certificates || user.certificates || [];
+        userData.rating = user.rating || 0; // Ensure rating is preserved for coaches
       }
       
       // Dispatch the update action
       await dispatch(updateUserProfile(userData));
       
-      // Update last saved time
-      setLastSaved(new Date());
-      setInfo("Profile updated successfully");
-      setTimeout(() => setInfo(null), 3000);
-      
-      // Clear draft
+      // Handle successful save
       handleSuccessfulSave();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error saving profile';
@@ -269,7 +275,7 @@ const DynamicUserProfile = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [profileData, user, dispatch, handleSuccessfulSave, setIsLoading, setError, setInfo, setLastSaved]);
+  }, [profileData, user, isLoading, dispatch, handleSuccessfulSave]);
 
   // Handle tab changes with unsaved changes warning
   const handleTabChange = useCallback((newTab: SidebarTab) => {
