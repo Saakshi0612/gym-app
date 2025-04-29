@@ -37,7 +37,6 @@ const loadAuthState = (): { user: User | null; isAuthenticated: boolean } => {
 
 // Configure axios instance with interceptors
 const api = axios.create({
-	baseURL: API_URL,
 	headers: {
 		'Content-Type': 'application/json',
 	},
@@ -66,7 +65,7 @@ export const loginUser = createAsyncThunk(
 			localStorage.removeItem('accessToken');
 			localStorage.removeItem('refreshToken');
 
-			const response = await api.post(`/auth/login`, credentials);
+			const response = await api.post(`${API_URL}/auth/login`, credentials);
 
 			// Extract user data from response
 			const userData = response.data.user;
@@ -129,27 +128,50 @@ export const registerUser = createAsyncThunk(
 	'auth/register',
 	async (userData: RegisterData, { rejectWithValue }) => {
 		try {
+			// Log the raw form data to debug
+			console.log('Raw userData from form:', {
+				...userData,
+				password: '***REDACTED***',
+				confirmPassword: '***REDACTED***'
+			});
+
 			// Format the data according to your API requirements
 			const registerPayload = {
 				email: userData.email,
+				password: userData.password,
 				firstName: userData.firstName,
 				lastName: userData.lastName,
-				password: userData.password,
 				confirmPassword: userData.confirmPassword,
 				target: userData.targets,
-				activity: userData.preferableActivity
+				preferableActivity: userData.preferableActivity,
 			};
 
-			const response = await api.post(`/auth/register`, registerPayload);
+			console.log('Sending registration data:', {
+				...registerPayload,
+				password: '***REDACTED***',
+				confirmPassword: '***REDACTED***'
+			});
+
+			const response = await api.post(`${API_URL}/auth/register`, registerPayload);
+			
+			console.log('Registration response:', response.data);
 
 			return response.data.user;
 		} catch (error: unknown) {
 			console.error('Registration error:', error);
 
-			if (error && typeof error === 'object' && 'response' in error && 
-				error.response && typeof error.response === 'object' && 'data' in error.response &&
-				error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
-				return rejectWithValue(error.response.data.message);
+			// Handle specific error messages from the API
+			if (error && typeof error === 'object' && 'response' in error) {
+				const apiError = error as { response?: { data?: { errors?: string[]; message?: string } } };
+				if (apiError.response?.data) {
+					if (apiError.response.data.errors) {
+						// If there are multiple validation errors
+						return rejectWithValue(apiError.response.data.errors.join('\n'));
+					} else if (apiError.response.data.message) {
+						// If there's a single error message
+						return rejectWithValue(apiError.response.data.message);
+					}
+				}
 			}
 
 			return rejectWithValue('Registration failed. Please try again later.');
@@ -157,6 +179,7 @@ export const registerUser = createAsyncThunk(
 	}
 );
 
+// Keep the original updateUserProfile function
 export const updateUserProfile = createAsyncThunk(
 	'auth/updateProfile',
 	async (updatedUser: User, { getState, rejectWithValue }) => {
@@ -168,74 +191,25 @@ export const updateUserProfile = createAsyncThunk(
 				return rejectWithValue('No user is logged in.');
 			}
 
-      // Only include fields that should be updated
-      const updatePayload: Record<string, unknown> = {
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        role: currentUser.role,  // Preserve role
-      };
+			// Only include fields that should be updated
+			const updatePayload: Record<string, unknown> = {
+				firstName: updatedUser.firstName,
+				lastName: updatedUser.lastName,
+				avatarUrl: updatedUser.avatarUrl,
+			};
 
-      // Add role-specific fields based on current role
-      if (currentUser.role.toLowerCase() === 'client') {
-        if (updatedUser.preferableActivity !== undefined) {
-          updatePayload.preferableActivity = updatedUser.preferableActivity;
-        }
-        if (updatedUser.target !== undefined) {
-          updatePayload.target = updatedUser.target;
-        }
-      } else if (currentUser.role.toLowerCase() === 'coach') {
-        if (updatedUser.title !== undefined) {
-          updatePayload.title = updatedUser.title;
-        }
-        if (updatedUser.about !== undefined) {
-          updatePayload.about = updatedUser.about;
-        }
-        
-        // Handle tags/specializations
-        if (updatedUser.tags && Array.isArray(updatedUser.tags)) {
-          updatePayload.specializations = updatedUser.tags;
-        }
-        
-        // Handle certificates
-        if (updatedUser.certificates && updatedUser.certificates.length > 0) {
-          updatePayload.base64encodedFiles = updatedUser.certificates.map(cert => cert.url);
-        }
-      } else if (currentUser.role.toLowerCase() === 'admin') {
-        if (updatedUser.phoneNumber !== undefined) {
-          updatePayload.phoneNumber = updatedUser.phoneNumber;
-        }
-      }
-
-      // Handle profile image if changed
-      if (updatedUser.avatarUrl && updatedUser.avatarUrl !== currentUser.avatarUrl) {
-        updatePayload.base64encodedImage = updatedUser.avatarUrl;
-      }
-
-      // Make API call to update profile
-      const response = await api.put(`/users/${currentUser.id}`, updatePayload);
-      
-      // Process the response data
-      const updatedUserData = {
-        ...response.data,
-        role: currentUser.role, // Ensure role is preserved
-      };
-      
-      // Map specializations to tags for coach role
-      if (updatedUserData.role === 'coach' && updatedUserData.specializations) {
-        updatedUserData.tags = updatedUserData.specializations;
-      }
-      
-      persistAuthState(updatedUserData, true);
-      return updatedUserData;
-		} catch (error: unknown) {
-			console.error("Error updating user profile:", error);
+			// Make API call to update profile
+			const response = await api.put(`${API_URL}/users/${currentUser.id}`, updatePayload);
 			
-			if (error && typeof error === 'object' && 'response' in error && 
-				error.response && typeof error.response === 'object' && 'data' in error.response &&
-				error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
-				return rejectWithValue(error.response.data.message);
-			}
+			// Process the response data
+			const updatedUserData = response.data;
 			
+			// Update the stored user data
+			persistAuthState(updatedUserData, true);
+			
+			return updatedUserData;
+		} catch (error) {
+			console.error('Error updating profile:', error);
 			return rejectWithValue('Failed to update profile.');
 		}
 	}
@@ -255,89 +229,86 @@ export const updatePassword = createAsyncThunk(
 				return rejectWithValue('No user is logged in.');
 			}
 
-      // Make API call to update password
-      const response = await api.put(`/users/${currentUser.id}/password`, {
-        oldPassword,
-        newPassword
-      });
+			// Make API call to update password
+			const response = await api.put(`${API_URL}/users/${currentUser.id}/password`, {
+				oldPassword,
+				newPassword,
+			});
 
-      return response.data;
-    } catch (error: unknown) {
-      console.error("Error updating password:", error);
-      
-      if (error && typeof error === 'object' && 'response' in error && 
-          error.response && typeof error.response === 'object' && 'data' in error.response &&
-          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
-        return rejectWithValue(error.response.data.message);
-      }
-      
-      return rejectWithValue('Failed to update password.');
-    }
-  }
+			return response.data;
+		} catch (error: unknown) {
+			console.error("Error updating password:", error);
+			
+			if (error && typeof error === 'object' && 'response' in error && 
+				error.response && typeof error.response === 'object' && 'data' in error.response &&
+				error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+				return rejectWithValue(error.response.data.message);
+			}
+			
+			return rejectWithValue('Failed to update password.');
+		}
+	}
 );
 
+// Fetch user profile
 export const fetchUserProfile = createAsyncThunk(
-  'auth/fetchProfile',
-  async (_, { getState, rejectWithValue }) => {
-    try {
-      const state = getState() as { auth: AuthState };
-      const currentUser = state.auth.user;
+	'auth/fetchUserProfile',
+	async (_, { getState, rejectWithValue }) => {
+		try {
+			const state = getState() as { auth: AuthState };
+			const currentUser = state.auth.user;
 
-      if (!currentUser || !currentUser.id) {
-        return rejectWithValue('No user is logged in.');
-      }
+			if (!currentUser) {
+				return rejectWithValue('No user found');
+			}
 
-      const response = await api.get(`/users/${currentUser.id}`);
-      const userData = response.data;
-      
-      // Normalize role to lowercase for frontend consistency
-      if (userData.role) {
-        userData.role = userData.role.toLowerCase();
-      }
-      
-      // Handle specializations and tags for coach role
-      if (userData.role === 'coach') {
-        // Map specializations to tags and preserve existing tags
-        if (userData.specializations && Array.isArray(userData.specializations)) {
-          userData.tags = [...userData.specializations];
-        } else if (!userData.tags && currentUser.tags) {
-          // If no new tags but we have existing ones, preserve them
-          userData.tags = [...currentUser.tags];
-        } else if (!userData.tags) {
-          userData.tags = [];
-        }
-        
-        // Handle certificates while preserving existing ones
-        if (userData.fileUrls && Array.isArray(userData.fileUrls)) {
-          userData.certificates = userData.fileUrls.map((url: string, index: number) => ({
-            name: `Certificate ${index + 1}`,
-            size: 'Unknown',
-            url: url
-          }));
-        } else if (!userData.certificates && currentUser.certificates) {
-          // If no new certificates but we have existing ones, preserve them
-          userData.certificates = [...currentUser.certificates];
-        } else if (!userData.certificates) {
-          userData.certificates = [];
-        }
-      }
-
-      // Update local storage with fresh user data
-      persistAuthState(userData, true);
-
-      return userData;
-    } catch (error: unknown) {
-      console.error("Error fetching user profile:", error);
-      
-      if (error && typeof error === 'object' && 'response' in error && 
-          error.response && typeof error.response === 'object' && 'data' in error.response &&
-          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
-        return rejectWithValue(error.response.data.message);
-      }
-      
-      return rejectWithValue('Failed to fetch user profile.');
-    }
-  }
+			const response = await api.get(`${API_URL}/users/${currentUser.id}`);
+			const userData = response.data;
+			
+			// Normalize role to lowercase for frontend consistency
+			if (userData.role) {
+				userData.role = userData.role.toLowerCase();
+			}
+			
+			// Handle specializations and tags for coach role
+			if (userData.role === 'coach') {
+				// Map specializations to tags and preserve existing tags
+				if (userData.specializations && Array.isArray(userData.specializations)) {
+					userData.tags = [...userData.specializations];
+				} else if (!userData.tags && currentUser.tags) {
+					// If no new tags but we have existing ones, preserve them
+					userData.tags = [...currentUser.tags];
+				} else if (!userData.tags) {
+					userData.tags = [];
+				}
+				
+				// Handle certificates while preserving existing ones
+				if (userData.fileUrls && Array.isArray(userData.fileUrls)) {
+					userData.certificates = userData.fileUrls.map((url: string, index: number) => ({
+						name: `Certificate ${index + 1}`,
+						size: 'Unknown',
+						url: url
+					}));
+				} else if (!userData.certificates && currentUser.certificates) {
+					// If no new certificates but we have existing ones, preserve them
+					userData.certificates = [...currentUser.certificates];
+				} else if (!userData.certificates) {
+					userData.certificates = [];
+				}
+			}
+			
+			return userData;
+		} catch (error: unknown) {
+			console.error('Error fetching user profile:', error);
+			if (error && typeof error === 'object' && 'response' in error) {
+				const apiError = error as { response?: { data?: { message?: string } } };
+				if (apiError.response?.data?.message) {
+					return rejectWithValue(apiError.response.data.message);
+				}
+			}
+			return rejectWithValue('Failed to fetch user profile');
+		}
+	}
 );
 
 // Load initial state from localStorage

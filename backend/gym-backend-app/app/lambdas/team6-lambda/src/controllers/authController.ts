@@ -1,9 +1,38 @@
 // src/controllers/authController.ts
 import { UserModel, ClientModel, CoachModel, AdminModel } from "../models/userModel";
 import { AdminEmailModel } from "../models/adminEmailModel";
-import { CoachEmailModel } from "../models/coachEmailModel";
+import { CoachEmailModel } from "../models/coachemailModel";
 import { authenticateUser, registerUserInCognito } from "../services/cognitoService";
 import { comparePassword, hashPassword, validatePassword } from "../utils/passwordUtils";
+
+// Add these interfaces at the top of the file, after the imports
+interface BaseUserResponse {
+  id: any;
+  email: any;
+  firstName: any;
+  lastName: any;
+  role: any;
+  cognitoId?: string;
+}
+
+interface AdminUserResponse extends BaseUserResponse {
+  role: 'ADMIN';
+}
+
+interface CoachUserResponse extends BaseUserResponse {
+  role: 'COACH';
+  title: any;
+  about: any;
+  rating: any;
+}
+
+interface ClientUserResponse extends BaseUserResponse {
+  role: 'CLIENT';
+  preferableActivity: any;
+  target: any;
+}
+
+type UserResponse = AdminUserResponse | CoachUserResponse | ClientUserResponse;
 
 // Helper function to parse request body
 export const parseBody = (body: string | null) => {
@@ -24,6 +53,7 @@ export const register = async (
   activity?: string
 ) => {
   console.log(`Registration attempt for email: ${email}`);
+  console.log(`With target: ${target} and activity: ${activity}`);
 
   // Validate required fields
   if (!email || !firstName || !lastName || !password || !confirmPassword) {
@@ -109,7 +139,7 @@ export const register = async (
   console.log(`Database check results - isAdmin: ${!!isAdmin}, isCoach: ${!!isCoach}`);
 
   let newUser;
-  let userResponse;
+  let userResponse: UserResponse;
   let userRole = "CLIENT"; // Default role
 
   // Create user based on role (admin, coach, or client)
@@ -159,8 +189,10 @@ export const register = async (
     };
   } else {
     console.log(`Creating CLIENT user for email: ${email}`);
-    userRole = "CLIENT";
-    newUser = await ClientModel.create({
+    console.log(`Setting preferableActivity to: ${activity}`);
+    
+    // Create client user with explicit preferableActivity and target
+    const clientData = {
       email,
       firstName,
       lastName,
@@ -168,7 +200,13 @@ export const register = async (
       role: userRole,
       preferableActivity: activity || "",
       target: target || ""
-    });
+    };
+    
+    console.log("Client data to be saved:", clientData);
+    
+    newUser = await ClientModel.create(clientData);
+    
+    console.log("Saved client user:", newUser);
 
     userResponse = {
       id: newUser._id,
@@ -182,6 +220,7 @@ export const register = async (
   }
 
   console.log(`User created successfully with role: ${newUser.role}`);
+  console.log("User response object:", userResponse);
 
   // Register user in Cognito
   try {

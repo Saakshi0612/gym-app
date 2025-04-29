@@ -1,18 +1,71 @@
+import { useState } from "react";
 import { X } from "lucide-react";
 import Button from "../common/ButtonComponent";
+import axios from "axios";
 
 interface CancelWorkoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCancel: () => void;
+  workoutId?: string | number; // Make this optional to match your existing component
 }
 
 export default function CancelWorkoutModal({
   isOpen,
   onClose,
   onCancel,
+  workoutId, // This might be undefined in your existing usage
 }: CancelWorkoutModalProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   if (!isOpen) return null;
+
+  const handleCancelWorkout = async () => {
+    // If no workout ID, just call the onCancel function (for backward compatibility)
+    if (!workoutId) {
+      onCancel();
+      onClose();
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      // Call the API to delete/cancel the workout
+      await axios({
+        method: 'delete',
+        url: `https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${workoutId}`,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event('workoutCancelled'));
+      
+      // Call the original onCancel function
+      onCancel();
+      onClose();
+    } catch (error) {
+      console.error('Error canceling workout:', error);
+      
+      let errorMessage = 'Failed to cancel workout. Please try again.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
@@ -21,6 +74,7 @@ export default function CancelWorkoutModal({
         <button
           className="absolute top-4 right-4 text-gray-500 hover:text-black"
           onClick={onClose}
+          disabled={isLoading}
         >
           <X size={20} />
         </button>
@@ -30,9 +84,16 @@ export default function CancelWorkoutModal({
           Cancel Workout
         </h2>
 
+        {/* Error message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Description */}
         <p className="text-sm text-gray-700 mb-6 text-justify">
-          You’re about to mark this workout as canceled. Are you sure you want
+          You're about to mark this workout as canceled. Are you sure you want
           to cancel this session? Any progress or data from this workout will
           not be saved.
         </p>
@@ -43,15 +104,17 @@ export default function CancelWorkoutModal({
             variant="secondary"
             className="rounded-md px-4 py-2 text-sm"
             onClick={onClose}
+            disabled={isLoading}
           >
             Resume Workout
           </Button>
           <Button
             variant="primary"
             className="rounded-md px-4 py-2 text-sm"
-            onClick={onCancel}
+            onClick={handleCancelWorkout}
+            disabled={isLoading}
           >
-            Cancel Workout
+            {isLoading ? "Cancelling..." : "Cancel Workout"}
           </Button>
         </div>
       </div>

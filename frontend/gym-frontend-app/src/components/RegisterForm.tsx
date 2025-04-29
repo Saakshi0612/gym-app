@@ -12,6 +12,7 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import AuthLayout from "./auth/authLayout";
 import AuthFooter from "./auth/AuthFooter";
 import FieldWrapper from "./common/FieldWrapper";
+
 const TARGET_OPTIONS = [
   { value: "lose-weight", label: "Lose Weight" },
   { value: "gain-weight", label: "Gain Weight" },
@@ -27,9 +28,8 @@ const ACTIVITY_OPTIONS = [
   { value: "strength-training", label: "Strength Training" },
   { value: "crossfit", label: "CrossFit" },
   { value: "cardio-training", label: "Cardio Training" },
-  { value: "rehabilitation", label: "Rehabilitation" }, // Fixed capitalization
+  { value: "rehabilitation", label: "Rehabilitation" },
 ];
-
 
 const RegistrationForm: React.FC = () => {
   const {
@@ -40,6 +40,7 @@ const RegistrationForm: React.FC = () => {
     trigger,
     watch,
     reset,
+    getValues,
   } = useForm<RegistrationFormData>({
     mode: "onTouched",
     defaultValues: {
@@ -58,8 +59,15 @@ const RegistrationForm: React.FC = () => {
   const targets = watch("targets");
   const preferableActivity = watch("preferableActivity");
 
-
-
+  // Ensure default values are set
+  useEffect(() => {
+    if (!targets) {
+      setValue("targets", "lose-weight");
+    }
+    if (!preferableActivity) {
+      setValue("preferableActivity", "yoga");
+    }
+  }, [setValue, targets, preferableActivity]);
 
   const onSubmit: SubmitHandler<RegistrationFormData> = async (data) => {
     const isTargetValid = await trigger("targets");
@@ -67,7 +75,31 @@ const RegistrationForm: React.FC = () => {
 
     if (!isTargetValid || !isActivityValid) return;
 
-    const resultAction = await dispatch(registerUser(data));
+    // Log the form data to see what we're working with
+    console.log("Form data before submission:", {
+      ...data,
+      password: "***REDACTED***",
+      confirmPassword: "***REDACTED***"
+    });
+
+    // Make sure we have the latest values
+    const currentTargets = getValues("targets") || "lose-weight";
+    const currentActivity = getValues("preferableActivity") || "yoga";
+
+    // Create the payload with the correct values
+    const payload = {
+      ...data,
+      targets: currentTargets,
+      preferableActivity: currentActivity,
+    };
+
+    console.log("Payload for registration:", {
+      ...payload,
+      password: "***REDACTED***",
+      confirmPassword: "***REDACTED***"
+    });
+
+    const resultAction = await dispatch(registerUser(payload));
     if (registerUser.fulfilled.match(resultAction)) {
       setShowSuccessAlert(true);
       reset();
@@ -112,6 +144,7 @@ const RegistrationForm: React.FC = () => {
       {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
     </div>
   );
+
   return (
     <AuthLayout
       sidebar={<QuoteSidebar />}
@@ -309,8 +342,9 @@ const RegistrationForm: React.FC = () => {
         label="Your Target"
         name="targets"
         options={TARGET_OPTIONS}
-        value={targets}
+        value={targets || "lose-weight"} // Ensure a default value
         onChange={(val) => {
+          console.log('Target changed to:', val);
           setValue("targets", val, { shouldValidate: true });
           trigger("targets");
         }}
@@ -323,8 +357,9 @@ const RegistrationForm: React.FC = () => {
         label="Preferable Activity"
         name="preferableActivity"
         options={ACTIVITY_OPTIONS}
-        value={preferableActivity}
+        value={preferableActivity || "yoga"} // Ensure a default value
         onChange={(val) => {
+          console.log('Activity changed to:', val);
           setValue("preferableActivity", val, { shouldValidate: true });
           trigger("preferableActivity");
         }}

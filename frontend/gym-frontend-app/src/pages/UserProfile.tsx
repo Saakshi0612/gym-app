@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, memo, lazy, Suspense } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { UserRole } from "../types/components/UserProfileSettings.types";
 import { SidebarTab } from "../types/components/sidebar.types";
@@ -7,8 +7,6 @@ import Sidebar from '../components/userProfile/Sidebar';
 import { AdminProfileData, CoachProfileData, ClientProfileData } from "../types/components/UserProfileSettings.types";
 import SuccessAlert from '../components/userProfile/shared/SuccessAlert';
 import { motion } from "framer-motion";
-import { fetchUserProfile, updateUserProfile } from "../services/authSlice";
-import { AppDispatch } from "../store/store";
 
 // Lazy load components that aren't immediately needed
 const UnifiedUserProfileForm = lazy(() => import('../components/userProfile/UnifiedUserProfileForm'));
@@ -73,7 +71,6 @@ const DynamicUserProfile = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const dispatch = useDispatch<AppDispatch>();
 
   // Load saved draft from localStorage
   const loadSavedDraft = useCallback(() => {
@@ -166,35 +163,24 @@ const DynamicUserProfile = () => {
 
   // Initialize profile data
   useEffect(() => {
-    const initializeProfile = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        // First, fetch fresh profile data from the server
-        await dispatch(fetchUserProfile());
-        
-        // After getting fresh data, check if there's a draft
-        const hasDraft = loadSavedDraft();
-        if (!hasDraft) {
-          // Only generate new profile data if there's no draft
-          const newProfileData = generateProfileData();
-          if (newProfileData) {
-            setProfileData(newProfileData);
-          }
-        }
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Error loading profile data';
-        setError(errorMessage);
-        // Clear any stale drafts on error
-        localStorage.removeItem(PROFILE_STORAGE_KEY);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
+    setError(null);
 
-    initializeProfile();
-  }, [dispatch, generateProfileData, loadSavedDraft]);
+    try {
+      const hasDraft = loadSavedDraft();
+      if (!hasDraft) {
+        const newProfileData = generateProfileData();
+        if (newProfileData) {
+          setProfileData(newProfileData);
+        }
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error loading profile data';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [generateProfileData, loadSavedDraft, setError, setIsLoading]);
 
   // Handle profile data changes
   const handleProfileChange = useCallback((newData: AdminProfileData | CoachProfileData | ClientProfileData) => {
@@ -217,7 +203,7 @@ const DynamicUserProfile = () => {
     return () => clearTimeout(timer);
   }, [isDirty, profileData, saveDraft, setIsDirty, isLoading]);
 
-  // Handle successful save
+  // Clear draft on successful save
   const handleSuccessfulSave = useCallback(() => {
     // Clear draft only after successful save
     localStorage.removeItem(PROFILE_STORAGE_KEY);
@@ -226,51 +212,6 @@ const DynamicUserProfile = () => {
     setInfo("Profile updated successfully");
     setTimeout(() => setInfo(null), 3000);
   }, [setIsDirty, setLastSaved, setInfo]);
-
-  // Handle profile save
-  const handleSave = useCallback(async () => {
-    if (!profileData || !user || isLoading) return;
-    
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Create base user data object that preserves ALL existing user data
-      const userData = {
-        ...user,  // Keep all existing user data as base
-        firstName: profileData.firstName,
-        lastName: profileData.lastName,
-        avatarUrl: profileData.avatarUrl,
-        role: user.role,  // Explicitly preserve the role
-        email: user.email, // Preserve email
-        rating: user.rating, // Preserve rating
-        phoneNumber: user.phoneNumber, // Preserve phone number if exists
-      };
-      
-      // Add role-specific fields based on user role
-      if (user.role === 'client') {
-        userData.preferableActivity = (profileData as ClientProfileData).preferableActivity || user.preferableActivity;
-        userData.target = (profileData as ClientProfileData).target || user.target;
-      } else if (user.role === 'coach') {
-        userData.title = (profileData as CoachProfileData).title || user.title;
-        userData.about = (profileData as CoachProfileData).about || user.about;
-        userData.tags = (profileData as CoachProfileData).tags || user.tags || [];
-        userData.certificates = (profileData as CoachProfileData).certificates || user.certificates || [];
-        userData.rating = user.rating || 0; // Ensure rating is preserved for coaches
-      }
-      
-      // Dispatch the update action
-      await dispatch(updateUserProfile(userData));
-      
-      // Handle successful save
-      handleSuccessfulSave();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error saving profile';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [profileData, user, isLoading, dispatch, handleSuccessfulSave]);
 
   // Handle tab changes with unsaved changes warning
   const handleTabChange = useCallback((newTab: SidebarTab) => {
@@ -321,7 +262,7 @@ const DynamicUserProfile = () => {
       default:
         return null;
     }
-  }, [activeTab, profileData, user, isLoading, error, handleProfileChange, handleSave, handleSuccessfulSave, lastSaved]);
+  }, [activeTab, profileData, user, isLoading, error, handleProfileChange, handleSuccessfulSave, lastSaved]);
 
   // Memoize sidebar props
   const sidebarProps = useMemo(() => ({

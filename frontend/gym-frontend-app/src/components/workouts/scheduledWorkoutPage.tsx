@@ -1,26 +1,240 @@
 import { useEffect, useState } from "react";
-
 import ScheduledWorkoutCard from "./scheduleWorkoutCard";
 import axios from "axios";
-export default function ScheduledWorkoutPage() {
-  const [workout, setWorkout] = useState([]);
+import { useAppSelector } from "../../store/store";
 
-  useEffect(() => {
-    async function getWorkoutData() {
-      try {
-        const { workouts } = (await axios.get("./workout.json")).data;
-        setWorkout(workouts);
-        console.log(workouts);
-      } catch (error) {
-        console.log(error);
+export default function ScheduledWorkoutPage() {
+  const [workouts, setWorkouts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const auth = useAppSelector((state) => state.auth);
+  const userId = auth.user?.id;
+
+  // Function to format time from ISO string to readable format
+  const formatTimeFromISO = (isoTimeString) => {
+    if (!isoTimeString) return 'N/A';
+    
+    try {
+      // Check if it's a range with a hyphen
+      if (isoTimeString.includes('-')) {
+        const [startISO, endISO] = isoTimeString.split('-').map(str => str.trim());
+        
+        const startTime = new Date(startISO);
+        const endTime = new Date(endISO);
+        
+        const startFormatted = startTime.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+        
+        const endFormatted = endTime.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+        
+        return `${startFormatted} - ${endFormatted}`;
+      } else {
+        // Single time
+        const time = new Date(isoTimeString);
+        return time.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
       }
+    } catch (e) {
+      console.error("Error formatting time:", e);
+      return isoTimeString; // Return the original string if parsing fails
     }
-    getWorkoutData();
-  }, []);
+  };
+
+  // Function to fetch workouts from API
+  const fetchWorkouts = async () => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+      
+      console.log("Fetching workouts for user:", userId);
+      
+      // Call your backend API to get the user's workouts
+      const response = await axios.get(
+        `https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${userId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      console.log("API Response:", response.data);
+      
+      // Check if the response contains workout data
+      if (response.data && response.data.message && response.data.message.length > 0) {
+        const rawWorkouts = response.data.message;
+        
+        // Transform the backend data to match your frontend workout structure
+        const transformedWorkouts = rawWorkouts.map(workout => {
+          console.log("Processing workout:", workout);
+          
+          // Extract coach data
+          let coachName = 'Your Coach';
+          if (workout.coach) {
+            if (typeof workout.coach === 'object') {
+              const firstName = workout.coach.firstName || '';
+              const lastName = workout.coach.lastName || '';
+              coachName = `${firstName} ${lastName}`.trim() || 'Your Coach';
+            }
+          }
+          
+          // Format the date
+          const workoutDate = new Date(workout.date);
+          const formattedDate = workoutDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+          });
+          
+          // Get time from slot or directly from the date
+          let timeSlot = 'N/A';
+          
+          // If there's a slot object with time
+          if (workout.slot && typeof workout.slot === 'object' && workout.slot.time) {
+            timeSlot = formatTimeFromISO(workout.slot.time);
+          } 
+          // If slot is a string (like the example you provided)
+          else if (typeof workout.slot === 'string' && workout.slot.includes('T')) {
+            timeSlot = formatTimeFromISO(workout.slot);
+          }
+          // If there's no explicit time, extract it from the date
+          else {
+            const hours = workoutDate.getHours();
+            const minutes = workoutDate.getMinutes();
+            
+            // Create a time string
+            const startTime = new Date(workoutDate);
+            const endTime = new Date(workoutDate);
+            endTime.setHours(hours + 1); // Assume 1 hour sessions
+            
+            const startFormatted = startTime.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+            
+            const endFormatted = endTime.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+            
+            timeSlot = `${startFormatted} - ${endFormatted}`;
+          }
+          
+          // Determine workout status
+          let status = 'Scheduled';
+          if (workout.state === 'CANCELLED') status = 'Canceled';
+          else if (workout.state === 'COMPLETED') status = 'Finished';
+          else if (workout.state === 'FEEDBACK_PENDING') status = 'Waiting for Feedback';
+          
+          // Check if workout is in the past but still scheduled
+          const now = new Date();
+          if (status === 'Scheduled' && workoutDate < now) {
+            status = 'Waiting for Feedback';
+          }
+          
+          return {
+            id: workout._id,
+            type_of_sport: workout.activity || 'Workout Session',
+            description: `Personal training session with ${coachName}`,
+            time: timeSlot,
+            date: formattedDate,
+            workout_status: status,
+            imageUrl: workout.coach?.profileImageUrl || 'https://via.placeholder.com/150',
+            coachName: coachName
+          };
+        });
+        
+        console.log("Transformed workouts:", transformedWorkouts);
+        setWorkouts(transformedWorkouts);
+      } else {
+        setWorkouts([]);
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching workouts:", error);
+      setError("Failed to load your workouts. Please try again later.");
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    fetchWorkouts();
+    
+    // Set up event listeners for workout changes
+    const handleWorkoutChange = () => {
+      fetchWorkouts();
+    };
+    
+    window.addEventListener('workoutBooked', handleWorkoutChange);
+    window.addEventListener('workoutCancelled', handleWorkoutChange);
+    
+    return () => {
+      window.removeEventListener('workoutBooked', handleWorkoutChange);
+      window.removeEventListener('workoutCancelled', handleWorkoutChange);
+    };
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="p-4 flex justify-center items-center min-h-[200px]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-t-lime-500 border-gray-200 mb-2"></div>
+          <p>Loading your workouts...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-center text-red-500 border border-red-200 rounded-lg bg-red-50">
+        <p>{error}</p>
+        <button 
+          onClick={fetchWorkouts}
+          className="mt-2 text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  if (workouts.length === 0) {
+    return (
+      <div className="p-8 text-center border border-gray-200 rounded-lg bg-gray-50">
+        <p className="text-gray-600 mb-2">You don't have any scheduled workouts yet.</p>
+        <p className="text-gray-500">Book a session with one of our coaches to get started!</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 grid lg:grid-cols-2 gap-4 ">
-      {workout?.map((workout: any) => (
+    <div className="p-4 grid lg:grid-cols-2 gap-4">
+      {workouts.map((workout) => (
         <ScheduledWorkoutCard key={workout.id} workout={workout} />
       ))}
     </div>
