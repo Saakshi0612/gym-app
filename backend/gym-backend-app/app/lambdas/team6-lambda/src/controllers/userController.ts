@@ -1,16 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { UserModel, ClientModel, CoachModel, AdminModel } from "../models/userModel";
 import mongoose from 'mongoose';
-import { 
-  uploadToS3, 
-  deleteFromS3, 
-  validateFile, 
-  getFileKeyFromUrl 
-} from "../utils/s3Utils";
+import { validateFile } from "../utils/s3Utils";
 import { v4 as uuidv4 } from 'uuid';
 import { IClient, ICoach } from "../types/db.types";
 import { comparePassword, hashPassword, validatePassword } from "../utils/passwordUtils";
 import { validatePhoneNumber } from '../utils/validationUtils';
+import { saveFileToMongoDB, getFileFromMongoDB, deleteFileFromMongoDB } from '../utils/fileUtils';
 
 /**
  * Get user profile by ID
@@ -173,7 +169,7 @@ export const updateUserById = async (
           await deleteFileFromStorage(user.profileImageUrl);
         }
         // Upload new image
-        basicUpdateFields.profileImageUrl = await processImageForStorage(updateData.base64encodedImage);
+        basicUpdateFields.profileImageUrl = await processImageForStorage(updateData.base64encodedImage, userId);
       } catch (error) {
         console.error('Error updating profile image:', error);
         return {
@@ -220,11 +216,11 @@ export const updateUserById = async (
       // Handle certificate uploads
       if (updateData.base64encodedFiles && Array.isArray(updateData.base64encodedFiles)) {
         try {
-          const fileUrls = await Promise.all(
-            updateData.base64encodedFiles.map(processFileForStorage)
+          const fileIds = await Promise.all(
+            updateData.base64encodedFiles.map(file => processFileForStorage(file, userId))
           );
-          if (fileUrls.length > 0) {
-            coachUpdateFields.certificateUrls = fileUrls;
+          if (fileIds.length > 0) {
+            coachUpdateFields.certificateUrls = fileIds;
           }
         } catch (error) {
           console.error('Error updating certificates:', error);
@@ -431,7 +427,7 @@ export const updateUserPassword = async (
 };
 
 // Helper function to process base64 encoded image
-async function processImageForStorage(base64Image: string): Promise<string> {
+async function processImageForStorage(base64Image: string, userId: mongoose.Types.ObjectId): Promise<string> {
   try {
     // Decode base64 to buffer
     const buffer = Buffer.from(base64Image.split(',')[1], 'base64');
@@ -441,11 +437,15 @@ async function processImageForStorage(base64Image: string): Promise<string> {
       throw new Error('Invalid image file');
     }
 
-    // Generate unique filename
-    const key = `img/${uuidv4()}.jpg`;
-    
-    // Upload to S3
-    return await uploadToS3(buffer, key, 'image/jpeg');
+    // Save to MongoDB using GridFS
+    return await saveFileToMongoDB({
+      fieldname: 'image',
+      originalname: `${uuidv4()}.jpg`,
+      encoding: '7bit',
+      mimetype: 'image/jpeg',
+      buffer,
+      size: buffer.length
+    }, userId);
   } catch (error) {
     console.error('Error processing image:', error);
     throw error;
@@ -453,7 +453,7 @@ async function processImageForStorage(base64Image: string): Promise<string> {
 }
 
 // Helper function to process base64 encoded files
-async function processFileForStorage(base64File: string): Promise<string> {
+async function processFileForStorage(base64File: string, userId: mongoose.Types.ObjectId): Promise<string> {
   try {
     // Decode base64 to buffer
     const buffer = Buffer.from(base64File.split(',')[1], 'base64');
@@ -463,22 +463,25 @@ async function processFileForStorage(base64File: string): Promise<string> {
       throw new Error('Invalid certificate file');
     }
 
-    // Generate unique filename
-    const key = `certificates/${uuidv4()}.pdf`;
-    
-    // Upload to S3
-    return await uploadToS3(buffer, key, 'application/pdf');
+    // Save to MongoDB using GridFS
+    return await saveFileToMongoDB({
+      fieldname: 'certificate',
+      originalname: `${uuidv4()}.pdf`,
+      encoding: '7bit',
+      mimetype: 'application/pdf',
+      buffer,
+      size: buffer.length
+    }, userId);
   } catch (error) {
     console.error('Error processing file:', error);
     throw error;
   }
 }
 
-// Helper function to delete file from S3
-async function deleteFileFromStorage(fileUrl: string): Promise<void> {
+// Helper function to delete file from storage
+async function deleteFileFromStorage(fileId: string) {
   try {
-    const key = getFileKeyFromUrl(fileUrl);
-    await deleteFromS3(key);
+    await deleteFileFromMongoDB(fileId);
   } catch (error) {
     console.error('Error deleting file:', error);
     throw error;
