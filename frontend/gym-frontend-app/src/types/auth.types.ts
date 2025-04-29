@@ -39,10 +39,8 @@ export interface User {
     confirmPassword: string;
     firstName: string;
     lastName: string;
-    target?: string;
-    targets?: string;
-    activity?: string;
-    preferableActivity?: string;
+    targets: string;
+    preferableActivity: string;
   }
 
 export interface UserNavigationProps {

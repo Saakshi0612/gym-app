@@ -34,6 +34,40 @@ export const register = async (
     };
   }
 
+  // Validate first name
+  const firstNameTrimmed = firstName.trim();
+  if (firstNameTrimmed.length < 2 || firstNameTrimmed.length > 50) {
+    return {
+      success: false,
+      statusCode: 400,
+      message: "First name must be between 2 and 50 characters",
+    };
+  }
+  if (!/^[A-Za-z\s]+$/.test(firstNameTrimmed)) {
+    return {
+      success: false,
+      statusCode: 400,
+      message: "First name must only contain letters and spaces",
+    };
+  }
+
+  // Validate last name
+  const lastNameTrimmed = lastName.trim();
+  if (lastNameTrimmed.length < 2 || lastNameTrimmed.length > 50) {
+    return {
+      success: false,
+      statusCode: 400,
+      message: "Last name must be between 2 and 50 characters",
+    };
+  }
+  if (!/^[A-Za-z\s]+$/.test(lastNameTrimmed)) {
+    return {
+      success: false,
+      statusCode: 400,
+      message: "Last name must only contain letters and spaces",
+    };
+  }
+
   // Check if passwords match
   if (password !== confirmPassword) {
     return {

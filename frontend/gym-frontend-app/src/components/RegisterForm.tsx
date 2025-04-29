@@ -67,14 +67,7 @@ const RegistrationForm: React.FC = () => {
 
     if (!isTargetValid || !isActivityValid) return;
 
-    const { targets, preferableActivity, ...rest } = data;
-    const payload = {
-      ...rest,
-      target: targets,
-      activity: preferableActivity,
-    };
-
-    const resultAction = await dispatch(registerUser(payload));
+    const resultAction = await dispatch(registerUser(data));
     if (registerUser.fulfilled.match(resultAction)) {
       setShowSuccessAlert(true);
       reset();

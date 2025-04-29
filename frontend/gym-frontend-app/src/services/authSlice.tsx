@@ -2,10 +2,11 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
 import axios from 'axios';
+import { AppDispatch } from '../store/store';
 
 // API base URL - replace with your actual API endpoint
-const API_URL: string =
-	'https://z45liyzdtl.execute-api.ap-southeast-1.amazonaws.com/dev';
+const API_URL: string = import.meta.env.VITE_API_URL ||
+	'https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev';
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
@@ -33,33 +34,6 @@ const loadAuthState = (): { user: User | null; isAuthenticated: boolean } => {
 		return { user: null, isAuthenticated: false };
 	}
 };
-
-// In-memory storage for users (temporary until backend is implemented)
-const users: StoredUser[] = [];
-
-// Initialize users from localStorage
-try {
-	const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-	users.push(...storedUsers);
-} catch (e) {
-	console.error('Error loading users from localStorage:', e);
-}
-
-interface StoredUser extends User {
-	password: string;
-}
-
-// Utility function to remove password from user object
-function stripPassword<T extends { password: string }>(
-	user: T
-): Omit<T, 'password'> {
-	// Create a shallow copy of the user object
-	const userCopy = { ...user };
-	// Remove the password property
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { password, ...rest } = userCopy;
-	return rest as Omit<T, 'password'>;
-}
 
 // Configure axios instance with interceptors
 const api = axios.create({
@@ -162,26 +136,22 @@ export const registerUser = createAsyncThunk(
 				lastName: userData.lastName,
 				password: userData.password,
 				confirmPassword: userData.confirmPassword,
-				target: userData.targets || '',
-				activity: userData.preferableActivity || '',
+				target: userData.targets,
+				activity: userData.preferableActivity
 			};
 
 			const response = await api.post(`/auth/register`, registerPayload);
 
 			return response.data.user;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Registration error:', error);
 
-			// Handle specific error messages from the API
-			if (
-				error.response &&
-				error.response.data &&
-				error.response.data.message
-			) {
+			if (error && typeof error === 'object' && 'response' in error && 
+				error.response && typeof error.response === 'object' && 'data' in error.response &&
+				error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
 				return rejectWithValue(error.response.data.message);
 			}
 
-			// Generic error message
 			return rejectWithValue('Registration failed. Please try again later.');
 		}
 	}
@@ -295,7 +265,6 @@ export const updatePassword = createAsyncThunk(
     } catch (error: unknown) {
       console.error("Error updating password:", error);
       
-      // Handle specific error messages from the API
       if (error && typeof error === 'object' && 'response' in error && 
           error.response && typeof error.response === 'object' && 'data' in error.response &&
           error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
@@ -475,12 +444,27 @@ const authSlice = createSlice({
 			.addCase(updatePassword.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.payload as string;
+			})
+			.addCase(fetchUserProfile.pending, (state) => {
+				state.isLoading = true;
+				state.error = null;
+			})
+			.addCase(fetchUserProfile.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.user = action.payload;
+				state.error = null;
+				// Persist the updated user
+				persistAuthState(action.payload, true);
+			})
+			.addCase(fetchUserProfile.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.payload as string;
 			});
 	},
 });
 
 // Create a function to check auth status on app load
-export const checkAuthStatus = async (dispatch: any) => {
+export const checkAuthStatus = async (dispatch: AppDispatch) => {
 	const token = localStorage.getItem('accessToken');
 	const savedState = loadAuthState();
 

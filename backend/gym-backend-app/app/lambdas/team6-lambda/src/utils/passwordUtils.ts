@@ -17,19 +17,19 @@ export const comparePassword = async (
 // Add this function to your existing passwordUtils.ts file
 
 export const validatePassword = (password: string): { isValid: boolean; message: string } => {
-  // Check length
-  if (password.length < 8) {
+  // Check for spaces
+  if (/\s/.test(password)) {
     return {
       isValid: false,
-      message: "Password must be at least 8 characters long"
+      message: "Password must not contain spaces"
     };
   }
   
-  // Check for uppercase letter
-  if (!/[A-Z]/.test(password)) {
+  // Check if starts with capital letter
+  if (!/^[A-Z]/.test(password)) {
     return {
       isValid: false,
-      message: "Password must contain at least one uppercase letter"
+      message: "Password must start with a capital letter"
     };
   }
   
@@ -49,11 +49,19 @@ export const validatePassword = (password: string): { isValid: boolean; message:
     };
   }
   
-  // Check for special character
-  if (!/[@$!%*?&]/.test(password)) {
+  // Check for special character from the allowed set
+  if (!/[!@#$%^&*]/.test(password)) {
     return {
       isValid: false,
-      message: "Password must contain at least one special character (@$!%*?&)"
+      message: "Password must contain at least one special character (!@#$%^&*)"
+    };
+  }
+  
+  // Check length (8-16 characters)
+  if (password.length < 8 || password.length > 16) {
+    return {
+      isValid: false,
+      message: "Password must be between 8 and 16 characters"
     };
   }
   
