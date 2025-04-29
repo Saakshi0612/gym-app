@@ -5,8 +5,7 @@ import axios from 'axios';
 
 // API base URL - replace with your actual API endpoint
 const API_URL: string =
-	import.meta.env.VITE_API_URL ||
-	'https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev';
+	'https://z45liyzdtl.execute-api.ap-southeast-1.amazonaws.com/dev';
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
