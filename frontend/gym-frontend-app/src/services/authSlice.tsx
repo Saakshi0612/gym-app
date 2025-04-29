@@ -3,10 +3,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
 import axios from 'axios';
 
-// API base URL - replace with your actual API endpoint
-const API_URL: string =
-	import.meta.env.VITE_API_URL ||
-	'https://3ji3br590e.execute-api.ap-southeast-1.amazonaws.com/dev';
+// API base URL - replace with your actual API endpoint;
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
@@ -64,7 +61,6 @@ function stripPassword<T extends { password: string }>(
 
 // Configure axios instance with interceptors
 const api = axios.create({
-	baseURL: API_URL,
 	headers: {
 		'Content-Type': 'application/json',
 	},
@@ -86,7 +82,7 @@ export const loginUser = createAsyncThunk(
 	'auth/login',
 	async (credentials: LoginCredentials, { rejectWithValue }) => {
 		try {
-			const response = await api.post(`/auth/login`, credentials);
+			const response = await api.post(`https://efl7t35deh.execute-api.ap-southeast-1.amazonaws.com/dev/auth/login`, credentials);
 
 			// Extract user data from response
 			const userData = response.data.user;
@@ -153,7 +149,7 @@ export const registerUser = createAsyncThunk(
 				confirmPassword: '***REDACTED***'
 			});
 
-			const response = await api.post(`/auth/register`, registerPayload);
+			const response = await api.post(`https://efl7t35deh.execute-api.ap-southeast-1.amazonaws.com/dev/auth/register`, registerPayload);
 			
 			console.log('Registration response:', response.data);
 
