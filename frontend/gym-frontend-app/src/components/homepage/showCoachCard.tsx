@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Dumbbell, Calendar, Clock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/store';
 import Button from '../common/ButtonComponent';
 import LoginPromptModal from './isLoggedInCard';
@@ -20,7 +20,23 @@ interface CoachProps {
 	title: string;
 	about: string;
 	availableSlots: Slot[];
+	selectedTime: string;
+	selectedDate: Date;
 }
+
+const months = [
+	'January',
+	'February',
+	'March',
+	'April',
+	'May',
+	'June',
+	'August',
+	'October',
+	'September',
+	'November',
+	'December',
+];
 
 interface ShowCochesCardProps {
 	coach: CoachProps;
@@ -31,8 +47,25 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 	coach,
 	onBookingClick,
 }) => {
+	console.log(coach);
 	const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 	const { isAuthenticated } = useAppSelector((state) => state.auth);
+	const { filterWorkout } = useAppSelector((state) => state.workout);
+	const navigate = useNavigate();
+
+	console.log('Selected timfe', coach);
+	let selectedTime;
+	if (coach.selectedTime) {
+		if (coach.selectedTime.label) {
+			selectedTime = coach.selectedTime.label;
+		} else if (coach.selectedTime.time) {
+			selectedTime = coach.selectedTime.time;
+		}
+	}
+
+	const selectedDate = coach.selectedDate
+		? `${months[new Date(coach.selectedDate).getMonth()]}, ${new Date(coach.selectedDate).getDate()}`
+		: `${months[new Date().getMonth()]}, ${new Date().getDate()}`;
 
 	const handleBookingClick = () => {
 		if (isAuthenticated) {
@@ -89,22 +122,15 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 								<div className="flex items-center gap-2 text-sm mt-2">
 									<Clock className="w-5 h-5" />
 									<p>
-										<strong>Time: </strong>1hr,{' '}
-										{coach.availableSlots?.length > 0
-											? (coach.availableSlots[0].time?.split('-')[0]?.trim() ??
-												'N/A')
-											: 'N/A'}
+										<strong>Time: </strong>1hr {selectedTime}
+										{/* {selectedTime} */}
 									</p>
 								</div>
 
 								<div className="flex items-center gap-2 text-sm mt-2 ">
 									<Calendar className="w-5 h-5" />
 									<p>
-										<strong>Date:</strong>{' '}
-										{new Date().toLocaleDateString('en-US', {
-											month: 'long',
-											day: 'numeric',
-										})}
+										<strong>Date:</strong> {selectedDate}
 									</p>
 								</div>
 							</div>
@@ -157,6 +183,7 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 				<LoginPromptModal
 					isOpen={showLoginPrompt}
 					onCancel={() => setShowLoginPrompt(false)}
+					onLogin={() => navigate('/login')}
 				/>
 			)}
 		</>

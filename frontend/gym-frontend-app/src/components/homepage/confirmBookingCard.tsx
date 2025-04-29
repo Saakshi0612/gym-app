@@ -1,6 +1,9 @@
 import React from 'react';
+import { useState } from 'react';
 import { Calendar, Clock, Dumbbell, X } from 'lucide-react';
 import Button from '../common/ButtonComponent';
+import { useAppSelector } from '../../store/store';
+import axios, { AxiosError } from 'axios';
 
 interface ConfirmBookingCardProps {
 	coach: any;
@@ -18,18 +21,78 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
 		rating,
 		specializations,
 		availableSlots,
+		selectedTime,
+		selectedDate,
 	} = coach;
 
-	const formattedDate = new Date().toLocaleDateString('en-GB', {
-		day: 'numeric',
-		month: 'long',
-	});
+	const auth = useAppSelector((state) => state.auth);
+	console.log('card', selectedTime);
+	let selectedTimeHere;
+	if (selectedTime) {
+		if (selectedTime.label) {
+			selectedTimeHere = selectedTime.label;
+		} else if (selectedTime.time) {
+			selectedTimeHere = selectedTime.time;
+		}
+	}
 
-	const selectedTime = availableSlots?.[0]?.time || 'N/A';
+	const formattedDate = selectedDate
+		? new Date(selectedDate).toLocaleDateString('en-IN', {
+				month: 'long', // Full month name
+				day: 'numeric', // Day of the month
+			})
+		: new Date().toLocaleDateString('en-IN', {
+				month: 'long', // Full month name
+				day: 'numeric', // Day of the month
+			});
 
-	const handleConfirm = () => {
-		console.log('Booking confirmed:', coach);
-		onClose();
+	// const selectedTime = availableSlots?.[0]?.time || 'N/A';
+	const [isLoading, setIsLoading] = useState(false);
+
+	const handleConfirm = async () => {
+		try {
+			// Show loading state (optional)
+			setIsLoading(true); // You would need to add this state to your component
+
+			// Prepare the data for the API request based on your backend requirements
+			const bookingData = {
+				activity: coach.specializations[0] || 'General Fitness', // Using the first specialization as the activity
+				coach: coach._id, // Assuming coach has an id field
+				client: auth.user.id, // Assuming you store user ID in localStorage
+				date: selectedDate ? selectedDate : new Date(), // From the component props
+				slot: selectedTime._id, // From the component props
+			};
+
+			console.log('Sending booking request:', bookingData);
+
+			// Make the API request to your backend endpoint
+			const { data } = await axios.post('/workout', {
+				// Your POST endpoint
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${localStorage.getItem('token')}`,
+				},
+				body: JSON.stringify(bookingData),
+			});
+
+			console.log('Booking confirmed:', data);
+
+			// Show success message
+			alert('Your workout has been successfully booked!');
+			// Or use a toast notification library if you have one
+
+			// Close the modal
+			onClose();
+		} catch (error) {
+			console.error('Error confirming booking:', error);
+			if (error instanceof AxiosError) {
+				alert('Booking failed');
+			}
+			alert(error.message || 'Failed to book workout. Please try again.');
+		} finally {
+			// Hide loading state (optional)
+			setIsLoading(false); // You would need to add this state to your component
+		}
 	};
 
 	return (
@@ -79,7 +142,7 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
 						<div className="flex items-center gap-2">
 							<Clock className="w-4 h-4 text-gray-500" />
 							<span>
-								<strong>Time:</strong> {selectedTime}
+								<strong>Time:</strong> {selectedTimeHere.split('-')[0]}
 							</span>
 						</div>
 						<div className="flex items-center gap-2">
@@ -95,8 +158,9 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
 					onClick={handleConfirm}
 					variant="primary"
 					className="w-full bg-lime-400 text-black font-semibold py-3 rounded-lg hover:bg-lime-500 transition"
+					disabled={isLoading}
 				>
-					Confirm
+					{isLoading ? 'Booking...' : 'Confirm'}
 				</Button>
 			</div>
 		</div>

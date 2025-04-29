@@ -126,6 +126,8 @@ export const searchWorkout = async (
           rating: coach.rating,
           specializations: filteredSpecializations,
           availableSlots: formattedAvailableSlots,
+          selectedDate: date,
+          selectedTime: time_slot,
         };
       })
       .filter((coach) => coach !== null);
