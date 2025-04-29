@@ -3,10 +3,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
 import axios from 'axios';
 
-// API base URL - replace with your actual API endpoint
-const API_URL: string =
-	import.meta.env.VITE_API_URL ||
-	'https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev';
+// API base URL - replace with your actual API endpoint;
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
@@ -64,7 +61,6 @@ function stripPassword<T extends { password: string }>(
 
 // Configure axios instance with interceptors
 const api = axios.create({
-	baseURL: API_URL,
 	headers: {
 		'Content-Type': 'application/json',
 	},
@@ -86,7 +82,7 @@ export const loginUser = createAsyncThunk(
 	'auth/login',
 	async (credentials: LoginCredentials, { rejectWithValue }) => {
 		try {
-			const response = await api.post(`/auth/login`, credentials);
+			const response = await api.post(`https://efl7t35deh.execute-api.ap-southeast-1.amazonaws.com/dev/auth/login`, credentials);
 
 			// Extract user data from response
 			const userData = response.data.user;
@@ -129,6 +125,13 @@ export const registerUser = createAsyncThunk(
 	'auth/register',
 	async (userData: RegisterData, { rejectWithValue }) => {
 		try {
+			// Log the raw form data to debug
+			console.log('Raw userData from form:', {
+				...userData,
+				password: '***REDACTED***',
+				confirmPassword: '***REDACTED***'
+			});
+
 			// Format the data according to your API requirements
 			const registerPayload = {
 				email: userData.email,
@@ -136,11 +139,19 @@ export const registerUser = createAsyncThunk(
 				lastName: userData.lastName,
 				password: userData.password,
 				confirmPassword: userData.confirmPassword,
-				target: userData.targets || '',
-				activity: userData.preferableActivity || '',
+				target: userData.targets,
+				preferableActivity: userData.preferableActivity,
 			};
 
-			const response = await api.post(`/auth/register`, registerPayload);
+			console.log('Sending registration data:', {
+				...registerPayload,
+				password: '***REDACTED***',
+				confirmPassword: '***REDACTED***'
+			});
+
+			const response = await api.post(`https://efl7t35deh.execute-api.ap-southeast-1.amazonaws.com/dev/auth/register`, registerPayload);
+			
+			console.log('Registration response:', response.data);
 
 			return response.data.user;
 		} catch (error: any) {
@@ -149,10 +160,15 @@ export const registerUser = createAsyncThunk(
 			// Handle specific error messages from the API
 			if (
 				error.response &&
-				error.response.data &&
-				error.response.data.message
+				error.response.data
 			) {
-				return rejectWithValue(error.response.data.message);
+				if (error.response.data.errors) {
+					// If there are multiple validation errors
+					return rejectWithValue(error.response.data.errors.join('\n'));
+				} else if (error.response.data.message) {
+					// If there's a single error message
+					return rejectWithValue(error.response.data.message);
+				}
 			}
 
 			// Generic error message
