@@ -21,7 +21,7 @@ import DynamicSelect from "./DynamicSelect";
 import options from "../../assets/JSON/DropdownSelect.json";
 import { updateUserProfile } from "../../services/authSlice";
 import { User } from "../../types/auth.types";
-import { validateName } from '../../utils/validation';
+import { validateName, validatePhoneNumber } from '../../utils/validation';
 
 interface UnifiedUserProfileFormProps {
   role: UserRole;
@@ -173,16 +173,25 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
   const handleDrop = (files: FileList | null) => {
     if (!files) return;
-    const newCerts: Certificate[] = Array.from(files).map((file) => ({
-      name: file.name,
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      url: URL.createObjectURL(file),
-    }));
-
-    setFormState((prev) => ({
-      ...prev,
-      certificates: [...prev.certificates, ...newCerts],
-    }));
+    
+    // Convert each file to base64
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        const newCert: Certificate = {
+          name: file.name,
+          size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+          url: base64String
+        };
+        
+        setFormState(prev => ({
+          ...prev,
+          certificates: [...prev.certificates, newCert]
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleRemove = (index: number) => {
@@ -194,14 +203,18 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
   const handleProfilePhotoChange = (file: File | null) => {
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setFormState((prev) => ({
-        ...prev,
-        userData: prev.userData ? {
-          ...prev.userData,
-          avatarUrl: imageUrl
-        } : null
-      }));
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        setFormState((prev) => ({
+          ...prev,
+          userData: prev.userData ? {
+            ...prev.userData,
+            avatarUrl: base64String
+          } : null
+        }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -432,10 +445,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
               id="phoneNumber"
               label="Phone Number"
               value={formState.phoneNumber}
-              placeholder="e.g. +1 234 567 8901"
+              placeholder="e.g. 1234567890"
               onChange={(val) =>
                 setFormState((prev) => ({ ...prev, phoneNumber: val }))
               }
+              validation={validatePhoneNumber}
             />
           </div>
         )}

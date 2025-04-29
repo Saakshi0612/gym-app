@@ -115,6 +115,23 @@ export const validateFileType = (file: File): string | null => {
   return null;
 };
 
+export const validatePhoneNumber = (value: string): string | null => {
+  if (!value) {
+    return "Phone number is required";
+  }
+
+  // Check if the input contains only digits
+  if (!/^\d+$/.test(value)) {
+    return "Phone number must contain only digits (0-9)";
+  }
+  
+  if (value.length !== 10) {
+    return "Phone number must contain exactly 10 digits";
+  }
+
+  return null;
+};
+
 export const ACTIVITY_OPTIONS = [
   "Yoga",
   "Climbing",

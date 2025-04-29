@@ -190,7 +190,7 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
         ) : (
           <input
             id={id}
-            type={type === "password" ? (showPassword ? "text" : "password") : "text"}
+            type={id === "phoneNumber" ? "tel" : type === "password" ? (showPassword ? "text" : "password") : "text"}
             value={value}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -198,6 +198,8 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
             autoComplete={type === "password" ? "new-password" : undefined}
             required
             minLength={type === "password" ? 8 : undefined}
+            pattern={id === "phoneNumber" ? "[0-9]*" : undefined}
+            inputMode={id === "phoneNumber" ? "numeric" : undefined}
           />
         )}
         

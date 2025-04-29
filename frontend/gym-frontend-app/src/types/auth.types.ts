@@ -1,6 +1,6 @@
 // src/types/auth.types.ts
 export interface User {
-  id:string;
+    id:string;
     email: string;
     firstName: string;
     lastName: string;
@@ -36,10 +36,13 @@ export interface User {
   export interface RegisterData {
     email: string;
     password: string;
+    confirmPassword: string;
     firstName: string;
     lastName: string;
     target?: string;
+    targets?: string;
     activity?: string;
+    preferableActivity?: string;
   }
 
 export interface UserNavigationProps {

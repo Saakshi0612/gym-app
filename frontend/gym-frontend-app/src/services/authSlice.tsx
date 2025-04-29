@@ -5,8 +5,7 @@ import axios from 'axios';
 
 // API base URL - replace with your actual API endpoint
 const API_URL: string =
-	import.meta.env.VITE_API_URL ||
-	'https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev';
+	'https://z45liyzdtl.execute-api.ap-southeast-1.amazonaws.com/dev';
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
@@ -161,7 +160,6 @@ export const registerUser = createAsyncThunk(
 	}
 );
 
-// Keep the original updateUserProfile function
 export const updateUserProfile = createAsyncThunk(
 	'auth/updateProfile',
 	async (updatedUser: User, { getState, rejectWithValue }) => {
@@ -173,41 +171,55 @@ export const updateUserProfile = createAsyncThunk(
 				return rejectWithValue('No user is logged in.');
 			}
 
-			const index = users.findIndex(
-				(client) => client.email === currentUser.email
-			);
+      // Prepare the update payload based on user role
+      const updatePayload: Record<string, unknown> = {
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+      };
 
-			if (index === -1) {
-				return rejectWithValue('User not found.');
-			}
+      // Add role-specific fields - handle case sensitivity
+      if (currentUser.role.toLowerCase() === 'client') {
+        updatePayload.preferableActivity = updatedUser.preferableActivity;
+        updatePayload.target = updatedUser.target;
+      } else if (currentUser.role.toLowerCase() === 'coach') {
+        updatePayload.title = updatedUser.title;
+        updatePayload.about = updatedUser.about;
+        updatePayload.specializations = updatedUser.tags;
+        
+        // Handle certificates if they exist
+        if (updatedUser.certificates && updatedUser.certificates.length > 0) {
+          updatePayload.base64encodedFiles = updatedUser.certificates.map(cert => cert.url);
+        }
+      } else if (currentUser.role.toLowerCase() === 'admin') {
+        updatePayload.phoneNumber = updatedUser.phoneNumber;
+      }
 
-			// Update user profile in the list, preserving the password
-			const updatedStoredUser = {
-				...updatedUser,
-				password: users[index].password,
-			};
-			users[index] = updatedStoredUser;
+      // Handle profile image if it exists
+      if (updatedUser.avatarUrl) {
+        updatePayload.base64encodedImage = updatedUser.avatarUrl;
+      }
 
-			// Update localStorage
-			try {
-				const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-				const storedIndex = storedUsers.findIndex(
-					(u: User) => u.email === currentUser.email
-				);
-				if (storedIndex !== -1) {
-					storedUsers[storedIndex] = updatedStoredUser;
-					localStorage.setItem('users', JSON.stringify(storedUsers));
-				}
-			} catch (e) {
-				console.error('Error updating localStorage:', e);
-			}
+      // Make API call to update profile
+      const response = await api.put(`/users/${currentUser.id}`, updatePayload);
+      
+      // Update local storage with new user data
+      const updatedUserData = response.data;
+      persistAuthState(updatedUserData, true);
 
-			return updatedUser;
-		} catch (error) {
-			console.error('Error updating user profile:', error);
-			return rejectWithValue('Failed to update user profile.');
-		}
-	}
+      return updatedUserData;
+    } catch (error: unknown) {
+      console.error("Error updating user profile:", error);
+      
+      // Handle specific error messages from the API
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'data' in error.response &&
+          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        return rejectWithValue(error.response.data.message);
+      }
+      
+      return rejectWithValue('Failed to update user profile.');
+    }
+  }
 );
 
 export const updatePassword = createAsyncThunk(
@@ -224,49 +236,68 @@ export const updatePassword = createAsyncThunk(
 				return rejectWithValue('No user is logged in.');
 			}
 
-			// Find user in the local storage
-			const index = users.findIndex((user) => user.email === currentUser.email);
+      // Make API call to update password
+      const response = await api.put(`/users/${currentUser.id}/password`, {
+        oldPassword,
+        newPassword
+      });
 
-			if (index === -1) {
-				return rejectWithValue('User not found.');
-			}
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Error updating password:", error);
+      
+      // Handle specific error messages from the API
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'data' in error.response &&
+          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        return rejectWithValue(error.response.data.message);
+      }
+      
+      return rejectWithValue('Failed to update password.');
+    }
+  }
+);
 
-			// Verify old password
-			if (users[index].password !== oldPassword) {
-				return rejectWithValue('Current password is incorrect.');
-			}
+export const fetchUserProfile = createAsyncThunk(
+  'auth/fetchProfile',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const currentUser = state.auth.user;
 
-			// Check if new password is same as old password
-			if (oldPassword === newPassword) {
-				return rejectWithValue(
-					'New password must be different from current password.'
-				);
-			}
+      if (!currentUser || !currentUser.id) {
+        return rejectWithValue('No user is logged in.');
+      }
 
-			// Update password
-			users[index].password = newPassword;
+      const response = await api.get(`/users/${currentUser.id}`);
+      const userData = response.data;
+      
+      // Normalize role to lowercase for frontend consistency
+      if (userData.role) {
+        userData.role = userData.role.toLowerCase();
+      }
+      
+      // Map specializations to tags for coach role
+      if (userData.role === 'coach' && userData.specializations) {
+        userData.tags = userData.specializations;
+      }
 
-			// Update localStorage
-			try {
-				const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-				const storedIndex = storedUsers.findIndex(
-					(u: StoredUser) => u.email === currentUser.email
-				);
-				if (storedIndex !== -1) {
-					storedUsers[storedIndex].password = newPassword;
-					localStorage.setItem('users', JSON.stringify(storedUsers));
-				}
-			} catch (e) {
-				console.error('Error updating localStorage:', e);
-				return rejectWithValue('Failed to save password.');
-			}
+      // Update local storage with fresh user data
+      persistAuthState(userData, true);
 
-			return { message: 'Password updated successfully' };
-		} catch (error) {
-			console.error('Error updating password:', error);
-			return rejectWithValue('Failed to update password.');
-		}
-	}
+      return userData;
+    } catch (error: unknown) {
+      console.error("Error fetching user profile:", error);
+      
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'data' in error.response &&
+          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        return rejectWithValue(error.response.data.message);
+      }
+      
+      return rejectWithValue('Failed to fetch user profile.');
+    }
+  }
 );
 
 // Load initial state from localStorage
@@ -280,6 +311,7 @@ const initialState: AuthState = {
 };
 
 const authSlice = createSlice({
+<<<<<<< HEAD
 	name: 'auth',
 	initialState,
 	reducers: {
@@ -364,6 +396,105 @@ const authSlice = createSlice({
 				state.error = action.payload as string;
 			});
 	},
+=======
+  name: 'auth',
+  initialState,
+  reducers: {
+    login: (state, action: PayloadAction<User>) => {
+      state.isAuthenticated = true;
+      state.user = action.payload;
+      state.error = null;
+      // Persist the state
+      persistAuthState(action.payload, true);
+    },
+    logout: (state) => {
+      state.isAuthenticated = false;
+      state.user = null;
+      // Clear tokens and auth state from localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      persistAuthState(null, false);
+    },
+    clearError: (state) => {
+      state.error = null;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loginUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload;
+        state.error = null;
+        // Persist the state
+        persistAuthState(action.payload, true);
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state) => {
+        state.isLoading = false;
+        // Don't set isAuthenticated to true after registration
+        // User should log in after registration
+        state.isAuthenticated = false;
+        state.user = null;
+        state.error = null;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(updateUserProfile.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.error = null;
+        // Persist the updated user
+        persistAuthState(action.payload, true);
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(updatePassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updatePassword.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(updatePassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchUserProfile.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+      })
+      .addCase(fetchUserProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
+  },
+>>>>>>> aba950c0e73c7365786b8c25e131e9a530a6db95
 });
 
 // Create a function to check auth status on app load
