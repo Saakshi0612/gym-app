@@ -166,40 +166,35 @@ const DynamicUserProfile = () => {
 
   // Initialize profile data
   useEffect(() => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const hasDraft = loadSavedDraft();
-      if (!hasDraft) {
-        const newProfileData = generateProfileData();
-        if (newProfileData) {
-          setProfileData(newProfileData);
-        }
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error loading profile data';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [generateProfileData, loadSavedDraft, setError, setIsLoading]);
-
-  // Fetch user profile from API
-  useEffect(() => {
-    const fetchProfile = async () => {
+    const initializeProfile = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        setIsLoading(true);
+        // First, fetch fresh profile data from the server
         await dispatch(fetchUserProfile());
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
+        
+        // After getting fresh data, check if there's a draft
+        const hasDraft = loadSavedDraft();
+        if (!hasDraft) {
+          // Only generate new profile data if there's no draft
+          const newProfileData = generateProfileData();
+          if (newProfileData) {
+            setProfileData(newProfileData);
+          }
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error loading profile data';
+        setError(errorMessage);
+        // Clear any stale drafts on error
+        localStorage.removeItem(PROFILE_STORAGE_KEY);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProfile();
-  }, [dispatch]);
+    initializeProfile();
+  }, [dispatch, generateProfileData, loadSavedDraft]);
 
   // Handle profile data changes
   const handleProfileChange = useCallback((newData: AdminProfileData | CoachProfileData | ClientProfileData) => {

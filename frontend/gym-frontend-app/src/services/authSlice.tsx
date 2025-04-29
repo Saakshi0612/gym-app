@@ -85,6 +85,13 @@ export const loginUser = createAsyncThunk(
 	'auth/login',
 	async (credentials: LoginCredentials, { rejectWithValue }) => {
 		try {
+			// Clear any existing stored data before login
+			localStorage.removeItem('authUser');
+			localStorage.removeItem('isAuthenticated');
+			localStorage.removeItem('gym_app_profile_draft');
+			localStorage.removeItem('accessToken');
+			localStorage.removeItem('refreshToken');
+
 			const response = await api.post(`/auth/login`, credentials);
 
 			// Extract user data from response
@@ -103,20 +110,40 @@ export const loginUser = createAsyncThunk(
 				userData.role = userData.role.toLowerCase();
 			}
 
+			// Handle specializations and tags for coach role
+			if (userData.role === 'coach') {
+				// Map specializations to tags
+				if (userData.specializations && Array.isArray(userData.specializations)) {
+					userData.tags = [...userData.specializations];
+				} else if (!userData.tags) {
+					userData.tags = [];
+				}
+
+				// Handle certificates
+				if (userData.fileUrls && Array.isArray(userData.fileUrls)) {
+					userData.certificates = userData.fileUrls.map((url: string, index: number) => ({
+						name: `Certificate ${index + 1}`,
+						size: 'Unknown',
+						url: url
+					}));
+				} else if (!userData.certificates) {
+					userData.certificates = [];
+				}
+			}
+
+			// Ensure we're storing fresh data
+			persistAuthState(userData, true);
+
 			return userData;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Login error:', error);
 
-			// Handle specific error messages from the API
-			if (
-				error.response &&
-				error.response.data &&
-				error.response.data.message
-			) {
+			if (error && typeof error === 'object' && 'response' in error && 
+				error.response && typeof error.response === 'object' && 'data' in error.response &&
+				error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
 				return rejectWithValue(error.response.data.message);
 			}
 
-			// Generic error message
 			return rejectWithValue(
 				"We couldn't log you in. Double-check your credentials and try again."
 			);
@@ -171,76 +198,64 @@ export const updateUserProfile = createAsyncThunk(
 				return rejectWithValue('No user is logged in.');
 			}
 
-      // Prepare the update payload while preserving ALL existing data
+      // Only include fields that should be updated
       const updatePayload: Record<string, unknown> = {
-        ...currentUser,  // Keep all existing user data
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
-        role: currentUser.role,  // Explicitly preserve role
-        email: currentUser.email,  // Explicitly preserve email
-        rating: currentUser.rating || 0,  // Preserve rating
+        role: currentUser.role,  // Preserve role
       };
 
-      // Add role-specific fields - handle case sensitivity
+      // Add role-specific fields based on current role
       if (currentUser.role.toLowerCase() === 'client') {
-        updatePayload.preferableActivity = updatedUser.preferableActivity || currentUser.preferableActivity;
-        updatePayload.target = updatedUser.target || currentUser.target;
+        if (updatedUser.preferableActivity !== undefined) {
+          updatePayload.preferableActivity = updatedUser.preferableActivity;
+        }
+        if (updatedUser.target !== undefined) {
+          updatePayload.target = updatedUser.target;
+        }
       } else if (currentUser.role.toLowerCase() === 'coach') {
-        updatePayload.title = updatedUser.title || currentUser.title;
-        updatePayload.about = updatedUser.about || currentUser.about;
-        
-        // Preserve existing tags/specializations if new ones aren't provided
-        if (updatedUser.tags && Array.isArray(updatedUser.tags)) {
-          updatePayload.specializations = [...updatedUser.tags];
-          updatePayload.tags = [...updatedUser.tags];
-        } else {
-          updatePayload.specializations = currentUser.tags || [];
-          updatePayload.tags = currentUser.tags || [];
+        if (updatedUser.title !== undefined) {
+          updatePayload.title = updatedUser.title;
+        }
+        if (updatedUser.about !== undefined) {
+          updatePayload.about = updatedUser.about;
         }
         
-        // Handle certificates while preserving existing ones
+        // Handle tags/specializations
+        if (updatedUser.tags && Array.isArray(updatedUser.tags)) {
+          updatePayload.specializations = updatedUser.tags;
+        }
+        
+        // Handle certificates
         if (updatedUser.certificates && updatedUser.certificates.length > 0) {
-          updatePayload.certificates = [...updatedUser.certificates];
           updatePayload.base64encodedFiles = updatedUser.certificates.map(cert => cert.url);
-        } else {
-          updatePayload.certificates = currentUser.certificates || [];
         }
       } else if (currentUser.role.toLowerCase() === 'admin') {
-        updatePayload.phoneNumber = updatedUser.phoneNumber || currentUser.phoneNumber;
+        if (updatedUser.phoneNumber !== undefined) {
+          updatePayload.phoneNumber = updatedUser.phoneNumber;
+        }
       }
 
-      // Handle profile image if it exists
-      if (updatedUser.avatarUrl) {
+      // Handle profile image if changed
+      if (updatedUser.avatarUrl && updatedUser.avatarUrl !== currentUser.avatarUrl) {
         updatePayload.base64encodedImage = updatedUser.avatarUrl;
-        updatePayload.avatarUrl = updatedUser.avatarUrl;
       }
 
       // Make API call to update profile
       const response = await api.put(`/users/${currentUser.id}`, updatePayload);
       
-      // Update local storage with new user data
+      // Process the response data
       const updatedUserData = {
         ...response.data,
-        role: currentUser.role,  // Ensure role is preserved
-        rating: currentUser.rating || 0,  // Ensure rating is preserved
+        role: currentUser.role, // Ensure role is preserved
       };
       
-      // Ensure specializations are mapped to tags for coach role
-      if (updatedUserData.role === 'coach') {
-        if (updatedUserData.specializations) {
-          updatedUserData.tags = [...updatedUserData.specializations];
-        } else if (!updatedUserData.tags) {
-          updatedUserData.tags = currentUser.tags || [];
-        }
-        
-        // Preserve certificates
-        if (!updatedUserData.certificates) {
-          updatedUserData.certificates = currentUser.certificates || [];
-        }
+      // Map specializations to tags for coach role
+      if (updatedUserData.role === 'coach' && updatedUserData.specializations) {
+        updatedUserData.tags = updatedUserData.specializations;
       }
       
       persistAuthState(updatedUserData, true);
-
       return updatedUserData;
 		} catch (error: unknown) {
 			console.error("Error updating user profile:", error);
@@ -311,22 +326,28 @@ export const fetchUserProfile = createAsyncThunk(
         userData.role = userData.role.toLowerCase();
       }
       
-      // Map specializations to tags for coach role
+      // Handle specializations and tags for coach role
       if (userData.role === 'coach') {
-        // Ensure specializations are properly mapped to tags
+        // Map specializations to tags and preserve existing tags
         if (userData.specializations && Array.isArray(userData.specializations)) {
           userData.tags = [...userData.specializations];
+        } else if (!userData.tags && currentUser.tags) {
+          // If no new tags but we have existing ones, preserve them
+          userData.tags = [...currentUser.tags];
         } else if (!userData.tags) {
           userData.tags = [];
         }
         
-        // Ensure certificates are properly formatted
+        // Handle certificates while preserving existing ones
         if (userData.fileUrls && Array.isArray(userData.fileUrls)) {
           userData.certificates = userData.fileUrls.map((url: string, index: number) => ({
             name: `Certificate ${index + 1}`,
             size: 'Unknown',
             url: url
           }));
+        } else if (!userData.certificates && currentUser.certificates) {
+          // If no new certificates but we have existing ones, preserve them
+          userData.certificates = [...currentUser.certificates];
         } else if (!userData.certificates) {
           userData.certificates = [];
         }
@@ -365,18 +386,29 @@ const authSlice = createSlice({
 	initialState,
 	reducers: {
 		login: (state, action: PayloadAction<User>) => {
+			// First clear any existing data
+			localStorage.removeItem('authUser');
+			localStorage.removeItem('isAuthenticated');
+			localStorage.removeItem('gym_app_profile_draft');
+			
+			// Then set new state
 			state.isAuthenticated = true;
 			state.user = action.payload;
 			state.error = null;
-			// Persist the state
+			
+			// Persist the new state
 			persistAuthState(action.payload, true);
 		},
 		logout: (state) => {
 			state.isAuthenticated = false;
 			state.user = null;
-			// Clear tokens and auth state from localStorage
+			// Clear ALL auth-related data from localStorage
 			localStorage.removeItem('accessToken');
 			localStorage.removeItem('refreshToken');
+			localStorage.removeItem('authUser');
+			localStorage.removeItem('isAuthenticated');
+			localStorage.removeItem('gym_app_profile_draft');  // Clear profile draft
+			localStorage.removeItem('users');  // Clear any stored users
 			persistAuthState(null, false);
 		},
 		clearError: (state) => {
