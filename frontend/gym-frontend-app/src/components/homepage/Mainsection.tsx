@@ -76,8 +76,6 @@ const MainSection: React.FC = () => {
 		})),
 	];
 
-	console.log(timeOptions);
-
 	const sportOptions: DropdownOption[] = [
 		{ value: 'All', label: 'All' },
 		...Array.from(new Set(specializations.map((s) => s.specialization))).map(

@@ -16,8 +16,7 @@ export class WorkoutService {
       // Check if the user has already booked this exact workout
       const existingUserBooking = await WorkoutModel.find({
          $or: [{client:id }, {coach:id}] 
-
-      });
+      }).populate("slot");
       return existingUserBooking 
     }catch (error) {
       console.error("Error booking workout:", error);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Dumbbell, Calendar, Clock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/store';
 import Button from '../common/ButtonComponent';
 import LoginPromptModal from './isLoggedInCard';
@@ -47,15 +47,26 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 	coach,
 	onBookingClick,
 }) => {
+	console.log(coach);
 	const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 	const { isAuthenticated } = useAppSelector((state) => state.auth);
 	const { filterWorkout } = useAppSelector((state) => state.workout);
+	const navigate = useNavigate();
+
+	console.log('Selected timfe', coach);
+	let selectedTime;
+	if (coach.selectedTime) {
+		if (coach.selectedTime.label) {
+			selectedTime = coach.selectedTime.label;
+		} else if (coach.selectedTime.time) {
+			selectedTime = coach.selectedTime.time;
+		}
+	}
 
 	const selectedDate = coach.selectedDate
 		? `${months[new Date(coach.selectedDate).getMonth()]}, ${new Date(coach.selectedDate).getDate()}`
 		: `${months[new Date().getMonth()]}, ${new Date().getDate()}`;
 
-	console.log('Show coach card Date', selectedDate);
 	const handleBookingClick = () => {
 		if (isAuthenticated) {
 			onBookingClick(coach);
@@ -111,7 +122,8 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 								<div className="flex items-center gap-2 text-sm mt-2">
 									<Clock className="w-5 h-5" />
 									<p>
-										<strong>Time: </strong>1hr {coach.selectedTime}
+										<strong>Time: </strong>1hr {selectedTime}
+										{/* {selectedTime} */}
 									</p>
 								</div>
 
@@ -171,6 +183,7 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 				<LoginPromptModal
 					isOpen={showLoginPrompt}
 					onCancel={() => setShowLoginPrompt(false)}
+					onLogin={() => navigate('/login')}
 				/>
 			)}
 		</>
