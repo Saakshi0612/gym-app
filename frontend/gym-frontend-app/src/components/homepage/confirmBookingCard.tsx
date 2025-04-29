@@ -25,68 +25,75 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
 		selectedDate,
 	} = coach;
 
-	const auth = useAppSelector((state)=>state.auth);
-	console.log(auth);
+	const auth = useAppSelector((state) => state.auth);
+	console.log('card', selectedTime);
+	let selectedTimeHere;
+	if (selectedTime) {
+		if (selectedTime.label) {
+			selectedTimeHere = selectedTime.label;
+		} else if (selectedTime.time) {
+			selectedTimeHere = selectedTime.time;
+		}
+	}
 
-
-	const formattedDate = selectedDate ? new Date(selectedDate).toLocaleDateString('en-IN', {
-		month: 'long', // Full month name
-		day: 'numeric', // Day of the month
-	}) : new Date().toLocaleDateString('en-IN', {
-		month: 'long', // Full month name
-		day: 'numeric', // Day of the month
-	});
-
+	const formattedDate = selectedDate
+		? new Date(selectedDate).toLocaleDateString('en-IN', {
+				month: 'long', // Full month name
+				day: 'numeric', // Day of the month
+			})
+		: new Date().toLocaleDateString('en-IN', {
+				month: 'long', // Full month name
+				day: 'numeric', // Day of the month
+			});
 
 	// const selectedTime = availableSlots?.[0]?.time || 'N/A';
 	const [isLoading, setIsLoading] = useState(false);
 
 	const handleConfirm = async () => {
 		try {
-		  // Show loading state (optional)
-		  setIsLoading(true); // You would need to add this state to your component
-	  
-		  // Prepare the data for the API request based on your backend requirements
-		  const bookingData = {
-			activity: coach.specializations[0] || "General Fitness", // Using the first specialization as the activity
-			coach: coach._id, // Assuming coach has an id field
-			client: auth.user.id, // Assuming you store user ID in localStorage
-			date: selectedDate?selectedDate:new Date(), // From the component props
-			slot: selectedTime._id // From the component props
-		  };
-	  
-		  console.log('Sending booking request:', bookingData);
-	  
-		  // Make the API request to your backend endpoint
-		  const {data} = await axios.post('/workout', { // Your POST endpoint
-			headers: {
-			  'Content-Type': 'application/json',
-			  'Authorization': `Bearer ${localStorage.getItem('token')}`
-			},
-			body: JSON.stringify(bookingData)
-		  });
-	
-	  
-		  console.log('Booking confirmed:', data);
-		  
-		  // Show success message
-		  alert('Your workout has been successfully booked!');
-		  // Or use a toast notification library if you have one
-		  
-		  // Close the modal
-		  onClose();
-		  
+			// Show loading state (optional)
+			setIsLoading(true); // You would need to add this state to your component
+
+			// Prepare the data for the API request based on your backend requirements
+			const bookingData = {
+				activity: coach.specializations[0] || 'General Fitness', // Using the first specialization as the activity
+				coach: coach._id, // Assuming coach has an id field
+				client: auth.user.id, // Assuming you store user ID in localStorage
+				date: selectedDate ? selectedDate : new Date(), // From the component props
+				slot: selectedTime._id, // From the component props
+			};
+
+			console.log('Sending booking request:', bookingData);
+
+			// Make the API request to your backend endpoint
+			const { data } = await axios.post('/workout', {
+				// Your POST endpoint
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${localStorage.getItem('token')}`,
+				},
+				body: JSON.stringify(bookingData),
+			});
+
+			console.log('Booking confirmed:', data);
+
+			// Show success message
+			alert('Your workout has been successfully booked!');
+			// Or use a toast notification library if you have one
+
+			// Close the modal
+			onClose();
 		} catch (error) {
-		  console.error('Error confirming booking:', error);
-		  if(error instanceof AxiosError){
-			alert("Booking failed")
-		  }
-		  alert(error.message || 'Failed to book workout. Please try again.');
+			console.error('Error confirming booking:', error);
+			if (error instanceof AxiosError) {
+				alert('Booking failed');
+			}
+			alert(error.message || 'Failed to book workout. Please try again.');
 		} finally {
-		  // Hide loading state (optional)
-		  setIsLoading(false); // You would need to add this state to your component
+			// Hide loading state (optional)
+			setIsLoading(false); // You would need to add this state to your component
 		}
-	  };
+	};
 
 	return (
 		<div className="fixed inset-0 z-90 flex text-gray-800 items-center justify-center px-5 bg-black/30">
@@ -135,7 +142,7 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
 						<div className="flex items-center gap-2">
 							<Clock className="w-4 h-4 text-gray-500" />
 							<span>
-								<strong>Time:</strong> {selectedTime.time.split("-")[0]}
+								<strong>Time:</strong> {selectedTimeHere.split('-')[0]}
 							</span>
 						</div>
 						<div className="flex items-center gap-2">
@@ -148,13 +155,13 @@ const ConfirmBookingCard: React.FC<ConfirmBookingCardProps> = ({
 				</div>
 
 				<Button
-                  onClick={handleConfirm}
-                  variant="primary"
-                  className="w-full bg-lime-400 text-black font-semibold py-3 rounded-lg hover:bg-lime-500 transition"
-                  disabled={isLoading}
-                    >
-                   {isLoading ? 'Booking...' : 'Confirm'}
-                 </Button>
+					onClick={handleConfirm}
+					variant="primary"
+					className="w-full bg-lime-400 text-black font-semibold py-3 rounded-lg hover:bg-lime-500 transition"
+					disabled={isLoading}
+				>
+					{isLoading ? 'Booking...' : 'Confirm'}
+				</Button>
 			</div>
 		</div>
 	);
