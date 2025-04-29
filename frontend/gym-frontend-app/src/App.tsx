@@ -28,7 +28,7 @@ function AppContent() {
       initializeAuth();
     }, []);
 
-    axios.defaults.baseURL= import.meta.env.VITE_API_URL 
+   
 
   const location = useLocation();
   const hideHeaderRoutes = ["/login", "/register"];
