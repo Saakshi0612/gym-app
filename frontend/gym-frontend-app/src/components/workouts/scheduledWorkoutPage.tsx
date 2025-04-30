@@ -70,7 +70,7 @@ export default function ScheduledWorkoutPage() {
       
       // Call your backend API to get the user's workouts
       const response = await axios.get(
-        `https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${userId}`,
+        `https://nw4riour66.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${userId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -81,9 +81,18 @@ export default function ScheduledWorkoutPage() {
       console.log("API Response:", response.data);
       
       // Check if the response contains workout data
-      if (response.data && response.data.message && response.data.message.length > 0) {
-        const rawWorkouts = response.data.message;
-        
+      let rawWorkouts = [];
+      
+      // Handle different response formats
+      if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        rawWorkouts = response.data.data;
+      } else if (response.data && response.data.message && Array.isArray(response.data.message)) {
+        rawWorkouts = response.data.message;
+      } else if (response.data && Array.isArray(response.data)) {
+        rawWorkouts = response.data;
+      }
+      
+      if (rawWorkouts.length > 0) {
         // Transform the backend data to match your frontend workout structure
         const transformedWorkouts = rawWorkouts.map(workout => {
           console.log("Processing workout:", workout);
@@ -92,37 +101,55 @@ export default function ScheduledWorkoutPage() {
           let coachName = 'Your Coach';
           if (workout.coach) {
             if (typeof workout.coach === 'object') {
-              const firstName = workout.coach.firstName || '';
+              // Try different name fields based on your data structure
+              const firstName = workout.coach.firstName || workout.coach.name || '';
               const lastName = workout.coach.lastName || '';
               coachName = `${firstName} ${lastName}`.trim() || 'Your Coach';
+            } else if (typeof workout.coach === 'string') {
+              coachName = workout.coach;
             }
           }
           
           // Format the date
           const workoutDate = new Date(workout.date);
-          const formattedDate = workoutDate.toLocaleDateString('en-US', {
+          const formattedDate = workoutDate.toLocaleDateString('en-IN', {
             month: 'long',
             day: 'numeric',
             year: 'numeric'
           });
           
-          // Get time from slot or directly from the date
+          // Get time from slot
           let timeSlot = 'N/A';
           
-          // If there's a slot object with time
-          if (workout.slot && typeof workout.slot === 'object' && workout.slot.time) {
-            timeSlot = formatTimeFromISO(workout.slot.time);
+          // If there's a slot object with startTime and endTime
+          if (workout.slot && typeof workout.slot === 'object') {
+            if (workout.slot.startTime && workout.slot.endTime) {
+              const startTime = new Date(workout.slot.startTime);
+              const endTime = new Date(workout.slot.endTime);
+              
+              const startFormatted = startTime.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+              
+              const endFormatted = endTime.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+              
+              timeSlot = `${startFormatted} - ${endFormatted}`;
+            } else if (workout.slot.time) {
+              timeSlot = formatTimeFromISO(workout.slot.time);
+            }
           } 
-          // If slot is a string (like the example you provided)
-          else if (typeof workout.slot === 'string' && workout.slot.includes('T')) {
-            timeSlot = formatTimeFromISO(workout.slot);
-          }
-          // If there's no explicit time, extract it from the date
-          else {
+          // If slot is a string (like an ID)
+          else if (typeof workout.slot === 'string') {
+            // Extract time from date as fallback
             const hours = workoutDate.getHours();
             const minutes = workoutDate.getMinutes();
             
-            // Create a time string
             const startTime = new Date(workoutDate);
             const endTime = new Date(workoutDate);
             endTime.setHours(hours + 1); // Assume 1 hour sessions
@@ -145,8 +172,8 @@ export default function ScheduledWorkoutPage() {
           // Determine workout status
           let status = 'Scheduled';
           if (workout.state === 'CANCELLED') status = 'Canceled';
-          else if (workout.state === 'COMPLETED') status = 'Finished';
-          else if (workout.state === 'FEEDBACK_PENDING') status = 'Waiting for Feedback';
+          else if (workout.state === 'FINISHED') status = 'Finished';
+          else if (workout.state === 'WAITING_FOR_FEEDBACK') status = 'Waiting for Feedback';
           
           // Check if workout is in the past but still scheduled
           const now = new Date();
@@ -161,14 +188,17 @@ export default function ScheduledWorkoutPage() {
             time: timeSlot,
             date: formattedDate,
             workout_status: status,
-            imageUrl: workout.coach?.profileImageUrl || 'https://via.placeholder.com/150',
-            coachName: coachName
+            imageUrl: workout.coach?.profilePicture || workout.coach?.profileImageUrl || 'https://via.placeholder.com/150',
+            coachName: coachName,
+            // Store original data for actions like cancellation
+            originalData: workout
           };
         });
         
         console.log("Transformed workouts:", transformedWorkouts);
         setWorkouts(transformedWorkouts);
       } else {
+        console.warn("No workout data found in response:", response.data);
         setWorkouts([]);
       }
       
