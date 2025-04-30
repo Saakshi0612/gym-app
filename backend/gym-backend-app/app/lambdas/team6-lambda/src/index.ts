@@ -1,5 +1,7 @@
 // src/index.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { connectDB } from "./config/db";
+import { getAllCoaches, getCoachById, getBookedWorkouts, getCoachWorkouts } from "./controllers/CoachController"
 import { getCoachName } from "./controllers/coachNameController";
 import { getCoachSpecializations } from "./controllers/sportController";
 import { getAvailableTimeSlots } from "./controllers/availableTimeSlotsController";
@@ -129,7 +131,32 @@ const routes = [
     method: "POST",
     handler: searchWorkout,
     middleware: []
+  },
+  {
+    path: "/coaches",
+    method: "GET",
+    handler: getAllCoaches,
+    middleware: []
+  },
+  {
+    path: "/coaches/{coachId}",
+    method: "GET",
+    handler: getCoachById,
+    middleware: []
+  },
+  {
+    path: "/coaches/{coachId}/booked-workouts/{date}",
+    method: "GET",
+    handler: getBookedWorkouts,
+    middleware: []
+  },
+  {
+    path: "/coaches/{coachId}/workouts",
+    method: "GET",
+    handler: getBookedWorkouts,
+    middleware: []
   }
+
 
 ];
 
@@ -163,7 +190,36 @@ export const handler = async (
     // Route the request based on the path and method
     const path = event.path;
     const method = event.httpMethod;
+<<<<<<< HEAD
+
+    const coachIdMatch = path.match(/^\/coaches\/([a-fA-F0-9]{24})$/);
+
+    if (method === "GET" && coachIdMatch) {
+      event.pathParameters = { coachId: coachIdMatch[1] };
+      return await getCoachById(event, headers);
+    }
+
+    const availableSlotsMatch = path.match(/^\/coaches\/([a-fA-F0-9]{24})\/booked-workouts\/([\d-]+)$/);
+    if (method === "GET" && availableSlotsMatch) {
+      event.pathParameters = {
+        coachId: availableSlotsMatch[1],
+        date: availableSlotsMatch[2],
+      };
+      return await getBookedWorkouts(event, headers);
+    }
+
+    const coachWorkoutsMatch = path.match(/^\/coaches\/([a-fA-F0-9]{24})\/workouts$/);
+    if (method === "GET" && coachWorkoutsMatch) {
+      event.pathParameters = {
+        coachId: coachWorkoutsMatch[1],
+      };
+      return await getCoachWorkouts(event, headers);
+    }
+    console.log(path);
+    console.log(method);
+=======
     console.log(`Processing ${method} request to ${path}`);
+>>>>>>> f3b7d6918f145277459ea3c79a21a62f6ce989d8
 
     // Find the matching route
     const route = routes.find(r => r.path === path && r.method === method);

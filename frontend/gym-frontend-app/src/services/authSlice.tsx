@@ -1,4 +1,5 @@
 // src/services/authSlice.ts
+
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
 import axios from 'axios';
@@ -47,17 +48,6 @@ interface StoredUser extends User {
 	password: string;
 }
 
-// Utility function to remove password from user object
-function stripPassword<T extends { password: string }>(
-	user: T
-): Omit<T, 'password'> {
-	// Create a shallow copy of the user object
-	const userCopy = { ...user };
-	// Remove the password property
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { password, ...rest } = userCopy;
-	return rest as Omit<T, 'password'>;
-}
 
 // Configure axios instance with interceptors
 const api = axios.create({

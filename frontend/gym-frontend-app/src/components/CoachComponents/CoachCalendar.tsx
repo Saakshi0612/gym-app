@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import Calendar from '../common/Calender';
 import TimeSlots from './TimeSlots';
-import { CoachAvailabilityCalendarProps } from '../../types/components/coach.types';
-import { TimeSlot } from '../../types/components/coach.types';
+import { CoachAvailabilityCalendarProps, TimeSlot } from '../../types/components/coach.types';
 
 const CoachAvailabilityCalendar: React.FC<CoachAvailabilityCalendarProps> = ({
   initialDate = new Date(),
-  // availableTimeSlots,
+  availableTimeSlots = [],
   onTimeSlotSelect,
   onDateChange,
 }) => {
@@ -32,14 +31,10 @@ const CoachAvailabilityCalendar: React.FC<CoachAvailabilityCalendarProps> = ({
     onTimeSlotSelect(timeSlot);
   };
 
-  // Example time slots for the selected date
-  // In a real app, you would filter these based on the selected date
-  const exampleTimeSlots = [
-    { id: '1', startTime: '8:00', endTime: '9:00 AM', isAvailable: true },
-    { id: '2', startTime: '9:00', endTime: '10:00 AM', isAvailable: true },
-    { id: '3', startTime: '10:00', endTime: '11:00 AM', isAvailable: true },
-    { id: '4', startTime: '3:00', endTime: '4:00 PM', isAvailable: true }
-  ];
+  // Get available slots count
+  // const availableSlotsCount = availableTimeSlots.filter(
+  //   (slot) => slot.isAvailable
+  // ).length;
 
   return (
     <div className="w-full overflow-hidden">
@@ -63,7 +58,7 @@ const CoachAvailabilityCalendar: React.FC<CoachAvailabilityCalendarProps> = ({
         <div className="w-full md:w-1/2">
           <TimeSlots 
             selectedDate={selectedDate}
-            timeSlots={exampleTimeSlots}
+            timeSlots={availableTimeSlots}
             selectedTimeSlotId={selectedTimeSlot}
             onTimeSlotSelect={handleTimeSlotSelect}
           />
