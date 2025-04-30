@@ -38,8 +38,11 @@ export interface User {
     password: string;
     firstName: string;
     lastName: string;
+    targets: string;
+    preferableActivity: string;
     target?: string;
     activity?: string;
+    confirmPassword: string;
   }
 
 export interface UserNavigationProps {

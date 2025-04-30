@@ -30,9 +30,9 @@ export const validatePassword = (password: string): { isValid: boolean; message?
     errors.push("• Must not contain spaces");
   }
   
-  // Check for uppercase letter
-  if (!/[A-Z]/.test(password)) {
-    errors.push("• Must include at least one uppercase letter");
+  // Check if starts with capital letter
+  if (!/^[A-Z]/.test(password)) {
+    errors.push("• Must start with a capital letter");
   }
   
   // Check for lowercase letter
