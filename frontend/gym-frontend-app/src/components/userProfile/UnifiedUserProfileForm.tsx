@@ -113,8 +113,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       about: role === UserRole.COACH && "about" in profileData
         ? (profileData as CoachProfileData).about
         : "",
-      tags: role === UserRole.COACH 
-        ? ((profileData as CoachProfileData).tags || [])
+      tags: role === UserRole.COACH && "tags" in profileData
+        ? (profileData as CoachProfileData).tags
         : [],
       certificates: role === UserRole.COACH && "certificates" in profileData
         ? (profileData as CoachProfileData).certificates
@@ -248,7 +248,6 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       const result = await dispatch(updateUserProfile(userPayload));
       
       if ('payload' in result && result.payload) {
-        // Create a new form state object instead of mutating the existing one
         const updatedUserData: UserProfileData = {
           name: `${formState.firstName} ${formState.lastName}`,
           email: formState.userData?.email || "",
@@ -265,24 +264,18 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
           isSubmitSuccessful: true,
         };
 
-        // Update form state
         setFormState(updatedFormState);
         
         // Update the saved hash
         const newHash = generateFormHash(updatedFormState);
         lastSavedHashRef.current = newHash;
         
-        // Update dirty state
         setIsDirty(false);
-
-        // Notify parent of successful save
         onSaveSuccess();
 
-        // Create a new profile data object based on role
-        let updatedProfileData: AdminProfileData | CoachProfileData | ClientProfileData;
-        
+        // Call the parent's onChange handler with the updated data
         if (role === UserRole.ADMIN) {
-          updatedProfileData = {
+          const adminData: AdminProfileData = {
             firstName: userPayload.firstName,
             lastName: userPayload.lastName,
             email: userPayload.email,
@@ -290,21 +283,23 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             phoneNumber: userPayload.phoneNumber,
             avatarUrl: userPayload.avatarUrl
           };
+          onChange(adminData);
         } else if (role === UserRole.COACH) {
-          updatedProfileData = {
+          const coachData: CoachProfileData = {
             firstName: userPayload.firstName,
             lastName: userPayload.lastName,
             email: userPayload.email,
             role: UserRole.COACH,
             title: userPayload.title,
             about: userPayload.about,
-            tags: userPayload.tags || [],
-            certificates: userPayload.certificates || [],
-            rating: userPayload.rating || 0,
+            tags: userPayload.tags,
+            certificates: userPayload.certificates,
+            rating: userPayload.rating,
             avatarUrl: userPayload.avatarUrl
           };
+          onChange(coachData);
         } else {
-          updatedProfileData = {
+          const clientData: ClientProfileData = {
             firstName: userPayload.firstName,
             lastName: userPayload.lastName,
             email: userPayload.email,
@@ -314,19 +309,18 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             targets: userPayload.target,
             avatarUrl: userPayload.avatarUrl
           };
+          onChange(clientData);
         }
 
-        // Notify parent of changes with the new profile data
-        onChange(updatedProfileData);
-
-        // Clear success message after delay
+        // Clear any existing timeout
         if (successTimeoutRef.current !== null) {
           clearTimeout(successTimeoutRef.current);
         }
 
+        // Set a new timeout with a longer duration
         successTimeoutRef.current = window.setTimeout(() => {
           setFormState(prev => ({ ...prev, showSuccess: false, isSubmitSuccessful: false }));
-        }, 2000);
+        }, 2000); // Reduced to 2 seconds
       } else {
         throw new Error('Failed to update profile');
       }

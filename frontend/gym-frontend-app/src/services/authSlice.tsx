@@ -2,11 +2,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginCredentials, RegisterData, User } from '../types';
 import axios from 'axios';
-import { AppDispatch } from '../store/store';
 
-// API base URL - replace with your actual API endpoint
-const API_URL: string = import.meta.env.VITE_API_URL ||
-	'https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev';
+// API base URL - replace with your actual API endpoint;
 
 // Helper function to persist auth state
 const persistAuthState = (user: User | null, isAuthenticated: boolean) => {
@@ -35,6 +32,33 @@ const loadAuthState = (): { user: User | null; isAuthenticated: boolean } => {
 	}
 };
 
+// In-memory storage for users (temporary until backend is implemented)
+const users: StoredUser[] = [];
+
+// Initialize users from localStorage
+try {
+	const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+	users.push(...storedUsers);
+} catch (e) {
+	console.error('Error loading users from localStorage:', e);
+}
+
+interface StoredUser extends User {
+	password: string;
+}
+
+// Utility function to remove password from user object
+function stripPassword<T extends { password: string }>(
+	user: T
+): Omit<T, 'password'> {
+	// Create a shallow copy of the user object
+	const userCopy = { ...user };
+	// Remove the password property
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const { password, ...rest } = userCopy;
+	return rest as Omit<T, 'password'>;
+}
+
 // Configure axios instance with interceptors
 const api = axios.create({
 	headers: {
@@ -58,14 +82,7 @@ export const loginUser = createAsyncThunk(
 	'auth/login',
 	async (credentials: LoginCredentials, { rejectWithValue }) => {
 		try {
-			// Clear any existing stored data before login
-			localStorage.removeItem('authUser');
-			localStorage.removeItem('isAuthenticated');
-			localStorage.removeItem('gym_app_profile_draft');
-			localStorage.removeItem('accessToken');
-			localStorage.removeItem('refreshToken');
-
-			const response = await api.post(`${API_URL}/auth/login`, credentials);
+			const response = await api.post(`https://efl7t35deh.execute-api.ap-southeast-1.amazonaws.com/dev/auth/login`, credentials);
 
 			// Extract user data from response
 			const userData = response.data.user;
@@ -83,40 +100,20 @@ export const loginUser = createAsyncThunk(
 				userData.role = userData.role.toLowerCase();
 			}
 
-			// Handle specializations and tags for coach role
-			if (userData.role === 'coach') {
-				// Map specializations to tags
-				if (userData.specializations && Array.isArray(userData.specializations)) {
-					userData.tags = [...userData.specializations];
-				} else if (!userData.tags) {
-					userData.tags = [];
-				}
-
-				// Handle certificates
-				if (userData.fileUrls && Array.isArray(userData.fileUrls)) {
-					userData.certificates = userData.fileUrls.map((url: string, index: number) => ({
-						name: `Certificate ${index + 1}`,
-						size: 'Unknown',
-						url: url
-					}));
-				} else if (!userData.certificates) {
-					userData.certificates = [];
-				}
-			}
-
-			// Ensure we're storing fresh data
-			persistAuthState(userData, true);
-
 			return userData;
-		} catch (error: unknown) {
+		} catch (error: any) {
 			console.error('Login error:', error);
 
-			if (error && typeof error === 'object' && 'response' in error && 
-				error.response && typeof error.response === 'object' && 'data' in error.response &&
-				error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+			// Handle specific error messages from the API
+			if (
+				error.response &&
+				error.response.data &&
+				error.response.data.message
+			) {
 				return rejectWithValue(error.response.data.message);
 			}
 
+			// Generic error message
 			return rejectWithValue(
 				"We couldn't log you in. Double-check your credentials and try again."
 			);
@@ -138,9 +135,9 @@ export const registerUser = createAsyncThunk(
 			// Format the data according to your API requirements
 			const registerPayload = {
 				email: userData.email,
-				password: userData.password,
 				firstName: userData.firstName,
 				lastName: userData.lastName,
+				password: userData.password,
 				confirmPassword: userData.confirmPassword,
 				target: userData.targets,
 				preferableActivity: userData.preferableActivity,
@@ -152,28 +149,29 @@ export const registerUser = createAsyncThunk(
 				confirmPassword: '***REDACTED***'
 			});
 
-			const response = await api.post(`${API_URL}/auth/register`, registerPayload);
+			const response = await api.post(`https://efl7t35deh.execute-api.ap-southeast-1.amazonaws.com/dev/auth/register`, registerPayload);
 			
 			console.log('Registration response:', response.data);
 
 			return response.data.user;
-		} catch (error: unknown) {
+		} catch (error: any) {
 			console.error('Registration error:', error);
 
 			// Handle specific error messages from the API
-			if (error && typeof error === 'object' && 'response' in error) {
-				const apiError = error as { response?: { data?: { errors?: string[]; message?: string } } };
-				if (apiError.response?.data) {
-					if (apiError.response.data.errors) {
-						// If there are multiple validation errors
-						return rejectWithValue(apiError.response.data.errors.join('\n'));
-					} else if (apiError.response.data.message) {
-						// If there's a single error message
-						return rejectWithValue(apiError.response.data.message);
-					}
+			if (
+				error.response &&
+				error.response.data
+			) {
+				if (error.response.data.errors) {
+					// If there are multiple validation errors
+					return rejectWithValue(error.response.data.errors.join('\n'));
+				} else if (error.response.data.message) {
+					// If there's a single error message
+					return rejectWithValue(error.response.data.message);
 				}
 			}
 
+			// Generic error message
 			return rejectWithValue('Registration failed. Please try again later.');
 		}
 	}
@@ -191,26 +189,39 @@ export const updateUserProfile = createAsyncThunk(
 				return rejectWithValue('No user is logged in.');
 			}
 
-			// Only include fields that should be updated
-			const updatePayload: Record<string, unknown> = {
-				firstName: updatedUser.firstName,
-				lastName: updatedUser.lastName,
-				avatarUrl: updatedUser.avatarUrl,
-			};
+			const index = users.findIndex(
+				(client) => client.email === currentUser.email
+			);
 
-			// Make API call to update profile
-			const response = await api.put(`${API_URL}/users/${currentUser.id}`, updatePayload);
-			
-			// Process the response data
-			const updatedUserData = response.data;
-			
-			// Update the stored user data
-			persistAuthState(updatedUserData, true);
-			
-			return updatedUserData;
+			if (index === -1) {
+				return rejectWithValue('User not found.');
+			}
+
+			// Update user profile in the list, preserving the password
+			const updatedStoredUser = {
+				...updatedUser,
+				password: users[index].password,
+			};
+			users[index] = updatedStoredUser;
+
+			// Update localStorage
+			try {
+				const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+				const storedIndex = storedUsers.findIndex(
+					(u: User) => u.email === currentUser.email
+				);
+				if (storedIndex !== -1) {
+					storedUsers[storedIndex] = updatedStoredUser;
+					localStorage.setItem('users', JSON.stringify(storedUsers));
+				}
+			} catch (e) {
+				console.error('Error updating localStorage:', e);
+			}
+
+			return updatedUser;
 		} catch (error) {
-			console.error('Error updating profile:', error);
-			return rejectWithValue('Failed to update profile.');
+			console.error('Error updating user profile:', error);
+			return rejectWithValue('Failed to update user profile.');
 		}
 	}
 );
@@ -229,84 +240,47 @@ export const updatePassword = createAsyncThunk(
 				return rejectWithValue('No user is logged in.');
 			}
 
-			// Make API call to update password
-			const response = await api.put(`${API_URL}/users/${currentUser.id}/password`, {
-				oldPassword,
-				newPassword,
-			});
+			// Find user in the local storage
+			const index = users.findIndex((user) => user.email === currentUser.email);
 
-			return response.data;
-		} catch (error: unknown) {
-			console.error("Error updating password:", error);
-			
-			if (error && typeof error === 'object' && 'response' in error && 
-				error.response && typeof error.response === 'object' && 'data' in error.response &&
-				error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
-				return rejectWithValue(error.response.data.message);
+			if (index === -1) {
+				return rejectWithValue('User not found.');
 			}
-			
+
+			// Verify old password
+			if (users[index].password !== oldPassword) {
+				return rejectWithValue('Current password is incorrect.');
+			}
+
+			// Check if new password is same as old password
+			if (oldPassword === newPassword) {
+				return rejectWithValue(
+					'New password must be different from current password.'
+				);
+			}
+
+			// Update password
+			users[index].password = newPassword;
+
+			// Update localStorage
+			try {
+				const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+				const storedIndex = storedUsers.findIndex(
+					(u: StoredUser) => u.email === currentUser.email
+				);
+				if (storedIndex !== -1) {
+					storedUsers[storedIndex].password = newPassword;
+					localStorage.setItem('users', JSON.stringify(storedUsers));
+				}
+			} catch (e) {
+				console.error('Error updating localStorage:', e);
+				return rejectWithValue('Failed to save password.');
+			}
+
+			return { message: 'Password updated successfully' };
+		} catch (error) {
+			console.error('Error updating password:', error);
 			return rejectWithValue('Failed to update password.');
-		}
-	}
-);
-
-// Fetch user profile
-export const fetchUserProfile = createAsyncThunk(
-	'auth/fetchUserProfile',
-	async (_, { getState, rejectWithValue }) => {
-		try {
-			const state = getState() as { auth: AuthState };
-			const currentUser = state.auth.user;
-
-			if (!currentUser) {
-				return rejectWithValue('No user found');
-			}
-
-			const response = await api.get(`${API_URL}/users/${currentUser.id}`);
-			const userData = response.data;
-			
-			// Normalize role to lowercase for frontend consistency
-			if (userData.role) {
-				userData.role = userData.role.toLowerCase();
-			}
-			
-			// Handle specializations and tags for coach role
-			if (userData.role === 'coach') {
-				// Map specializations to tags and preserve existing tags
-				if (userData.specializations && Array.isArray(userData.specializations)) {
-					userData.tags = [...userData.specializations];
-				} else if (!userData.tags && currentUser.tags) {
-					// If no new tags but we have existing ones, preserve them
-					userData.tags = [...currentUser.tags];
-				} else if (!userData.tags) {
-					userData.tags = [];
-				}
-				
-				// Handle certificates while preserving existing ones
-				if (userData.fileUrls && Array.isArray(userData.fileUrls)) {
-					userData.certificates = userData.fileUrls.map((url: string, index: number) => ({
-						name: `Certificate ${index + 1}`,
-						size: 'Unknown',
-						url: url
-					}));
-				} else if (!userData.certificates && currentUser.certificates) {
-					// If no new certificates but we have existing ones, preserve them
-					userData.certificates = [...currentUser.certificates];
-				} else if (!userData.certificates) {
-					userData.certificates = [];
-				}
-			}
-			
-			return userData;
-		} catch (error: unknown) {
-			console.error('Error fetching user profile:', error);
-			if (error && typeof error === 'object' && 'response' in error) {
-				const apiError = error as { response?: { data?: { message?: string } } };
-				if (apiError.response?.data?.message) {
-					return rejectWithValue(apiError.response.data.message);
-				}
-			}
-			return rejectWithValue('Failed to fetch user profile');
 		}
 	}
 );
@@ -326,29 +300,18 @@ const authSlice = createSlice({
 	initialState,
 	reducers: {
 		login: (state, action: PayloadAction<User>) => {
-			// First clear any existing data
-			localStorage.removeItem('authUser');
-			localStorage.removeItem('isAuthenticated');
-			localStorage.removeItem('gym_app_profile_draft');
-			
-			// Then set new state
 			state.isAuthenticated = true;
 			state.user = action.payload;
 			state.error = null;
-			
-			// Persist the new state
+			// Persist the state
 			persistAuthState(action.payload, true);
 		},
 		logout: (state) => {
 			state.isAuthenticated = false;
 			state.user = null;
-			// Clear ALL auth-related data from localStorage
+			// Clear tokens and auth state from localStorage
 			localStorage.removeItem('accessToken');
 			localStorage.removeItem('refreshToken');
-			localStorage.removeItem('authUser');
-			localStorage.removeItem('isAuthenticated');
-			localStorage.removeItem('gym_app_profile_draft');  // Clear profile draft
-			localStorage.removeItem('users');  // Clear any stored users
 			persistAuthState(null, false);
 		},
 		clearError: (state) => {
@@ -415,27 +378,12 @@ const authSlice = createSlice({
 			.addCase(updatePassword.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.payload as string;
-			})
-			.addCase(fetchUserProfile.pending, (state) => {
-				state.isLoading = true;
-				state.error = null;
-			})
-			.addCase(fetchUserProfile.fulfilled, (state, action) => {
-				state.isLoading = false;
-				state.user = action.payload;
-				state.error = null;
-				// Persist the updated user
-				persistAuthState(action.payload, true);
-			})
-			.addCase(fetchUserProfile.rejected, (state, action) => {
-				state.isLoading = false;
-				state.error = action.payload as string;
 			});
 	},
 });
 
 // Create a function to check auth status on app load
-export const checkAuthStatus = async (dispatch: AppDispatch) => {
+export const checkAuthStatus = async (dispatch: any) => {
 	const token = localStorage.getItem('accessToken');
 	const savedState = loadAuthState();
 
