@@ -190,28 +190,22 @@ const DynamicUserProfile = () => {
 
   // Autosave effect with debounce
   useEffect(() => {
-    if (!isDirty || !profileData || isLoading) return;
+    if (!isDirty || !profileData) return;
 
     const timer = setTimeout(() => {
-      // Only save draft if we're not currently saving
-      if (!isLoading) {
-        saveDraft(profileData);
-        setIsDirty(false);
-      }
+      saveDraft(profileData);
+      setIsDirty(false);
     }, AUTOSAVE_DELAY);
 
     return () => clearTimeout(timer);
-  }, [isDirty, profileData, saveDraft, setIsDirty, isLoading]);
+  }, [isDirty, profileData, saveDraft, setIsDirty]);
 
   // Clear draft on successful save
   const handleSuccessfulSave = useCallback(() => {
-    // Clear draft only after successful save
     localStorage.removeItem(PROFILE_STORAGE_KEY);
     setIsDirty(false);
-    setLastSaved(new Date());
-    setInfo("Profile updated successfully");
-    setTimeout(() => setInfo(null), 3000);
-  }, [setIsDirty, setLastSaved, setInfo]);
+    setLastSaved(null);
+  }, [setIsDirty, setLastSaved]);
 
   // Handle tab changes with unsaved changes warning
   const handleTabChange = useCallback((newTab: SidebarTab) => {

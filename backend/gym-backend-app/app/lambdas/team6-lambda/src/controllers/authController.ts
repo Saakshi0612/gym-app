@@ -1,38 +1,9 @@
 // src/controllers/authController.ts
 import { UserModel, ClientModel, CoachModel, AdminModel } from "../models/userModel";
 import { AdminEmailModel } from "../models/adminEmailModel";
-import { CoachEmailModel } from "../models/coachemailModel";
+import { CoachEmailModel } from "../models/coachEmailModel";
 import { authenticateUser, registerUserInCognito } from "../services/cognitoService";
 import { comparePassword, hashPassword, validatePassword } from "../utils/passwordUtils";
-
-// Add these interfaces at the top of the file, after the imports
-interface BaseUserResponse {
-  id: any;
-  email: any;
-  firstName: any;
-  lastName: any;
-  role: any;
-  cognitoId?: string;
-}
-
-interface AdminUserResponse extends BaseUserResponse {
-  role: 'ADMIN';
-}
-
-interface CoachUserResponse extends BaseUserResponse {
-  role: 'COACH';
-  title: any;
-  about: any;
-  rating: any;
-}
-
-interface ClientUserResponse extends BaseUserResponse {
-  role: 'CLIENT';
-  preferableActivity: any;
-  target: any;
-}
-
-type UserResponse = AdminUserResponse | CoachUserResponse | ClientUserResponse;
 
 // Helper function to parse request body
 export const parseBody = (body: string | null) => {
@@ -42,7 +13,8 @@ export const parseBody = (body: string | null) => {
   return JSON.parse(body);
 };
 
-// Register user controller
+// src/controllers/authController.ts
+// Update the register function
 export const register = async (
   email: string,
   firstName: string,
@@ -53,69 +25,7 @@ export const register = async (
   activity?: string
 ) => {
   console.log(`Registration attempt for email: ${email}`);
-  console.log(`With target: ${target} and activity: ${activity}`);
-
-  // Validate required fields
-  if (!email || !firstName || !lastName || !password || !confirmPassword) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: "Please provide all required fields: email, firstName, lastName, password, confirmPassword",
-    };
-  }
-
-  // Validate first name
-  const firstNameTrimmed = firstName.trim();
-  if (firstNameTrimmed.length < 2 || firstNameTrimmed.length > 50) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: "First name must be between 2 and 50 characters",
-    };
-  }
-  if (!/^[A-Za-z\s]+$/.test(firstNameTrimmed)) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: "First name must only contain letters and spaces",
-    };
-  }
-
-  // Validate last name
-  const lastNameTrimmed = lastName.trim();
-  if (lastNameTrimmed.length < 2 || lastNameTrimmed.length > 50) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: "Last name must be between 2 and 50 characters",
-    };
-  }
-  if (!/^[A-Za-z\s]+$/.test(lastNameTrimmed)) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: "Last name must only contain letters and spaces",
-    };
-  }
-
-  // Check if passwords match
-  if (password !== confirmPassword) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: "Passwords do not match",
-    };
-  }
-
-  // Validate password strength
-  const passwordValidation = validatePassword(password);
-  if (!passwordValidation.isValid) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: passwordValidation.message,
-    };
-  }
+  console.log(`With target: ${target} and activity: ${activity}`); // Add this log
 
   // Check if user already exists in our database
   const existingUser = await UserModel.findOne({ email });
@@ -139,7 +49,7 @@ export const register = async (
   console.log(`Database check results - isAdmin: ${!!isAdmin}, isCoach: ${!!isCoach}`);
 
   let newUser;
-  let userResponse: UserResponse;
+  let userResponse;
   let userRole = "CLIENT"; // Default role
 
   // Create user based on role (admin, coach, or client)
@@ -189,7 +99,7 @@ export const register = async (
     };
   } else {
     console.log(`Creating CLIENT user for email: ${email}`);
-    console.log(`Setting preferableActivity to: ${activity}`);
+    console.log(`Setting preferableActivity to: ${activity}`); // Add this log
     
     // Create client user with explicit preferableActivity and target
     const clientData = {
@@ -198,15 +108,15 @@ export const register = async (
       lastName,
       passwordHash,
       role: userRole,
-      preferableActivity: activity || "",
+      preferableActivity: activity || "", // Make sure this is set correctly
       target: target || ""
     };
     
-    console.log("Client data to be saved:", clientData);
+    console.log("Client data to be saved:", clientData); // Add this log
     
     newUser = await ClientModel.create(clientData);
     
-    console.log("Saved client user:", newUser);
+    console.log("Saved client user:", newUser); // Add this log to see what was actually saved
 
     userResponse = {
       id: newUser._id,
@@ -214,13 +124,13 @@ export const register = async (
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       role: newUser.role,
-      preferableActivity: newUser.preferableActivity,
+      preferableActivity: newUser.preferableActivity, // Make sure this is included
       target: newUser.target
     };
   }
 
   console.log(`User created successfully with role: ${newUser.role}`);
-  console.log("User response object:", userResponse);
+  console.log("User response object:", userResponse); // Add this log
 
   // Register user in Cognito
   try {
