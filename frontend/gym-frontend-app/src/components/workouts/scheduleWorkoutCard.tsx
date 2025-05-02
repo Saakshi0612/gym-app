@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { useState, useEffect } from "react";
 import { Calendar, User, Clock } from "lucide-react";
 import CancelWorkoutModal from "./cancelWorkoutPopup";

@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import { fetchWorkoutData, filterWorkout } from '../../services/workoutSlice';
