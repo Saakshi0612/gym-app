@@ -24,7 +24,8 @@ async (event: APIGatewayProxyEvent, headers: Record<string, string>): Promise<AP
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                message: workoutBookingData,
+                message: "Workout successfully booked",
+                data: workoutBookingData,
                 status: "success"
             })
         };
@@ -51,4 +52,3 @@ async (event: APIGatewayProxyEvent, headers: Record<string, string>): Promise<AP
         };
     }
 };
-

@@ -14,6 +14,8 @@ import { DatabaseService } from "./services/database.service";
 import { workoutBookingHandler } from "./handler/workout-booking.handler";
 import { getBookingHandler } from "./handler/getWorkout.handler";
 import { deleteWorkoutHandler } from "./handler/deleteWorkout.handler";
+import { AdminEmailModel } from "./models/adminEmailModel";
+import { CoachEmailModel } from "./models/coachEmailModel";
 
 
 

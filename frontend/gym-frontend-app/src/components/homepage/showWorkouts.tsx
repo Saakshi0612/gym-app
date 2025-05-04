@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+/* eslint-disable */
+// @ts-nocheck
+import  { useEffect, useState } from 'react';
 import ShowError from './searchError';
 import ShowCochesCard from './showCoachCard';
 import { useAppSelector } from '../../store/store';

@@ -9,29 +9,59 @@ export class WorkoutService {
   constructor() {
     this.dbService = DatabaseService.getInstance();
   }
-  async MyBookedWorkouts({id}: {id: String}): Promise<IWorkout[]> {
+  
+  async MyBookedWorkouts({
+    id, 
+    states = ['SCHEDULED', 'FINISHED', 'WAITING_FOR_FEEDBACK', 'CANCELLED'],
+    startDate,
+    endDate
+  }: {
+    id: string, 
+    states?: string[],
+    startDate?: Date,
+    endDate?: Date
+  }): Promise<IWorkout[]> {
     try {
       await this.dbService.connect();
+      
+      // Build the query
+      let query: any = { $or: [{client: id}, {coach: id}] };
+      
+      // Add state filter
+      if (states && states.length > 0) {
+        query.state = { $in: states };
+      }
+      
+      // Add date range filter if provided
+      if (startDate || endDate) {
+        query.date = {};
+        if (startDate) query.date.$gte = startDate;
+        if (endDate) query.date.$lte = endDate;
+      }
  
-      // Check if the user has already booked this exact workout
-      const existingUserBooking = await WorkoutModel.find({
-         $or: [{client:id }, {coach:id}] 
-      }).populate("slot");
-      return existingUserBooking 
-    }catch (error) {
-      console.error("Error booking workout:", error);
+      // Execute the query with population and sorting
+      const workouts = await WorkoutModel.find(query)
+        .populate("slot")
+        .populate("coach", "name profilePicture")
+        .populate("client", "name profilePicture")
+        .sort({ date: 1 });
+        
+      return workouts;
+    } catch (error) {
+      console.error("Error fetching workouts:", error);
       if (error.type === "RESPONSE") {
         throw error;
       }
       throw {
-        message: "Failed to book workout. Please try again.",
+        message: "Failed to fetch workouts. Please try again.",
         type: "RESPONSE",
         statusCode: 400
       }
     }
   }
+  
   //for deleting the workouts
-  async deleteWorkout(workoutId: String): Promise<{ success: boolean, message: string }> {
+  async deleteWorkout(workoutId: string): Promise<{ success: boolean, message: string }> {
     try {
       await this.dbService.connect();
    
@@ -105,7 +135,6 @@ export class WorkoutService {
           statusCode: 400
         };
       }
-     
       
       // Create new booking if no previous cancellation exists for this user
       const newWorkout = new WorkoutModel({

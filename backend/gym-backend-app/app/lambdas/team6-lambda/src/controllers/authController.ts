@@ -13,7 +13,8 @@ export const parseBody = (body: string | null) => {
   return JSON.parse(body);
 };
 
-// Register user controller
+// src/controllers/authController.ts
+// Update the register function
 export const register = async (
   email: string,
   firstName: string,
@@ -24,34 +25,7 @@ export const register = async (
   activity?: string
 ) => {
   console.log(`Registration attempt for email: ${email}`);
-
-  // Validate required fields
-  if (!email || !firstName || !lastName || !password || !confirmPassword) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: "Please provide all required fields: email, firstName, lastName, password, confirmPassword",
-    };
-  }
-
-  // Check if passwords match
-  if (password !== confirmPassword) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: "Passwords do not match",
-    };
-  }
-
-  // Validate password strength
-  const passwordValidation = validatePassword(password);
-  if (!passwordValidation.isValid) {
-    return {
-      success: false,
-      statusCode: 400,
-      message: passwordValidation.message,
-    };
-  }
+  console.log(`With target: ${target} and activity: ${activity}`); // Add this log
 
   // Check if user already exists in our database
   const existingUser = await UserModel.findOne({ email });
@@ -125,16 +99,24 @@ export const register = async (
     };
   } else {
     console.log(`Creating CLIENT user for email: ${email}`);
-    userRole = "CLIENT";
-    newUser = await ClientModel.create({
+    console.log(`Setting preferableActivity to: ${activity}`); // Add this log
+    
+    // Create client user with explicit preferableActivity and target
+    const clientData = {
       email,
       firstName,
       lastName,
       passwordHash,
       role: userRole,
-      preferableActivity: activity || "",
+      preferableActivity: activity || "", // Make sure this is set correctly
       target: target || ""
-    });
+    };
+    
+    console.log("Client data to be saved:", clientData); // Add this log
+    
+    newUser = await ClientModel.create(clientData);
+    
+    console.log("Saved client user:", newUser); // Add this log to see what was actually saved
 
     userResponse = {
       id: newUser._id,
@@ -142,12 +124,13 @@ export const register = async (
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       role: newUser.role,
-      preferableActivity: newUser.preferableActivity,
+      preferableActivity: newUser.preferableActivity, // Make sure this is included
       target: newUser.target
     };
   }
 
   console.log(`User created successfully with role: ${newUser.role}`);
+  console.log("User response object:", userResponse); // Add this log
 
   // Register user in Cognito
   try {

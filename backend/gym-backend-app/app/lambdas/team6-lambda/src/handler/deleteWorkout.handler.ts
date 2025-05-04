@@ -5,8 +5,8 @@ export const deleteWorkoutHandler =
 async (event: APIGatewayProxyEvent, headers: Record<string, string>): Promise<APIGatewayProxyResult> => {
     try {
         // Get workout ID from query parameters
-        const query = event.queryStringParameters;
-        if(!query?.id){
+        const query = event.queryStringParameters || {};
+        if(!query.id){
             return {
                 statusCode: 400,
                 headers,
