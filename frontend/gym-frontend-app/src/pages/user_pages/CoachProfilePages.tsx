@@ -37,41 +37,41 @@ const CoachProfilePage: React.FC = () => {
   // State for available time slots
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState<boolean>(false);
-  
+
   // State for upcoming workouts
   const [upcomingWorkouts, setUpcomingWorkouts] = useState<UpcomingWorkout[]>([]);
   const [upcomingWorkoutsLoading, setUpcomingWorkoutsLoading] = useState<boolean>(false);
-  
+
   // Format date and time for display
   const formatDateTime = (dateString: string): string => {
     const date = new Date(dateString);
     return `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
   };
-  
+
   // Generate all time slots from 8 AM to 8 PM
-const generateAllTimeSlots = (): TimeSlot[] => {
-  return Array.from({ length: 12 }, (_, index) => {
-    const startHour = 8 + index;
-    const endHour = startHour + 1;
-    
-    // Format start time in 12-hour format
-    const startHour12 = startHour > 12 ? startHour - 12 : startHour;
-    const startPeriod = startHour >= 12 ? 'PM' : 'AM';
-    const formattedStartTime = `${startHour12}:00 ${startPeriod}`;
-    
-    // Format end time in 12-hour format
-    const endHour12 = endHour > 12 ? endHour - 12 : endHour;
-    const endPeriod = endHour >= 12 ? 'PM' : 'AM';
-    const formattedEndTime = `${endHour12}:00 ${endPeriod}`;
-    
-    return {
-      id: `${startHour}`,
-      startTime: formattedStartTime,
-      endTime: formattedEndTime,
-      isAvailable: true,
-    };
-  });
-};
+  const generateAllTimeSlots = (): TimeSlot[] => {
+    return Array.from({ length: 12 }, (_, index) => {
+      const startHour = 8 + index;
+      const endHour = startHour + 1;
+
+      // Format start time in 12-hour format
+      const startHour12 = startHour > 12 ? startHour - 12 : startHour;
+      const startPeriod = startHour >= 12 ? 'PM' : 'AM';
+      const formattedStartTime = `${startHour12}:00 ${startPeriod}`;
+
+      // Format end time in 12-hour format
+      const endHour12 = endHour > 12 ? endHour - 12 : endHour;
+      const endPeriod = endHour >= 12 ? 'PM' : 'AM';
+      const formattedEndTime = `${endHour12}:00 ${endPeriod}`;
+
+      return {
+        id: `${startHour}`,
+        startTime: formattedStartTime,
+        endTime: formattedEndTime,
+        isAvailable: true,
+      };
+    });
+  };
 
   // Format date for API call (YYYY-MM-DD)
   const formatDateForApi = (date: Date): string => {
@@ -81,16 +81,16 @@ const generateAllTimeSlots = (): TimeSlot[] => {
   // Fetch booked slots for the selected date
   const fetchBookedSlots = async (date: Date) => {
     if (!id) return;
-    
+
     setSlotsLoading(true);
-    
+
     try {
       const formattedDate = formatDateForApi(date);
       const response = await axios.get<BookedWorkoutsResponse>(
         `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}/booked-workouts/${formattedDate}`
       );
       console.log(response.data.bookings);
-      
+
       if (response.data.success) {
         updateAvailableTimeSlots(response.data.bookings);
       } else {
@@ -108,14 +108,14 @@ const generateAllTimeSlots = (): TimeSlot[] => {
   // Fetch upcoming workouts for the coach
   const fetchUpcomingWorkouts = async (coachId: string) => {
     if (!coachId) return;
-    
+
     setUpcomingWorkoutsLoading(true);
-    
+
     try {
       const response = await axios.get<UpcomingWorkoutsResponse>(
         `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${coachId}/workouts`
       );
-      
+
       if (response.data.success) {
         setUpcomingWorkouts(response.data.workouts);
         console.log('Upcoming workouts:', response.data.workouts);
@@ -135,24 +135,24 @@ const generateAllTimeSlots = (): TimeSlot[] => {
   const updateAvailableTimeSlots = (bookedWorkouts: BookedWorkout[]) => {
     // Start with all slots available
     const allTimeSlots = generateAllTimeSlots();
-    
+
     // Mark booked slots as unavailable
     bookedWorkouts.forEach(booking => {
       if (booking.slotDetails) {
         const startTime = new Date(booking.slotDetails.startTime);
         const hour = startTime.getHours();
-        
+
         // Find the slot that matches this hour and mark it as unavailable
-        const slotIndex = allTimeSlots.findIndex(slot => 
+        const slotIndex = allTimeSlots.findIndex(slot =>
           parseInt(slot.id) === hour
         );
-        
+
         if (slotIndex !== -1) {
           allTimeSlots[slotIndex].isAvailable = false;
         }
       }
     });
-    
+
     setAvailableTimeSlots(allTimeSlots);
   };
 
@@ -182,10 +182,10 @@ const generateAllTimeSlots = (): TimeSlot[] => {
         console.log('Fetched coach data:', data);
 
         setCoach(data);
-        
+
         // After fetching coach data, fetch booked slots for today
         fetchBookedSlots(selectedDate);
-        
+
         // Also fetch upcoming workouts
         fetchUpcomingWorkouts(id as string);
       } catch (err) {
@@ -260,10 +260,10 @@ const generateAllTimeSlots = (): TimeSlot[] => {
     setTimeout(() => {
       setShowAlert(false);
     }, 5000);
-    
+
     // Refresh the available time slots after booking
     fetchBookedSlots(selectedDate);
-    
+
     // Refresh upcoming workouts after booking
     if (id) {
       fetchUpcomingWorkouts(id);
@@ -351,23 +351,25 @@ const generateAllTimeSlots = (): TimeSlot[] => {
                   <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
               ) : upcomingWorkouts.length > 0 ? (
-                upcomingWorkouts.map((workout) => (
-                  <div 
-                    key={workout._id} 
-                    className="flex justify-between items-center border-l-4 border-blue-400 bg-blue-50 p-3 rounded-r-md mb-2"
-                  >
-                    <div>
-                      <h3 className="font-medium">{workout.activity || workout.name}</h3>
-                      <p className="text-sm text-gray-600">{formatDateTime(workout.date)}</p>
+                <div className="max-h-80 overflow-y-auto scrollbar-hide">
+                  {upcomingWorkouts.map((workout) => (
+                    <div
+                      key={workout._id}
+                      className="flex justify-between items-center border-l-4 border-blue-400 bg-blue-50 p-3 rounded-r-md mb-2"
+                    >
+                      <div>
+                        <h3 className="font-medium">{workout.activity || workout.name}</h3>
+                        <p className="text-sm text-gray-600">{formatDateTime(workout.date)}</p>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        1 hour
+                      </div>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {workout.slotDetails ? `${workout.slotDetails.startTime} - ${workout.slotDetails.endTime}` : '1 hour'}
-                    </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               ) : (
                 <p className="text-gray-500 italic">No upcoming workouts scheduled</p>
               )}

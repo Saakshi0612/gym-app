@@ -1,5 +1,7 @@
 // src/index.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { connectDB } from "./config/db";
+import { getAllCoaches, getCoachById, getBookedWorkouts, getCoachWorkouts } from "./controllers/CoachController"
 import { getCoachName } from "./controllers/coachNameController";
 import { getCoachSpecializations } from "./controllers/sportController";
 import { getAvailableTimeSlots } from "./controllers/availableTimeSlotsController";
@@ -12,9 +14,8 @@ import { DatabaseService } from "./services/database.service";
 import { workoutBookingHandler } from "./handler/workout-booking.handler";
 import { getBookingHandler } from "./handler/getWorkout.handler";
 import { deleteWorkoutHandler } from "./handler/deleteWorkout.handler";
-import { getAllCoaches, getCoachById, getBookedWorkouts, getCoachWorkouts } from "./controllers/CoachController";
-import { AdminEmailModel } from "./models/adminEmailModel";
-import { CoachEmailModel } from "./models/coachEmailModel";
+
+
 
 // Connect to MongoDB when the Lambda container initializes
 const dbService = DatabaseService.getInstance();
@@ -150,9 +151,10 @@ const routes = [
   {
     path: "/coaches/{coachId}/workouts",
     method: "GET",
-    handler: getCoachWorkouts,
+    handler: getBookedWorkouts,
     middleware: []
   }
+
 
 ];
 
@@ -210,7 +212,8 @@ export const handler = async (
       };
       return await getCoachWorkouts(event, headers);
     }
-    console.log(`Processing ${method} request to ${path}`);
+    console.log(path);
+    console.log(method);
 
     // Find the matching route
     const route = routes.find(r => r.path === path && r.method === method);
