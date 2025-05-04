@@ -13,6 +13,7 @@ import { ChevronRightIcon } from 'lucide-react';
 import SystemAlert from '../../components/SystemAlert';
 import axios from 'axios';
 import ConfirmBook from '../../components/homepage/confirmBook';
+import UpcomingWorkouts from '../../components/workouts/UpcomingWorkouts';
 
 
 const CoachProfilePage: React.FC = () => {
@@ -39,10 +40,6 @@ const CoachProfilePage: React.FC = () => {
   // State for available time slots
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState<boolean>(false);
-
-  // State for upcoming workouts
-  const [upcomingWorkouts, setUpcomingWorkouts] = useState<UpcomingWorkout[]>([]);
-  const [upcomingWorkoutsLoading, setUpcomingWorkoutsLoading] = useState<boolean>(false);
 
   // Format date and time for display
   const formatDateTime = (dateString: string): string => {
@@ -75,10 +72,19 @@ const CoachProfilePage: React.FC = () => {
     });
   };
 
-  // Format date for API call (YYYY-MM-DD)
-  const formatDateForApi = (date: Date): string => {
-    return date.toISOString().split('T')[0];
-  };
+// Format date for API call (YYYY-MM-DD)
+const formatDateForApi = (date: Date): string => {
+  // Create a new date object to avoid modifying the original date
+  const d = new Date(date);
+  
+  // Get year, month, and day components in the local timezone
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const day = String(d.getDate()).padStart(2, '0');
+  
+  // Format as YYYY-MM-DD
+  return `${year}-${month}-${day}`;
+};
 
   // Fetch booked slots for the selected date
   const fetchBookedSlots = async (date: Date) => {
@@ -104,32 +110,6 @@ const CoachProfilePage: React.FC = () => {
       setAvailableTimeSlots(generateAllTimeSlots());
     } finally {
       setSlotsLoading(false);
-    }
-  };
-
-  // Fetch upcoming workouts for the coach
-  const fetchUpcomingWorkouts = async (coachId: string) => {
-    if (!coachId) return;
-
-    setUpcomingWorkoutsLoading(true);
-
-    try {
-      const response = await axios.get<UpcomingWorkoutsResponse>(
-        `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${coachId}/workouts`
-      );
-
-      if (response.data.success) {
-        setUpcomingWorkouts(response.data.workouts);
-        console.log('Upcoming workouts:', response.data.workouts);
-      } else {
-        console.error("API returned error:", response.data);
-        setUpcomingWorkouts([]);
-      }
-    } catch (err) {
-      console.error("Error fetching upcoming workouts:", err);
-      setUpcomingWorkouts([]);
-    } finally {
-      setUpcomingWorkoutsLoading(false);
     }
   };
 
@@ -189,7 +169,7 @@ const CoachProfilePage: React.FC = () => {
         fetchBookedSlots(selectedDate);
 
         // Also fetch upcoming workouts
-        fetchUpcomingWorkouts(id as string);
+        // fetchUpcomingWorkouts(id as string);
       } catch (err) {
         setError('Failed to load coach data');
         console.error('Error fetching coach data:', err);
@@ -346,36 +326,13 @@ const CoachProfilePage: React.FC = () => {
             </div>
 
             {/* Upcoming Workouts Section */}
-            <div>
-              <h2 className="text-lg font-medium uppercase mb-4">Upcoming Workouts</h2>
-              {upcomingWorkoutsLoading ? (
-                <div className="flex justify-center items-center h-16">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-                </div>
-              ) : upcomingWorkouts.length > 0 ? (
-                <div className="max-h-80 overflow-y-auto scrollbar-hide">
-                  {upcomingWorkouts.map((workout) => (
-                    <div
-                      key={workout._id}
-                      className="flex justify-between items-center border-l-4 border-blue-400 bg-blue-50 p-3 rounded-r-md mb-2"
-                    >
-                      <div>
-                        <h3 className="font-medium">{workout.activity || workout.name}</h3>
-                        <p className="text-sm text-gray-600">{formatDateTime(workout.date)}</p>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        1 hour
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 italic">No upcoming workouts scheduled</p>
-              )}
-            </div>   
+            <UpcomingWorkouts
+              coachId={id as string}
+              onWorkoutsLoaded={(workouts) => {
+                // Optional: If you still need access to the workouts data in the parent component
+                // console.log('Workouts loaded in parent:', workouts);
+              }}
+            />
 
             {/* Feedback Section */}
             <div>
