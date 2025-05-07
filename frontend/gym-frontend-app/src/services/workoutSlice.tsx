@@ -6,7 +6,7 @@ import axios from 'axios';
 
 // Define the base URL once
 const BASE_URL =
-	'https://p3kuc80q67.execute-api.ap-southeast-1.amazonaws.com/dev/workout';
+	'https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout';
 
 type Coach = {
 	id: string;

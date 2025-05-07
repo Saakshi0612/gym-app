@@ -9,7 +9,7 @@ import Button from "../../components/common/ButtonComponent";
 const coachesApi = {
   fetchCoaches: async (): Promise<CoachFromApi[]> => {
     try {
-      const response = await fetch("https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches");
+      const response = await fetch("https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/coaches");
       
       if (!response.ok) {
         throw new Error("Failed to fetch coaches data");
