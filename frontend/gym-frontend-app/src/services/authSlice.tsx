@@ -72,7 +72,7 @@ export const loginUser = createAsyncThunk(
 	'auth/login',
 	async (credentials: LoginCredentials, { rejectWithValue }) => {
 		try {
-			const response = await api.post(`https://efl7t35deh.execute-api.ap-southeast-1.amazonaws.com/dev/auth/login`, credentials);
+			const response = await api.post(`https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/auth/login`, credentials);
 
 			// Extract user data from response
 			const userData = response.data.user;
@@ -139,7 +139,7 @@ export const registerUser = createAsyncThunk(
 				confirmPassword: '***REDACTED***'
 			});
 
-			const response = await api.post(`https://efl7t35deh.execute-api.ap-southeast-1.amazonaws.com/dev/auth/register`, registerPayload);
+			const response = await api.post(`https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/auth/register`, registerPayload);
 			
 			console.log('Registration response:', response.data);
 

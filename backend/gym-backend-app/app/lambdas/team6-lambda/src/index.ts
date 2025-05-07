@@ -190,7 +190,6 @@ export const handler = async (
     // Route the request based on the path and method
     const path = event.path;
     const method = event.httpMethod;
-<<<<<<< HEAD
 
     const coachIdMatch = path.match(/^\/coaches\/([a-fA-F0-9]{24})$/);
 
@@ -217,9 +216,8 @@ export const handler = async (
     }
     console.log(path);
     console.log(method);
-=======
+
     console.log(`Processing ${method} request to ${path}`);
->>>>>>> f3b7d6918f145277459ea3c79a21a62f6ce989d8
 
     // Find the matching route
     const route = routes.find(r => r.path === path && r.method === method);

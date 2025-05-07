@@ -87,7 +87,7 @@ const CoachProfilePage: React.FC = () => {
     try {
       const formattedDate = formatDateForApi(date);
       const response = await axios.get<BookedWorkoutsResponse>(
-        `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}/booked-workouts/${formattedDate}`
+        `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}/booked-workouts/${formattedDate}`
       );
       
       if (response.data.success) {
@@ -112,7 +112,7 @@ const CoachProfilePage: React.FC = () => {
     
     try {
       const response = await axios.get<UpcomingWorkoutsResponse>(
-        `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${coachId}/workouts`
+        `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${coachId}/workouts`
       );
       
       if (response.data.success) {
@@ -171,7 +171,7 @@ const CoachProfilePage: React.FC = () => {
       try {
         setLoading(true);
 
-        const response = await fetch(`https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}`);
+        const response = await fetch(`https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}`);
 
         if (!response.ok) {
           throw new Error('Failed to fetch coach data');

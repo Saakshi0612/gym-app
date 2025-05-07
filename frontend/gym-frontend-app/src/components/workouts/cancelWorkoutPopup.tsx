@@ -47,7 +47,7 @@ export default function CancelWorkoutModal({
       // Note: We're using a PUT request since we're updating the workout status
       await axios({
         method: 'put',
-        url: `https://nw4riour66.execute-api.ap-southeast-1.amazonaws.com/dev/workout`,
+        url: `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout`,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -75,7 +75,7 @@ export default function CancelWorkoutModal({
         // Try a direct PATCH to update the workout state
         await axios({
           method: 'patch',
-          url: `https://nw4riour66.execute-api.ap-southeast-1.amazonaws.com/dev/workout/${workoutId}`,
+          url: `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout/${workoutId}`,
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -98,7 +98,7 @@ export default function CancelWorkoutModal({
           
           await axios({
             method: 'delete',
-            url: `https://nw4riour66.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${workoutId}`,
+            url: `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${workoutId}`,
             headers: {
               'Authorization': `Bearer ${token}`
             }
