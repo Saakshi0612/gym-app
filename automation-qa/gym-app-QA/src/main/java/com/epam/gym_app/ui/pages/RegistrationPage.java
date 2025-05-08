@@ -263,4 +263,13 @@ public class RegistrationPage extends BasePage{
             return false;
         }
     }
+
+    public void register(String firstNameValue, String lastNameValue, String emailValue, String passwordValue, String confirmPasswordValue) {
+        type(firstName,firstNameValue);
+        type(lastName,lastNameValue);
+        type(email,emailValue);
+        type(password,passwordValue);
+        type(confirmPassword,confirmPasswordValue);
+        click(createAccountButton);
+    }
 }

@@ -110,4 +110,10 @@ public class LoginPage extends BasePage{
         click(logOutButton);
     }
 
+    public void login(String email, String password) {
+        enterEmail(email);
+        enterPassword(password);
+        click(loginButton);
+    }
+
 }

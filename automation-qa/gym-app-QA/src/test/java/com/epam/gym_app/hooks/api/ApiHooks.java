@@ -1,6 +1,5 @@
 package com.epam.gym_app.hooks.api;
 
-import com.epam.gym_app.ui.factory.PropertiesFactory;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import com.epam.gym_app.api.utils.HttpMethods;
@@ -13,7 +12,6 @@ public class ApiHooks {
 
     @Before(order = 0)
     public static void setUp() {
-        properties = PropertiesFactory.loadProperties("api");
         httpMethods = new HttpMethods();
         System.out.println("API setup is complete");
     }
