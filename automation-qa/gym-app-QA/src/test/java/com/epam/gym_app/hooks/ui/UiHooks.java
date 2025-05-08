@@ -1,25 +1,22 @@
 package com.epam.gym_app.hooks.ui;
 
+import com.epam.gym_app.ui.factory.ConfigReader;
 import io.cucumber.java.AfterAll;
 import io.cucumber.java.BeforeAll;
-import com.epam.gym_app.ui.factory.DriverFactory;
-import com.epam.gym_app.ui.factory.PropertiesFactory;
+import com.epam.gym_app.ui.factory.WebDriverFactory;
 import org.openqa.selenium.WebDriver;
-
-import java.util.Properties;
 
 public class UiHooks {
     public static WebDriver driver;
-    public static Properties properties;
 
     @BeforeAll
-    public static void setUp(){
-        properties = PropertiesFactory.loadProperties("ui");
-        driver = DriverFactory.getInstance().getDriver(properties.getProperty("driver"));
+    public static void before_all(){
+        WebDriverFactory.setThreadLocalDriver(ConfigReader.getInstance().getProperty("browser"));
+        driver = WebDriverFactory.getThreadLocalDriver();
         driver.manage().window().maximize();
     }
     @AfterAll
-    public static  void tearDown(){
+    public static  void after_all(){
         if (driver != null) {
             driver.quit();
         }
