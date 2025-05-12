@@ -7,6 +7,7 @@ import { validatePassword } from "../../utils/validation";
 import SuccessAlert from "./shared/SuccessAlert";
 import LabeledInput from "./shared/LabeledInput";
 import { Loader2 } from "lucide-react";
+import ProfileSaveButton from "./shared/ProfileSaveButton";
 
 const validatePasswordField = (value: string): string | null => {
   const result = validatePassword(value);
@@ -138,7 +139,6 @@ const PasswordForm: React.FC = () => {
 
       <form
         className="w-full max-w-lg mx-auto md:ml-16 space-y-8 flex flex-col justify-center px-0 md:px-4 mt-0 md:mt-8"
-        onSubmit={handleSubmit}
       >
         <div className="px-4 md:px-0 space-y-6">
           <LabeledInput
@@ -180,20 +180,11 @@ const PasswordForm: React.FC = () => {
         </div>
 
         <div className="w-full text-center md:text-right px-4 md:px-0">
-          <button
-            type="submit"
-            className="w-full md:w-auto px-8 py-4 bg-primary-green text-primary-black rounded-lg font-medium hover:bg-primary-green/90 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            disabled={isLoading || Object.values(formErrors).some(error => error !== null)}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Updating...
-              </>
-            ) : (
-              'Update Password'
-            )}
-          </button>
+          <ProfileSaveButton
+            onClick={handleSubmit}
+            saving={isLoading}
+            disabled={Object.values(formErrors).some(error => error !== null)}
+          />
         </div>
       </form>
     </div>

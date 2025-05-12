@@ -139,7 +139,7 @@ const DynamicUserProfile = () => {
             ...baseProfile,
             title: user.title || '',
             about: user.about || '',
-            tags: user.tags || [],
+            tags: user.tags || user.specializations || [],
             certificates: user.certificates || [],
             rating: user.rating || 0,
           } as CoachProfileData;
@@ -147,8 +147,8 @@ const DynamicUserProfile = () => {
           return {
             ...baseProfile,
             phoneNumber: user.phoneNumber || '',
-            preferableActivity: user.preferableActivity || user.activity || '',
-            targets: user.target || '',
+            preferableActivity: user.preferableActivity || '',
+            target: user.target || '',
             avatarUrl: user.avatarUrl || '',
           } as ClientProfileData;
         default:
@@ -181,6 +181,14 @@ const DynamicUserProfile = () => {
       setIsLoading(false);
     }
   }, [generateProfileData, loadSavedDraft, setError, setIsLoading]);
+
+  // Add this effect after user is defined
+  useEffect(() => {
+    if (user) {
+      const newProfileData = generateProfileData();
+      if (newProfileData) setProfileData(newProfileData);
+    }
+  }, [user, generateProfileData]);
 
   // Handle profile data changes
   const handleProfileChange = useCallback((newData: AdminProfileData | CoachProfileData | ClientProfileData) => {
@@ -281,11 +289,11 @@ const DynamicUserProfile = () => {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-primary-white">
-      <div className="w-full md:w-64 md:min-h-screen md:border-r border-neutral-200 flex-shrink-0">
+      <div className="w-full md:w-56 lg:w-64 md:min-h-screen md:border-r border-neutral-200 flex-shrink-0">
         <Sidebar {...sidebarProps} />
       </div>
-      <main className="flex-1 px-4 md:px-8 pt-6 md:pt-8 pb-16 transition-all duration-300 ease-in-out">
-        <div className="max-w-4xl mx-auto transition-opacity duration-300 ease-in-out">
+      <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-4 sm:pt-6 md:pt-8 pb-12 md:pb-16 transition-all duration-300 ease-in-out overflow-x-hidden">
+        <div className="w-full max-w-4xl mx-auto transition-opacity duration-300 ease-in-out">
           {tabContent}
         </div>
       </main>

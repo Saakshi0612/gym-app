@@ -13,6 +13,7 @@ import MainSection from "./components/homepage/Mainsection";
 import ScheduledWorkoutPage from "./components/workouts/scheduledWorkoutPage";
 import Header from "./components/common/Header";
 import DynamicUserProfile from "./pages/UserProfile";
+import { useDispatch } from "react-redux";
 
 
 // Protected route component using Outlet
@@ -23,12 +24,18 @@ const ProtectedRoute = () => {
   
   
 // Main app content
-function AppContent() {
-    useEffect(() => {
-      initializeAuth();
-    }, []);
 
-   
+
+function AppContent() {
+  const dispatch = useDispatch();
+  
+  useEffect(() => {
+    // Initialize auth when the app starts
+    initializeAuth(dispatch);
+  }, [dispatch]);
+  
+  // Rest of your app code
+
 
   const location = useLocation();
   const hideHeaderRoutes = ["/login", "/register"];

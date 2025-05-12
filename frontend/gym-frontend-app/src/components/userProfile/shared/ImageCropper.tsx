@@ -22,6 +22,19 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
+
+  // Track window resize for responsive adjustments
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (imageFile) {
@@ -37,11 +50,15 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const { width, height } = e.currentTarget;
+    
+    // Use a smaller initial crop size on mobile
+    const cropWidth = windowWidth < 640 ? 90 : 80;
+    
     const crop = centerCrop(
       makeAspectCrop(
         {
           unit: '%',
-          width: 80,
+          width: cropWidth,
         },
         aspectRatio,
         width,
@@ -52,6 +69,21 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
     );
     setCrop(crop);
   };
+
+  // Calculate max height based on screen size
+  const getMaxHeight = useCallback(() => {
+    if (windowWidth < 380) return 250;
+    if (windowWidth < 640) return 300;
+    if (windowWidth < 768) return 320;
+    return 400;
+  }, [windowWidth]);
+
+  // Calculate preview size based on screen size
+  const getPreviewSize = useCallback(() => {
+    if (windowWidth < 380) return 100;
+    if (windowWidth < 640) return 120;
+    return 150;
+  }, [windowWidth]);
 
   const updatePreview = useCallback(() => {
     if (!completedCrop || !imgRef.current || !previewCanvasRef.current) {
@@ -66,8 +98,8 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
       return;
     }
 
-    // Set preview canvas size
-    const size = 150; // Size of preview
+    // Set preview canvas size based on screen size
+    const size = getPreviewSize();
     canvas.width = size;
     canvas.height = size;
 
@@ -93,7 +125,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
       size,
       size
     );
-  }, [completedCrop]);
+  }, [completedCrop, getPreviewSize]);
 
   useEffect(() => {
     updatePreview();
@@ -161,48 +193,60 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
     setCrop(newCrop);
   };
 
+  // Get dynamic preview size
+  const previewSize = getPreviewSize();
+  const maxHeight = getMaxHeight();
+
   return (
-    <div className="fixed inset-0 bg-primary-white/30 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-primary-white rounded-xl p-3 sm:p-4 w-full max-w-xl mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-200">
-        <h3 className="text-lg font-semibold mb-2 text-neutral-900">Crop Your Profile Picture</h3>
-        <p className="text-sm text-neutral-600 mb-3">
+    <div className="fixed inset-0 bg-primary-white/30 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-primary-white rounded-xl p-3 sm:p-4 w-full max-w-xl mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-200 my-4">
+        <h3 className="text-base sm:text-lg font-semibold mb-2 text-neutral-900">Crop Your Profile Picture</h3>
+        <p className="text-xs sm:text-sm text-neutral-600 mb-3">
           Click and drag to select the portion of the image you want to use as your profile picture.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
-          <div className="w-full sm:w-auto sm:flex-1 max-h-[350px] sm:max-h-[400px] overflow-hidden bg-neutral-200 rounded-lg">
+        
+        {/* Main content area - switch to column on mobile */}
+        <div className="flex flex-col gap-4">
+          {/* Crop area */}
+          <div className="w-full overflow-hidden bg-neutral-200 rounded-lg">
             {isLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-green"></div>
+              <div className="flex items-center justify-center h-48 sm:h-64">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-green"></div>
               </div>
             ) : (
               imgSrc && (
-                <ReactCrop
-                  crop={crop}
-                  onChange={handleCropChange}
-                  onComplete={(c) => setCompletedCrop(c)}
-                  aspect={aspectRatio}
-                  className="max-w-full"
-                  minWidth={50}
-                  minHeight={50}
-                  circularCrop
-                >
-                  <img
-                    ref={imgRef}
-                    src={imgSrc}
-                    alt="Crop me"
-                    className="max-w-full object-contain"
-                    style={{ maxHeight: '350px' }}
-                    onLoad={onImageLoad}
-                  />
-                </ReactCrop>
+                <div className="flex items-center justify-center">
+                  <ReactCrop
+                    crop={crop}
+                    onChange={handleCropChange}
+                    onComplete={(c) => setCompletedCrop(c)}
+                    aspect={aspectRatio}
+                    className="max-w-full touch-manipulation"
+                    minWidth={50}
+                    minHeight={50}
+                    circularCrop
+                  >
+                    <img
+                      ref={imgRef}
+                      src={imgSrc}
+                      alt="Crop me"
+                      className="max-w-full object-contain"
+                      style={{ maxHeight: `${maxHeight}px` }}
+                      onLoad={onImageLoad}
+                    />
+                  </ReactCrop>
+                </div>
               )
             )}
           </div>
           
-          {/* Preview Section */}
-          <div className="w-[150px] flex flex-col items-center">
-            <h4 className="text-sm font-medium text-neutral-700 mb-2">Preview</h4>
-            <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] rounded-full bg-neutral-200 overflow-hidden shadow-inner border border-neutral-200">
+          {/* Preview Section - centered on smaller screens */}
+          <div className="flex flex-col items-center">
+            <h4 className="text-xs sm:text-sm font-medium text-neutral-700 mb-2">Preview</h4>
+            <div 
+              className="rounded-full bg-neutral-200 overflow-hidden shadow-inner border border-neutral-200"
+              style={{ width: `${previewSize}px`, height: `${previewSize}px` }}
+            >
               <canvas
                 ref={previewCanvasRef}
                 className="w-full h-full"
@@ -211,12 +255,13 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           </div>
         </div>
         
+        {/* Button group */}
         <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-neutral-200">
           <button
             type="button"
             onClick={onCancel}
             disabled={isProcessing}
-            className="px-4 py-2 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded-lg text-sm font-medium transition-colors"
+            className="px-3 sm:px-4 py-2 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded-lg text-xs sm:text-sm font-medium transition-colors"
           >
             Cancel
           </button>
@@ -224,11 +269,11 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
             type="button"
             onClick={handleCropComplete}
             disabled={!completedCrop || isProcessing}
-            className="px-4 py-2 bg-primary-green hover:bg-primary-green/90 text-primary-black rounded-lg text-sm font-medium transition-colors disabled:bg-neutral-200 disabled:text-neutral-500"
+            className="px-3 sm:px-4 py-2 bg-primary-green hover:bg-primary-green/90 text-primary-black rounded-lg text-xs sm:text-sm font-medium transition-colors disabled:bg-neutral-200 disabled:text-neutral-500"
           >
             {isProcessing ? (
               <span className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-r-transparent"></div>
+                <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-current border-r-transparent"></div>
                 Processing...
               </span>
             ) : (

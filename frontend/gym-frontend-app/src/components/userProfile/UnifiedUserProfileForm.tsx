@@ -44,7 +44,7 @@ interface UserProfileFormState {
   certificates: Certificate[];
   rating: number;
   preferableActivity: string;
-  targets: string;
+  target: string;
   showSuccess: boolean;
   saving: boolean;
   error: string | null;
@@ -82,7 +82,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
     certificates: [],
     rating: 0,
     preferableActivity: "",
-    targets: "",
+    target: "",
     showSuccess: false,
     saving: false,
     error: null,
@@ -119,7 +119,11 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         ? (profileData as CoachProfileData).tags
         : [],
       certificates: role === UserRole.COACH && "certificates" in profileData
-        ? (profileData as CoachProfileData).certificates
+        ? (profileData as CoachProfileData).certificates.map(cert => ({
+            name: cert.url.split('/').pop() || 'Certificate',
+            size: '0 MB',
+            url: cert.url
+          }))
         : [],
       rating: role === UserRole.COACH && "rating" in profileData
         ? (profileData as CoachProfileData).rating
@@ -127,8 +131,8 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       preferableActivity: role === UserRole.CLIENT && "preferableActivity" in profileData
         ? (profileData as ClientProfileData).preferableActivity
         : "",
-      targets: role === UserRole.CLIENT && "targets" in profileData
-        ? (profileData as ClientProfileData).targets
+      target: role === UserRole.CLIENT && "target" in profileData
+        ? (profileData as ClientProfileData).target
         : "",
       showSuccess: false,
       saving: false,
@@ -156,7 +160,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
       certificates: state.certificates,
       rating: state.rating,
       preferableActivity: state.preferableActivity,
-      targets: state.targets,
+      target: state.target,
       avatarUrl: state.userData?.avatarUrl || "",
     };
     
@@ -231,25 +235,34 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
       setFormState(prev => ({ ...prev, saving: true, error: null }));
 
-      const userPayload = {
+      // Only include fields relevant to the current role
+      let userPayload: any = {
         email: formState.userData?.email || "",
         firstName: formState.firstName,
         lastName: formState.lastName,
         role: role,
-        phoneNumber: formState.phoneNumber,
-        title: formState.title,
-        about: formState.about,
-        tags: formState.tags,
-        certificates: formState.certificates,
-        rating: formState.rating,
-        preferableActivity: formState.preferableActivity,
-        target: formState.targets,
         avatarUrl: formState.userData?.avatarUrl || "",
-      } satisfies User;
+      };
+      if (role === UserRole.ADMIN) {
+        userPayload.phoneNumber = formState.phoneNumber;
+      }
+      if (role === UserRole.COACH) {
+        userPayload.title = formState.title;
+        userPayload.about = formState.about;
+        userPayload.tags = formState.tags;
+        userPayload.certificates = formState.certificates?.map(cert => ({ url: cert.url }));
+        userPayload.rating = formState.rating;
+      }
+      if (role === UserRole.CLIENT) {
+        userPayload.preferableActivity = formState.preferableActivity;
+        userPayload.target = formState.target;
+      }
 
+      console.log('Sending profile update:', userPayload);
       const result = await dispatch(updateUserProfile(userPayload));
+      console.log('Profile update response:', result);
       
-      if ('payload' in result && result.payload) {
+      if (result.meta.requestStatus === 'fulfilled') {
         const updatedUserData: UserProfileData = {
           name: `${formState.firstName} ${formState.lastName}`,
           email: formState.userData?.email || "",
@@ -275,7 +288,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         setIsDirty(false);
         onSaveSuccess();
 
-        // Call the parent's onChange handler with the updated data
+        // Call the parent's onChange handler with the updated data based on role
         if (role === UserRole.ADMIN) {
           const adminData: AdminProfileData = {
             firstName: userPayload.firstName,
@@ -306,9 +319,9 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
             lastName: userPayload.lastName,
             email: userPayload.email,
             role: UserRole.CLIENT,
-            phoneNumber: userPayload.phoneNumber,
+            phoneNumber: userPayload.phoneNumber || '',
             preferableActivity: userPayload.preferableActivity,
-            targets: userPayload.target,
+            target: userPayload.target,
             avatarUrl: userPayload.avatarUrl
           };
           onChange(clientData);
@@ -324,14 +337,16 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
           setFormState(prev => ({ ...prev, showSuccess: false, isSubmitSuccessful: false }));
         }, 2000); // Reduced to 2 seconds
       } else {
-        throw new Error('Failed to update profile');
+        // Handle rejected case
+        const errorMessage = result.payload || 'Failed to update profile';
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error saving profile:', error);
       setFormState(prev => ({
         ...prev,
         saving: false,
-        error: "Failed to save profile. Please try again.",
+        error: error?.message || "Failed to save profile. Please try again.",
       }));
     }
   };
@@ -398,14 +413,14 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 w-full bg-primary-white rounded-lg">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pt-4 sm:pt-6 w-full bg-primary-white rounded-lg">
         <UserProfileHeader
           {...formState.userData}
           onFileSelect={handleProfilePhotoChange}
           rating={role === UserRole.COACH ? formState.rating : 0}
         />
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mt-4 sm:mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <LabeledInput
             id="firstName"
             label="First Name"
@@ -429,7 +444,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
         </div>
 
         {role === UserRole.ADMIN && (
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             <LabeledInput
               id="phoneNumber"
               label="Phone Number"
@@ -444,7 +459,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
         {role === UserRole.COACH && (
           <>
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <LabeledInput
                 id="title"
                 label="Title"
@@ -455,7 +470,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                 }
               />
             </div>
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <LabeledInput
                 id="about"
                 label="About"
@@ -467,7 +482,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                 }
               />
             </div>
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <TagsField
                 tags={formState.tags}
                 onAddTag={(tag) =>
@@ -484,7 +499,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                 }
               />
             </div>
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <CertificateUpload
                 certificates={formState.certificates}
                 onDrop={handleDrop}
@@ -497,7 +512,7 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
 
         {role === UserRole.CLIENT && (
           <>
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <DynamicSelect
                 id="preferable-activity"
                 label="Preferable Activity"
@@ -511,21 +526,21 @@ const UnifiedUserProfileForm: React.FC<UnifiedUserProfileFormProps> = ({
                 }
               />
             </div>
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <DynamicSelect
-                id="target-goals"
+                id="target"
                 label="Target Goals"
                 options={options.targetOptions}
-                selected={formState.targets}
+                selected={formState.target}
                 onChange={(val: string) =>
-                  setFormState((prev) => ({ ...prev, targets: val }))
+                  setFormState((prev) => ({ ...prev, target: val }))
                 }
               />
             </div>
           </>
         )}
 
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8 pb-4 sm:pb-6">
           <ProfileSaveButton 
             saving={formState.saving} 
             onClick={handleSave} 
