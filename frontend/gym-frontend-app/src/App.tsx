@@ -13,6 +13,7 @@ import MainSection from "./components/homepage/Mainsection";
 import ScheduledWorkoutPage from "./components/workouts/scheduledWorkoutPage";
 import Header from "./components/common/Header";
 import DynamicUserProfile from "./pages/UserProfile";
+import AdminDashboard from "./components/admin/AdminDashboard"; // adjust the path if needed
 
 
 // Protected route component using Outlet
@@ -49,8 +50,15 @@ function AppContent() {
           <Route path="/" element={<MainSection />} />
           <Route
           path="/account"
-          element={<DynamicUserProfile />}
+          element={<DynamicUserProfile />
+            
+          }
         />
+        <Route element={<ProtectedRoute />}>
+        
+  <Route path="/reports" element={<AdminDashboard />} />
+</Route>
+
           {/* Add other protected routes here as needed */}
         </Route>
       </Routes>
