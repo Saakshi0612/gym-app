@@ -38,14 +38,14 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="md:h-screen flex flex-col">
-      {/* Mobile Top Navbar (Non-Sticky) */}
-      <div className="lg:hidden w-full bg-primary-white font-['Lexend'] shadow-sm mb-2">
-        <div className={`grid ${position === UserRole.COACH ? 'grid-cols-3' : 'grid-cols-2'} gap-0`}>
+    <div className="h-full flex flex-col">
+      {/* Mobile Top Navbar (Non-Sticky) - Only on small screens below md/768px */}
+      <div className="md:hidden w-full bg-primary-white font-['Lexend'] shadow-sm mb-2 overflow-x-auto">
+        <div className={`flex ${position === UserRole.COACH ? 'w-full min-w-[300px]' : 'w-full'}`}>
           {/* General Information Tab */}
           <button
             onClick={() => setActiveTab(SidebarTab.GENERAL_INFO)}
-            className={`relative text-xs px-1 py-3 whitespace-nowrap transition-all duration-200 ease-out ${
+            className={`relative text-xs sm:text-sm px-2 py-3 whitespace-nowrap flex-1 transition-all duration-200 ease-out ${
               activeTab === SidebarTab.GENERAL_INFO ? "font-medium text-primary-black" : "font-light text-neutral-700"
             }`}
           >
@@ -63,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {position === UserRole.COACH && (
             <button
               onClick={() => setActiveTab(SidebarTab.CLIENT_FEEDBACK)}
-              className={`relative text-xs px-1 py-3 whitespace-nowrap transition-all duration-200 ease-out ${
+              className={`relative text-xs sm:text-sm px-2 py-3 whitespace-nowrap flex-1 transition-all duration-200 ease-out ${
                 activeTab === SidebarTab.CLIENT_FEEDBACK ? "font-medium text-primary-black" : "font-light text-neutral-700"
               }`}
             >
@@ -81,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* Change Password Tab */}
           <button
             onClick={() => setActiveTab(SidebarTab.CHANGE_PASSWORD)}
-            className={`relative text-xs px-1 py-3 whitespace-nowrap transition-all duration-200 ease-out ${
+            className={`relative text-xs sm:text-sm px-2 py-3 whitespace-nowrap flex-1 transition-all duration-200 ease-out ${
               activeTab === SidebarTab.CHANGE_PASSWORD ? "font-medium text-primary-black" : "font-light text-neutral-700"
             }`}
           >
@@ -97,14 +97,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Desktop Sidebar (Full Height) */}
-      <div className="hidden lg:block bg-primary-white h-full">
-        <div className="flex flex-col">
+      {/* Desktop/Tablet Sidebar (Full Height) - Show on md/768px and up */}
+      <div className="hidden md:block bg-primary-white h-full">
+        <div className="flex flex-col h-full">
           <div className="flex flex-col">
             {tabs.map((tab) => (
               <div key={tab.id} className="relative flex items-center">
                 <button
-                  className={`w-full text-left px-6 py-3 text-base font-light transition-all duration-200 ease-out relative ${
+                  className={`w-full text-left px-4 md:px-6 py-3 text-sm md:text-base font-light transition-all duration-200 ease-out relative ${
                     activeTab === tab.id ? "font-medium text-primary-black bg-neutral-200" : "text-neutral-700 hover:bg-neutral-200"
                   }`}
                   onClick={() => setActiveTab(tab.id)}
@@ -122,8 +122,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             ))}
           </div>
           
-          {/* Log Out Button - Desktop Only */}
-          <div className="hidden lg:block px-4 py-6">
+          {/* Log Out Button - Desktop/Tablet Only - Positioned right after menu items */}
+          <div className="px-4 py-6">
             <button 
               onClick={handleLogout}
               className="w-24 px-3 py-2.5 text-sm font-medium text-neutral-700 bg-primary-white border border-neutral-400 rounded-lg hover:bg-neutral-200 transition-all duration-200 ease-in-out"

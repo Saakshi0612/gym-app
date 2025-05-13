@@ -29,3 +29,14 @@ export interface FeedbackCardProps {
     loading: boolean;
     error: string | null;
   }
+
+
+
+
+
+
+export interface FeedbackPaginationResponse {
+  feedbacks: Feedback[];
+  totalPages: number;
+  currentPage: number;
+}

@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ProfileFeedbackCard from '../userProfile/ProfileFeedBackCard';
 import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
-import { Feedback, RawFeedback, FeedbackState } from '../../types/components/feedback.types';
+import { Feedback, FeedbackState } from '../../types/components/feedback.types';
 import debounce from 'lodash/debounce';
 import Spinner from '../common/Spinner';
+import { feedbackService } from '../../services/feedbackService';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
 
 const getFeedbacksPerPage = () => {
   const width = window.innerWidth;
@@ -14,8 +17,17 @@ const getFeedbacksPerPage = () => {
   return 2; // sm screens - show 2 on mobile
 };
 
-const ProfileFeedbackSection: React.FC = () => {
+interface ProfileFeedbackSectionProps {
+  coachId?: string; // Optional coach ID for viewing specific coach's feedback
+  onFeedbackStatusUpdate?: (hasData: boolean) => void; // Callback to notify parent about feedback status
+}
+
+const ProfileFeedbackSection: React.FC<ProfileFeedbackSectionProps> = ({ 
+  coachId,
+  onFeedbackStatusUpdate 
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [feedbacksPerPage, setFeedbacksPerPage] = useState(getFeedbacksPerPage());
   const [feedbackState, setFeedbackState] = useState<FeedbackState>({
     data: [],
@@ -26,6 +38,10 @@ const ProfileFeedbackSection: React.FC = () => {
   const dragX = useMotionValue(0);
   const retryCount = useRef(0);
   const MAX_RETRIES = 2;
+  
+  // Get current user from Redux store
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const isCoach = currentUser?.role === 'coach';
 
   const debouncedResize = useMemo(
     () => debounce(() => {
@@ -36,51 +52,74 @@ const ProfileFeedbackSection: React.FC = () => {
     []
   );
 
-  // Fetch feedbacks from JSON
+  // Fetch feedbacks from API
   useEffect(() => {
     const fetchFeedbacks = async (): Promise<void> => {
       try {
         setFeedbackState(prev => ({ ...prev, loading: true, error: null }));
         
-        // Try fetching from assets directory first (more reliable)
-        try {
-          const data = await import('../../assets/JSON/mockFeedbacks.json');
-          if (Array.isArray(data.default)) {
-            // Process and validate the data
-            const processedFeedbacks = processFeedbackData(data.default);
-            
-            if (processedFeedbacks.length > 0) {
+        let result;
+        
+        // Determine which API endpoint to use
+        if (coachId) {
+          // If coachId is provided, fetch that specific coach's feedbacks
+          result = await feedbackService.getCoachFeedbacks(
+            coachId,
+            currentPage,
+            feedbacksPerPage,
+            'rating'
+          );
+        } else if (isCoach) {
+          // If current user is a coach and no coachId provided, fetch their own received feedbacks
+          result = await feedbackService.getMyReceivedFeedbacks(
+            currentPage,
+            feedbacksPerPage,
+            'rating'
+          );
+        } else {
+          // Fallback to mock data if not a coach and no coachId provided
+          try {
+            const data = await import('../../assets/JSON/mockFeedbacks.json');
+            if (Array.isArray(data.default)) {
+              const feedbacks = data.default.map(item => ({
+                ...item,
+                id: item.id.toString()
+              }));
+              
               setFeedbackState({
-                data: processedFeedbacks,
+                data: feedbacks,
                 loading: false,
                 error: null
               });
+              
+              setTotalPages(Math.ceil(data.default.length / feedbacksPerPage));
+              
+              // Notify parent component about feedback status
+              if (onFeedbackStatusUpdate) {
+                onFeedbackStatusUpdate(feedbacks.length > 0);
+              }
+              
               return;
             }
+          } catch (importError) {
+            console.warn('Failed to import mockFeedbacks.json from assets:', importError);
+            throw new Error('No feedback data available');
           }
-        } catch (importError) {
-          console.warn('Failed to import mockFeedbacks.json from assets:', importError);
         }
         
-        // Fallback to public directory
-        const response = await fetch('/mockFeedbacks.json');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Process and validate the data
-        const processedFeedbacks = processFeedbackData(data);
-        
-        if (processedFeedbacks.length > 0) {
+        // Update state with API response
+        if (result) {
           setFeedbackState({
-            data: processedFeedbacks,
+            data: result.feedbacks,
             loading: false,
             error: null
           });
-        } else {
-          throw new Error('No valid feedback data found');
+          setTotalPages(result.totalPages);
+          
+          // Notify parent component about feedback status
+          if (onFeedbackStatusUpdate) {
+            onFeedbackStatusUpdate(result.feedbacks.length > 0);
+          }
         }
         
         // Reset retry count on success
@@ -99,83 +138,17 @@ const ProfileFeedbackSection: React.FC = () => {
             loading: false,
             error: 'Unable to load feedback data. Please refresh the page or try again later.'
           });
-        }
-      }
-    };
-
-    // Helper function to process and validate feedback data
-    const processFeedbackData = (data: unknown): Feedback[] => {
-      if (!Array.isArray(data)) {
-        console.error('Invalid feedback data format: expected an array');
-        return [];
-      }
-
-      // Track unique reviews to avoid duplicates
-      const uniqueReviews = new Map<string, Feedback>();
-      
-      // Validate each feedback object
-      data.forEach((feedback: unknown) => {
-        // Type guard to ensure feedback is a RawFeedback
-        if (
-          typeof feedback === 'object' && 
-          feedback !== null &&
-          'id' in feedback &&
-          'name' in feedback &&
-          'date' in feedback &&
-          'rating' in feedback &&
-          'review' in feedback &&
-          'avatarUrl' in feedback
-        ) {
-          const rawFeedback = feedback as RawFeedback;
           
-          // Create a unique key based on ID only to preserve entries with different IDs
-          const uniqueKey = rawFeedback.id;
-          
-          // Only process if it's a valid feedback object
-          if (
-            typeof rawFeedback.id === 'string' &&
-            typeof rawFeedback.name === 'string' &&
-            typeof rawFeedback.date === 'string' &&
-            typeof rawFeedback.rating === 'number' &&
-            typeof rawFeedback.review === 'string' &&
-            typeof rawFeedback.avatarUrl === 'string' &&
-            rawFeedback.rating >= 0 &&
-            rawFeedback.rating <= 5
-          ) {
-            // Convert string ID to number
-            const numericId = parseInt(rawFeedback.id, 10) || 0;
-            
-            // Only add if we haven't seen this ID before
-            if (!uniqueReviews.has(uniqueKey)) {
-              uniqueReviews.set(uniqueKey, {
-                ...rawFeedback,
-                id: numericId
-              });
-            }
-          } else {
-            console.warn('Invalid feedback entry:', rawFeedback);
+          // Notify parent component about feedback status
+          if (onFeedbackStatusUpdate) {
+            onFeedbackStatusUpdate(false);
           }
-        } else {
-          console.warn('Invalid feedback object structure:', feedback);
         }
-      });
-
-      // Convert map to array and sort by date (newest first)
-      const processedFeedbacks = Array.from(uniqueReviews.values());
-      
-      // Sort by date (newest first)
-      processedFeedbacks.sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateB.getTime() - dateA.getTime();
-      });
-
-      console.log(`Processed ${data.length} feedback entries, found ${processedFeedbacks.length} unique valid entries`);
-      return processedFeedbacks;
+      }
     };
 
     fetchFeedbacks();
-  }, []);
+  }, [currentPage, feedbacksPerPage, coachId, isCoach, onFeedbackStatusUpdate]);
 
   useEffect(() => {
     window.addEventListener('resize', debouncedResize);
@@ -184,8 +157,6 @@ const ProfileFeedbackSection: React.FC = () => {
       debouncedResize.cancel();
     };
   }, [debouncedResize]);
-
-  const totalPages = Math.ceil(feedbackState.data.length / feedbacksPerPage);
   
   // Ensure currentPage is valid
   useEffect(() => {
@@ -194,16 +165,13 @@ const ProfileFeedbackSection: React.FC = () => {
     }
   }, [totalPages, currentPage]);
 
-  const currentFeedbacks = feedbackState.data.slice(
-    (currentPage - 1) * feedbacksPerPage,
-    currentPage * feedbacksPerPage
-  );
-
   const scrollToTop = useCallback(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    if (sectionRef.current) {
+      sectionRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   }, []);
 
   const handlePageChange = (pageNumber: number): void => {
@@ -224,6 +192,12 @@ const ProfileFeedbackSection: React.FC = () => {
     // Trigger a re-fetch by updating the state
     setCurrentPage(prev => prev);
   };
+
+  // If there's no feedback data and we're not loading, don't render anything
+  // The parent component will handle showing the "No Feedback" message
+  if (!feedbackState.loading && !feedbackState.error && feedbackState.data.length === 0) {
+    return null;
+  }
 
   return (
     <div
@@ -266,7 +240,7 @@ const ProfileFeedbackSection: React.FC = () => {
               dragElastic={0.1}
               onDragEnd={(_, info) => handleSwipe(info.offset.x)}
             >
-              {currentFeedbacks.map((feedback) => (
+              {feedbackState.data.map((feedback) => (
                 <div key={feedback.id} className="w-full">
                   <ProfileFeedbackCard {...feedback} />
                 </div>
