@@ -1,7 +1,11 @@
 package com.epam.gym_app.ui.runner;
 
+import com.epam.gym_app.ui.factory.ConfigReader;
 import io.cucumber.testng.AbstractTestNGCucumberTests;
 import io.cucumber.testng.CucumberOptions;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
 
 @CucumberOptions(
         features = "src/test/resources/features/ui",
@@ -15,4 +19,10 @@ import io.cucumber.testng.CucumberOptions;
 )
 
 public class UIRunner extends AbstractTestNGCucumberTests {
+
+        @BeforeTest
+        @Parameters({"Browser"})
+        void browserSet(String browserType){
+                ConfigReader.getInstance().setBrowser(browserType);
+        }
 }

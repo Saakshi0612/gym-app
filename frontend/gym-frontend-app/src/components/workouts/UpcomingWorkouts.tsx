@@ -72,7 +72,7 @@ const UpcomingWorkouts: React.FC<UpcomingWorkoutsProps> = ({ coachId, onWorkouts
 
             try {
                 const response = await axios.get<UpcomingWorkoutsResponse>(
-                    `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${coachId}/workouts`
+                    `http://localhost:8080/api/coaches/${coachId}/workouts`
                 );
 
                 if (response.data.success) {
@@ -114,7 +114,7 @@ const UpcomingWorkouts: React.FC<UpcomingWorkoutsProps> = ({ coachId, onWorkouts
         setLoading(true);
         try {
             const response = await axios.get<UpcomingWorkoutsResponse>(
-                `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${coachId}/workouts`
+                `http://localhost:8080/api/coaches/${coachId}/workouts`
             );
 
             if (response.data.success) {

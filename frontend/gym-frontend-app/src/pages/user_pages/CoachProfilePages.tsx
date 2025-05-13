@@ -1,5 +1,3 @@
-/* eslint-disable */
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/store';
@@ -7,14 +5,13 @@ import CoachSidebar from '../../components/CoachComponents/CoachSideBar';
 import AvatarImg from '../../assets/images/Avatar.jpg';
 import CoachAvailabilityCalendar from '../../components/CoachComponents/CoachCalendar';
 import FeedbackSection from '../../components/FeedBack/FeedBack';
-import { BookedWorkout, BookedWorkoutsResponse, CoachFromApi, TimeSlot, UpcomingWorkout, UpcomingWorkoutsResponse } from '../../types/components/coach.types';
+import { BookedWorkout, BookedWorkoutsResponse, CoachFromApi, TimeSlot } from '../../types/components/coach.types';
 import LoginPromptModal from '../../components/homepage/isLoggedInCard';
 import { ChevronRightIcon } from 'lucide-react';
 import SystemAlert from '../../components/SystemAlert';
 import axios from 'axios';
 import ConfirmBook from '../../components/homepage/confirmBook';
 import UpcomingWorkouts from '../../components/workouts/UpcomingWorkouts';
-
 
 const CoachProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,28 +20,25 @@ const CoachProfilePage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-
-  // Track if user has actively selected a date
   const [dateSelected, setDateSelected] = useState<boolean>(true);
-
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [showConfirmCard, setShowConfirmCard] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState<'success' | 'error'>('success');
-
-  // Get authentication state from Redux
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-
-  // State for available time slots
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState<boolean>(false);
+  const [refreshWorkoutsKey, setRefreshWorkoutsKey] = useState<number>(0);
 
-  // Format date and time for display
-  const formatDateTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    return `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
+  // Format date for API call (YYYY-MM-DD)
+  const formatDateForApi = (date: Date): string => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   // Generate all time slots from 8 AM to 8 PM
@@ -52,13 +46,9 @@ const CoachProfilePage: React.FC = () => {
     return Array.from({ length: 12 }, (_, index) => {
       const startHour = 8 + index;
       const endHour = startHour + 1;
-
-      // Format start time in 12-hour format
       const startHour12 = startHour > 12 ? startHour - 12 : startHour;
       const startPeriod = startHour >= 12 ? 'PM' : 'AM';
       const formattedStartTime = `${startHour12}:00 ${startPeriod}`;
-
-      // Format end time in 12-hour format
       const endHour12 = endHour > 12 ? endHour - 12 : endHour;
       const endPeriod = endHour >= 12 ? 'PM' : 'AM';
       const formattedEndTime = `${endHour12}:00 ${endPeriod}`;
@@ -72,20 +62,6 @@ const CoachProfilePage: React.FC = () => {
     });
   };
 
-// Format date for API call (YYYY-MM-DD)
-const formatDateForApi = (date: Date): string => {
-  // Create a new date object to avoid modifying the original date
-  const d = new Date(date);
-  
-  // Get year, month, and day components in the local timezone
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-  const day = String(d.getDate()).padStart(2, '0');
-  
-  // Format as YYYY-MM-DD
-  return `${year}-${month}-${day}`;
-};
-
   // Fetch booked slots for the selected date
   const fetchBookedSlots = async (date: Date) => {
     if (!id) return;
@@ -95,7 +71,7 @@ const formatDateForApi = (date: Date): string => {
     try {
       const formattedDate = formatDateForApi(date);
       const response = await axios.get<BookedWorkoutsResponse>(
-        `https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}/booked-workouts/${formattedDate}`
+        `http://localhost:8080/api/coaches/${id}/available-slots/${formattedDate}`
       );
       console.log(response.data.bookings);
 
@@ -115,16 +91,12 @@ const formatDateForApi = (date: Date): string => {
 
   // Update available time slots based on booked slots
   const updateAvailableTimeSlots = (bookedWorkouts: BookedWorkout[]) => {
-    // Start with all slots available
     const allTimeSlots = generateAllTimeSlots();
 
-    // Mark booked slots as unavailable
     bookedWorkouts.forEach(booking => {
       if (booking.slotDetails) {
         const startTime = new Date(booking.slotDetails.startTime);
         const hour = startTime.getHours();
-
-        // Find the slot that matches this hour and mark it as unavailable
         const slotIndex = allTimeSlots.findIndex(slot =>
           parseInt(slot.id) === hour
         );
@@ -138,38 +110,32 @@ const formatDateForApi = (date: Date): string => {
     setAvailableTimeSlots(allTimeSlots);
   };
 
-  // Log authentication state for debugging
-  useEffect(() => {
-    console.log('Auth state in CoachProfilePage:', { isAuthenticated });
-  }, [isAuthenticated]);
-
   // Initialize available time slots
   useEffect(() => {
     setAvailableTimeSlots(generateAllTimeSlots());
   }, []);
 
-  // Fetch coach data and upcoming workouts
+  // Fetch coach data
   useEffect(() => {
     const fetchCoachData = async () => {
       try {
         setLoading(true);
 
-        const response = await fetch(`https://d4uzu22xh0.execute-api.ap-southeast-1.amazonaws.com/dev/coaches/${id}`);
-
+        const response = await fetch(`http://localhost:8080/api/coaches/${id}`);
+        
         if (!response.ok) {
           throw new Error('Failed to fetch coach data');
         }
 
-        const data: CoachFromApi = await response.json();
-        console.log('Fetched coach data:', data);
+        const result = await response.json();
+        console.log('API response:', result);
 
-        setCoach(data);
-
-        // After fetching coach data, fetch booked slots for today
-        fetchBookedSlots(selectedDate);
-
-        // Also fetch upcoming workouts
-        // fetchUpcomingWorkouts(id as string);
+        if (result.success && result.data) {
+          setCoach(result.data);
+          fetchBookedSlots(selectedDate);
+        } else {
+          throw new Error('Invalid response format');
+        }
       } catch (err) {
         setError('Failed to load coach data');
         console.error('Error fetching coach data:', err);
@@ -185,9 +151,9 @@ const formatDateForApi = (date: Date): string => {
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
-    setDateSelected(true); // Mark that user has selected a date
-    setSelectedTimeSlot(null); // Clear selected time slot when date changes
-    fetchBookedSlots(date); // Fetch booked slots for the new date
+    setDateSelected(true);
+    setSelectedTimeSlot(null);
+    fetchBookedSlots(date);
     console.log(`Date changed to: ${date.toDateString()}`);
   };
 
@@ -197,31 +163,22 @@ const formatDateForApi = (date: Date): string => {
   };
 
   const handleBookWorkoutClick = () => {
-    // Check if user has selected a date
     if (!dateSelected) {
       setAlertType('error');
       setAlertMessage("Please select a date for your workout.");
       setShowAlert(true);
-
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 5000);
+      setTimeout(() => setShowAlert(false), 5000);
       return;
     }
 
-    // Check if user has selected a time slot
     if (!selectedTimeSlot) {
       setAlertType('error');
       setAlertMessage("Please select a time slot before booking.");
       setShowAlert(true);
-
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 5000);
+      setTimeout(() => setShowAlert(false), 5000);
       return;
     }
 
-    // Check if user is authenticated
     if (isAuthenticated) {
       setShowConfirmCard(true);
     } else {
@@ -230,26 +187,17 @@ const formatDateForApi = (date: Date): string => {
   };
 
   const handleBookingConfirmed = () => {
-    // Close the confirmation modal
     setShowConfirmCard(false);
-
-    // Show success alert
     setAlertType('success');
     setAlertMessage(`Your workout with ${`${coach?.firstName} ${coach?.lastName}`} has been booked successfully!`);
     setShowAlert(true);
-
-    // Automatically hide the alert after 5 seconds
-    setTimeout(() => {
-      setShowAlert(false);
-    }, 5000);
-
+    setTimeout(() => setShowAlert(false), 5000);
+    
     // Refresh the available time slots after booking
     fetchBookedSlots(selectedDate);
-
-    // Refresh upcoming workouts after booking
-    if (id) {
-      fetchUpcomingWorkouts(id);
-    }
+    
+    // Force the UpcomingWorkouts component to re-render and fetch new data
+    setRefreshWorkoutsKey(prev => prev + 1);
   };
 
   if (loading) {
@@ -286,9 +234,8 @@ const formatDateForApi = (date: Date): string => {
       </p>
 
       <div className="max-w-7xl mx-auto">
-        {/* Use grid for better responsive layout */}
         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Coach Sidebar - Full width on small and medium screens, 1/4 on large */}
+          {/* Coach Sidebar */}
           <div className="lg:col-span-1">
             <div className="max-w-sm mx-auto md:max-w-md lg:max-w-full">
               <CoachSidebar
@@ -325,14 +272,15 @@ const formatDateForApi = (date: Date): string => {
               )}
             </div>
 
-            {/* Upcoming Workouts Section */}
-            <UpcomingWorkouts
-              coachId={id as string}
-              onWorkoutsLoaded={(workouts) => {
-                // Optional: If you still need access to the workouts data in the parent component
-                // console.log('Workouts loaded in parent:', workouts);
-              }}
-            />
+            {/* Upcoming Workouts Section - Using key to force re-render */}
+            <div key={refreshWorkoutsKey}>
+              <UpcomingWorkouts
+                coachId={id as string}
+                onWorkoutsLoaded={(workouts) => {
+                  console.log('Workouts loaded in parent:', workouts.length);
+                }}
+              />
+            </div>
 
             {/* Feedback Section */}
             <div>
@@ -360,7 +308,6 @@ const formatDateForApi = (date: Date): string => {
         isOpen={showLoginPrompt}
         onCancel={() => setShowLoginPrompt(false)}
         onLogin={() => {
-          // Store the current URL for redirect after login
           localStorage.setItem('redirectAfterLogin', `/coaches/${id}`);
           navigate("/login");
         }}

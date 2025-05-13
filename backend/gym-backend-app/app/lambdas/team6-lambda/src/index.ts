@@ -217,6 +217,8 @@ export const handler = async (
     console.log(path);
     console.log(method);
 
+    console.log(`Processing ${method} request to ${path}`);
+
     // Find the matching route
     const route = routes.find(r => r.path === path && r.method === method);
 

@@ -72,7 +72,7 @@ export default function ScheduledWorkoutPage() {
      
       // Call your backend API to get the user's workouts
       const response = await axios.get(
-        `https://nw4riour66.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${userId}`,
+        `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${userId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`

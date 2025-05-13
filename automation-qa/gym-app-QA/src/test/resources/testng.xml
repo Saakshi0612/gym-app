@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Parallel Execution Suite" parallel="methods" thread-count="2">
+    <test name="FirefoxTest">
+        <parameter name="Browser" value="firefox"/>
+        <classes>
+            <class name="com.epam.gym_app.ui.runner.UIRunner"/>
+        </classes>
+    </test>
+<!--    <test name="EdgeTest">-->
+<!--        <parameter name="Browser" value="edge"/>-->
+<!--        <classes>-->
+<!--            <class name="com.epam.gym_app.ui.runner.UIRunner"/>-->
+<!--        </classes>-->
+<!--    </test>-->
+</suite>
