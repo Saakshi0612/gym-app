@@ -1,12 +1,11 @@
 /* eslint-disable */
 // @ts-nocheck
-// src/redux/workoutSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the base URL once
-const BASE_URL =
-	'https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout';
+const BASE_URL = 'http://localhost:8080/api/coaches';
+const BASE_URL2 = 'http://localhost:8080/api/workouts';
 
 type Coach = {
 	id: string;
@@ -19,11 +18,17 @@ type Coach = {
 type Specialization = { specialization: string };
 type TimeSlot = { id: string; slot: string };
 
+// This reflects the actual structure returned by the filterWorkout API
+type CoachWithSlots = {
+	Coaches: Coach;
+	Available_Time_Slots: TimeSlot[];
+};
+
 interface WorkoutState {
 	coaches: Coach[];
 	specializations: Specialization[];
 	availableTimeSlots: TimeSlot[];
-	allCoachesWithSlots: Coach[];
+	allCoachesWithSlots: CoachWithSlots[];
 	loading: boolean;
 	error: string | null;
 }
@@ -42,23 +47,20 @@ export const fetchWorkoutData = createAsyncThunk(
 	'workout/fetchWorkoutData',
 	async (_, { rejectWithValue }) => {
 		try {
-			const [coachRes, sportRes, timeSlotsRes, allCoachesRes] =
-				await Promise.all([
-					axios.get<{ coaches: Coach[] }>(`${BASE_URL}/getCoachName`),
-					axios.get<{ specializations: Specialization[] }>(
-						`${BASE_URL}/getSportName`
-					),
-					axios.get<{ Available_Time_Slots: TimeSlot[] }>(
-						`${BASE_URL}/getAvailableTimeSlots`
-					),
-					axios.get<{ coaches: Coach[] }>(`${BASE_URL}/getAllWorkout`),
-				]);
+			const [coachRes, sportRes, timeSlotsRes] = await Promise.all([
+				axios.get<{ coaches: Coach[] }>(`${BASE_URL}/getCoachesName`),
+				axios.get<{ specializations: Specialization[] }>(
+					`${BASE_URL}/getSportsType`
+				),
+				axios.get<{ Available_Time_Slots: TimeSlot[] }>(
+					`${BASE_URL}/getAvailableTimeSlot`
+				),
+			]);
 
 			return {
 				coaches: coachRes.data.coaches,
-				specializations: sportRes.data.specializations,
-				availableTimeSlots: timeSlotsRes.data.Available_Time_Slots,
-				allCoachesWithSlots: allCoachesRes.data.coaches,
+				specializations: sportRes.data.specialization,
+				availableTimeSlots: timeSlotsRes.data.time_slot,
 			};
 		} catch (error: any) {
 			return rejectWithValue(error.message);
@@ -71,27 +73,22 @@ export const filterWorkout = createAsyncThunk(
 	'workout/filterWorkout',
 	async (
 		filterData: {
-			coach_id: string;
-			sport_name: string;
+			coach: string;
+			sport_type: string;
 			date: string;
 			time_slot: string;
 		},
 		{ rejectWithValue }
 	) => {
 		try {
-			const response = await axios.post(
-				`${BASE_URL}/searchWorkout`,
-				filterData
-			);
+			const response = await axios.get(`${BASE_URL2}/getAvailableWorkouts`, {
+				params: filterData,
+			});
 
-			// Log or validate the structure of the response data
-			console.log('Filter data : ', filterData);
-			console.log('Filtered Coaches:', response.data.coaches);
-
-			// Ensure the data structure is as expected, and return only the filtered data
-			return response.data.coaches; // Or modify if needed based on structure
+			// Return full array as-is (array of { Coaches, Available_Time_Slots })
+			return response.data;
 		} catch (error: any) {
-			return rejectWithValue(error.message); // Handle error appropriately
+			return rejectWithValue(error.message);
 		}
 	}
 );
@@ -102,6 +99,7 @@ const workoutSlice = createSlice({
 	reducers: {},
 	extraReducers: (builder) => {
 		builder
+			// For initial data
 			.addCase(fetchWorkoutData.pending, (state) => {
 				state.loading = true;
 				state.error = null;
@@ -111,19 +109,20 @@ const workoutSlice = createSlice({
 				state.coaches = action.payload.coaches;
 				state.specializations = action.payload.specializations;
 				state.availableTimeSlots = action.payload.availableTimeSlots;
-				state.allCoachesWithSlots = action.payload.allCoachesWithSlots;
 			})
 			.addCase(fetchWorkoutData.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload as string;
 			})
+
+			// For filtered workout
 			.addCase(filterWorkout.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
 			.addCase(filterWorkout.fulfilled, (state, action) => {
 				state.loading = false;
-				state.allCoachesWithSlots = action.payload;
+				state.allCoachesWithSlots = action.payload; // full array of { Coaches, Available_Time_Slots }
 			})
 			.addCase(filterWorkout.rejected, (state, action) => {
 				state.loading = false;
