@@ -14,6 +14,8 @@ import ScheduledWorkoutPage from "./components/workouts/scheduledWorkoutPage";
 import Header from "./components/common/Header";
 import DynamicUserProfile from "./pages/UserProfile";
 import { useDispatch } from "react-redux";
+import AdminDashboard from "./components/admin/AdminDashboard"; 
+
 
 
 // Protected route component using Outlet
@@ -56,8 +58,15 @@ function AppContent() {
           <Route path="/" element={<MainSection />} />
           <Route
           path="/account"
-          element={<DynamicUserProfile />}
+          element={<DynamicUserProfile />
+            
+          }
         />
+        <Route element={<ProtectedRoute />}>
+        
+  <Route path="/reports" element={<AdminDashboard />} />
+</Route>
+
           {/* Add other protected routes here as needed */}
         </Route>
       </Routes>
