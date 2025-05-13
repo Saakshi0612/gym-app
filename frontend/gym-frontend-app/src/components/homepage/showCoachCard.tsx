@@ -1,5 +1,3 @@
-/* eslint-disable */
-// @ts-nocheck
 import React, { useState } from 'react';
 import { Dumbbell, Calendar, Clock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -9,10 +7,10 @@ import LoginPromptModal from './isLoggedInCard';
 
 interface Slot {
 	_id: string;
-	time: string;
+	time_slot: string;
 }
 
-interface CoachProps {
+interface CoachData {
 	_id: string;
 	firstName: string;
 	lastName: string;
@@ -21,9 +19,19 @@ interface CoachProps {
 	rating: number;
 	title: string;
 	about: string;
-	availableSlots: Slot[];
-	selectedTime: string;
-	selectedDate: Date;
+}
+
+interface CoachProps {
+	Coaches: CoachData;
+	Available_Time_Slots: Slot[];
+	selectedTime: Slot | string | null; // Updated type
+	selectedDate: Date | string | null;
+	_id: string;
+}
+
+interface ShowCochesCardProps {
+	coach: CoachProps;
+	onBookingClick: (coach: CoachProps) => void;
 }
 
 const months = [
@@ -33,39 +41,31 @@ const months = [
 	'April',
 	'May',
 	'June',
+	'July',
 	'August',
-	'October',
 	'September',
+	'October',
 	'November',
 	'December',
 ];
-
-interface ShowCochesCardProps {
-	coach: CoachProps;
-	onBookingClick: (coach: CoachProps) => void;
-}
 
 const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 	coach,
 	onBookingClick,
 }) => {
-	console.log(coach);
 	const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 	const { isAuthenticated } = useAppSelector((state) => state.auth);
-	const { filterWorkout } = useAppSelector((state) => state.workout);
 	const navigate = useNavigate();
 
-	console.log('Selected timfe', coach);
-	let selectedTime;
-	if (coach.selectedTime) {
-		if (coach.selectedTime.label) {
-			selectedTime = coach.selectedTime.label;
-		} else if (coach.selectedTime.time) {
-			selectedTime = coach.selectedTime.time;
-		}
-	}
+	const coachInfo = coach.Coaches;
 
-	const selectedDate = coach.selectedDate
+	// 🛠 Fix: safely extract time string from Slot object or fallback
+	const selectedTime =
+		coach.selectedTime && typeof coach.selectedTime === 'object'
+			? coach.selectedTime.time_slot
+			: (coach.selectedTime ?? 'Not Selected');
+
+	const selectedDateFormatted = coach.selectedDate
 		? `${months[new Date(coach.selectedDate).getMonth()]}, ${new Date(coach.selectedDate).getDate()}`
 		: `${months[new Date().getMonth()]}, ${new Date().getDate()}`;
 
@@ -77,17 +77,18 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 		}
 	};
 
+	console.log('Coach from card : ', coach);
+
 	return (
 		<>
 			<div className="w-full max-w-3xl p-4 shadow-xl rounded-2xl text-gray-700 bg-white relative z-10">
-				{/* Coach Card Content */}
 				<div className="flex flex-col md:flex-row justify-between gap-4">
 					<div className="flex gap-4 md:gap-5 items-center lg:w-[300px]">
 						<div className="h-[80px] w-[80px] md:h-[100px] md:w-[100px] rounded-full overflow-hidden border shrink-0">
-							{coach.profileImageUrl ? (
+							{coachInfo.profileImageUrl ? (
 								<img
-									src={coach.profileImageUrl}
-									alt={`${coach.firstName} ${coach.lastName}`}
+									src={coachInfo.profileImageUrl}
+									alt={`${coachInfo.firstName} ${coachInfo.lastName}`}
 									className="h-full w-full object-cover"
 								/>
 							) : (
@@ -98,10 +99,12 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 						</div>
 						<div>
 							<p className="font-bold text-base md:text-lg">
-								{coach.firstName} {coach.lastName}
+								{coachInfo.firstName} {coachInfo.lastName}
 							</p>
-							<p className="lg:text-sm md:text-base md:w-auto">{coach.title}</p>
-							<p className="mt-2 text-sm md:text-base">⭐ {coach.rating}</p>
+							<p className="lg:text-sm md:text-base md:w-auto">
+								{coachInfo.title}
+							</p>
+							<p className="mt-2 text-sm md:text-base">⭐ {coachInfo.rating}</p>
 						</div>
 					</div>
 
@@ -115,9 +118,7 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 									<Dumbbell className="w-5 h-5" />
 									<p>
 										<strong>Type:</strong>{' '}
-										{coach.specializations?.length > 0
-											? coach.specializations[0]
-											: 'N/A'}
+										{coachInfo.specializations?.[0] ?? 'N/A'}
 									</p>
 								</div>
 
@@ -125,14 +126,13 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 									<Clock className="w-5 h-5" />
 									<p>
 										<strong>Time: </strong>1hr {selectedTime}
-										{/* {selectedTime} */}
 									</p>
 								</div>
 
-								<div className="flex items-center gap-2 text-sm mt-2 ">
+								<div className="flex items-center gap-2 text-sm mt-2">
 									<Calendar className="w-5 h-5" />
 									<p>
-										<strong>Date:</strong> {selectedDate}
+										<strong>Date:</strong> {selectedDateFormatted}
 									</p>
 								</div>
 							</div>
@@ -142,17 +142,17 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 
 				<div className="mt-3">
 					<p className="text-gray-700 text-sm sm:line-clamp-3 lg:h-10 lg:line-clamp-2 text-justify">
-						{coach.about ?? 'No description available.'}
+						{coachInfo.about ?? 'No description available.'}
 					</p>
 				</div>
 
 				<div className="mt-4">
 					<p className="text-sm font-medium">Also Available Time Slots:</p>
 					<div className="flex flex-wrap mt-2 gap-2">
-						{coach.availableSlots?.length > 1 ? (
-							coach.availableSlots.slice(1).map((slot) => (
+						{coach.Available_Time_Slots?.length > 1 ? (
+							coach.Available_Time_Slots.slice(1).map((slot) => (
 								<div key={slot._id} className="px-3 py-1 text-xs bg-green-100">
-									{slot.time}
+									{slot.time_slot}
 								</div>
 							))
 						) : (

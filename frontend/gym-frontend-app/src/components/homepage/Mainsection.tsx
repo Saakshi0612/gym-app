@@ -11,7 +11,6 @@ import DropdownField from '../common/Selection';
 import Button from '../common/ButtonComponent';
 import DatePickerField from '../common/DatePickerField';
 
-// Types
 export type DropdownOption = {
 	value: string;
 	label: string;
@@ -21,26 +20,16 @@ const MainSection: React.FC = () => {
 	const dispatch = useAppDispatch();
 
 	const {
-		coaches,
-		specializations,
-		availableTimeSlots,
-		allCoachesWithSlots,
+		coaches = [],
+		specializations = [],
+		availableTimeSlots = [],
 		loading,
 		error,
 	} = useAppSelector((state) => state.workout);
 
 	const [filters, setFilters] = useState({
-		date: new Date(), // Default to today
+		date: new Date(),
 	});
-
-	const handleDateChange = (selectedDate: Date) => {
-		console.log('New date selected:', selectedDate);
-		setFilters((prev) => {
-			const newFilters = { ...prev, date: selectedDate };
-			console.log('Updated filters:', newFilters);
-			return newFilters;
-		});
-	};
 
 	const [selectedSport, setSelectedSport] = useState<DropdownOption>({
 		value: 'All',
@@ -61,12 +50,11 @@ const MainSection: React.FC = () => {
 		dispatch(fetchWorkoutData());
 	}, [dispatch]);
 
-	// Dropdown options
 	const coachOptions: DropdownOption[] = [
 		{ value: 'All', label: 'All' },
 		...coaches.map((coach) => ({
 			value: coach.id,
-			label: coach.name,
+			label: `${coach.firstName} ${coach.lastName}`,
 		})),
 	];
 
@@ -74,25 +62,23 @@ const MainSection: React.FC = () => {
 		{ value: 'All', label: 'All' },
 		...availableTimeSlots.map((slot) => ({
 			value: slot.id,
-			label: slot.slot,
+			label: slot.time_slot, // Fixed here
 		})),
 	];
 
 	const sportOptions: DropdownOption[] = [
 		{ value: 'All', label: 'All' },
-		...Array.from(new Set(specializations.map((s) => s.specialization))).map(
-			(specialization) => ({
-				value: specialization,
-				label: specialization,
-			})
-		),
+		...specializations.map((spec) => ({
+			value: spec,
+			label: spec,
+		})),
 	];
 
-	const handleFindWorkout = () => {
-		// Make sure we're using the most current date from state
-		console.log('Current date in state:', filters.date);
+	const handleDateChange = (selectedDate: Date) => {
+		setFilters((prev) => ({ ...prev, date: selectedDate }));
+	};
 
-		// Format the date as YYYY-MM-DD for the API
+	const handleFindWorkout = () => {
 		const formattedDate = filters.date
 			.toLocaleDateString('en-IN')
 			.split('/')
@@ -100,15 +86,14 @@ const MainSection: React.FC = () => {
 			.join('-');
 
 		const payload = {
-			coach_id: selectedCoach.value === 'All' ? '' : selectedCoach.value,
-			sport_name: selectedSport.value === 'All' ? '' : selectedSport.value,
+			coach: selectedCoach.value === 'All' ? '' : selectedCoach.value,
+			sport_type: selectedSport.value === 'All' ? '' : selectedSport.value,
 			date: formattedDate,
-			time_slot: selectedTime.value === 'All' ? '' : selectedTime.value,
+			slot_id: selectedTime.value === 'All' ? '' : selectedTime.value,
 		};
 
-		console.log('payload with formatted date:', payload);
-
-		dispatch(filterWorkout(payload)); // Dispatch the filtering action with the updated payload
+		console.log('Payloads : ', payload);
+		dispatch(filterWorkout(payload));
 	};
 
 	return (
@@ -200,7 +185,7 @@ const MainSection: React.FC = () => {
 						</div>
 					</div>
 
-					<ShowWorkouts timeOptions={timeOptions} />
+					<ShowWorkouts timeOptions={timeOptions} selectedDate={filters.date} />
 				</div>
 			</main>
 		</div>
