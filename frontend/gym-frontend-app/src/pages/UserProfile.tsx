@@ -62,6 +62,21 @@ const ErrorDisplay = memo(({ error, onRetry }: { error: string, onRetry: () => v
 
 ErrorDisplay.displayName = 'ErrorDisplay';
 
+// No Feedback component
+const NoFeedbackDisplay = memo(() => (
+  <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+    </svg>
+    <h3 className="text-lg font-medium mb-2">No Feedback Yet</h3>
+    <p className="text-center max-w-md">
+      You haven't received any client feedback yet. Feedback will appear here once clients review your sessions.
+    </p>
+  </div>
+));
+
+NoFeedbackDisplay.displayName = 'NoFeedbackDisplay';
+
 const DynamicUserProfile = () => {
   const user = useSelector((state: RootState) => state.auth.user);
   const [activeTab, setActiveTab] = useState<SidebarTab>(SidebarTab.GENERAL_INFO);
@@ -71,6 +86,7 @@ const DynamicUserProfile = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [hasFeedback, setHasFeedback] = useState<boolean | null>(null);
 
   // Load saved draft from localStorage
   const loadSavedDraft = useCallback(() => {
@@ -222,7 +238,17 @@ const DynamicUserProfile = () => {
       if (!proceed) return;
     }
     setActiveTab(newTab);
+    
+    // Reset feedback status when switching to feedback tab
+    if (newTab === SidebarTab.CLIENT_FEEDBACK) {
+      setHasFeedback(null);
+    }
   }, [isDirty]);
+
+  // Callback to update feedback status
+  const handleFeedbackStatusUpdate = useCallback((hasData: boolean) => {
+    setHasFeedback(hasData);
+  }, []);
 
   // Memoize the tab content
   const tabContent = useMemo(() => {
@@ -256,15 +282,22 @@ const DynamicUserProfile = () => {
           </Suspense>
         );
       case SidebarTab.CLIENT_FEEDBACK:
-        return user.role === UserRole.COACH ? (
-          <Suspense fallback={<LoadingFallback />}>
-            <ProfileFeedbackSection />
-          </Suspense>
-        ) : null;
+        if (user.role === UserRole.COACH) {
+          return (
+            <Suspense fallback={<LoadingFallback />}>
+              <div className="mt-4 md:mt-6">
+                <h2 className="text-xl font-semibold mb-4">Client Feedback</h2>
+                <ProfileFeedbackSection onFeedbackStatusUpdate={handleFeedbackStatusUpdate} />
+                {hasFeedback === false && <NoFeedbackDisplay />}
+              </div>
+            </Suspense>
+          );
+        }
+        return null;
       default:
         return null;
     }
-  }, [activeTab, profileData, user, isLoading, error, handleProfileChange, handleSuccessfulSave, lastSaved]);
+  }, [activeTab, profileData, user, isLoading, error, handleProfileChange, handleSuccessfulSave, lastSaved, hasFeedback, handleFeedbackStatusUpdate]);
 
   // Memoize sidebar props
   const sidebarProps = useMemo(() => ({
