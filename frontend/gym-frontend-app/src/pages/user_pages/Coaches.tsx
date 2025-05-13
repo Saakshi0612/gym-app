@@ -9,16 +9,25 @@ import Button from "../../components/common/ButtonComponent";
 const coachesApi = {
   fetchCoaches: async (): Promise<CoachFromApi[]> => {
     try {
-      const response = await fetch("https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/coaches");
+      const response = await fetch("http://localhost:8080/api/coaches");
       
       if (!response.ok) {
         throw new Error("Failed to fetch coaches data");
       }
       
-      const data = await response.json();  // Only parse JSON once
+     const result = await response.json();
+      console.log("API response:", result);
+      
+      // Extract the data array from the response
+      if (result.success && Array.isArray(result.data)) {
+        return result.data;
+      } else {
+        console.error("Unexpected response format:", result);
+        return [];
+      }
 
   
-      return data as CoachFromApi[];  // Ensure the response structure matches your data
+      // return data as CoachFromApi[];  // Ensure the response structure matches your data
     } catch (error) {
       console.error("Error fetching coaches data:", error);
       return [];  // Return an empty array in case of failure
