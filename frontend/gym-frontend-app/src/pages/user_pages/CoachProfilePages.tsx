@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/store';
 import CoachSidebar from '../../components/CoachComponents/CoachSideBar';
-import AvatarImg from '../../assets/images/Avatar.jpg';
+import AvatarImg from '../../assets/images/avatar-1.png';
 import CoachAvailabilityCalendar from '../../components/CoachComponents/CoachCalendar';
 import FeedbackSection from '../../components/FeedBack/FeedBack';
 import { BookedWorkout, BookedWorkoutsResponse, CoachFromApi, TimeSlot } from '../../types/components/coach.types';
