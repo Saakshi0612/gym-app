@@ -45,19 +45,16 @@ export default function CancelWorkoutModal({
         throw new Error('Authentication token not found');
       }
 
-      // Try using the workout endpoint with the correct parameters
-      // Note: We're using a PUT request since we're updating the workout status
+      // Use the cancel workout endpoint from your local backend
       await axios({
-        method: 'put',
-        url: `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout`,
+        method: 'post',
+        url: `http://localhost:8080/api/workouts/cancel`,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         data: {
-          id: workoutId,
-          clientId: userId,
-          action: 'cancel'
+          id: workoutId
         }
       });
 
@@ -70,57 +67,12 @@ export default function CancelWorkoutModal({
     } catch (error) {
       console.error('Error canceling workout:', error);
       
-      // Try alternative approach if the first one fails
-      try {
-        const token = localStorage.getItem('accessToken');
-        
-        // Try a direct PATCH to update the workout state
-        await axios({
-          method: 'patch',
-          url: `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout/${workoutId}`,
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          data: {
-            state: 'CANCELLED'
-          }
-        });
-        
-        // If successful, proceed with UI updates
-        window.dispatchEvent(new Event('workoutCancelled'));
-        onCancel();
-        onClose();
-      } catch (secondError) {
-        console.error('Second attempt to cancel workout failed:', secondError);
-        
-        // As a last resort, try to use the delete endpoint but explain it's for cancellation
-        try {
-          const token = localStorage.getItem('accessToken');
-          
-          await axios({
-            method: 'delete',
-            url: `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${workoutId}`,
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          // If successful, proceed with UI updates
-          window.dispatchEvent(new Event('workoutCancelled'));
-          onCancel();
-          onClose();
-        } catch (thirdError) {
-          console.error('Third attempt to cancel workout failed:', thirdError);
-          
-          let errorMessage = 'Failed to cancel workout. Please try again.';
-          if (error.response?.data?.message) {
-            errorMessage = error.response.data.message;
-          }
-          
-          setError(errorMessage);
-        }
+      let errorMessage = 'Failed to cancel workout. Please try again.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
       }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

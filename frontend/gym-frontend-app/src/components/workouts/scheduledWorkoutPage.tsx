@@ -56,11 +56,11 @@ export default function ScheduledWorkoutPage() {
   // Function to fetch workouts from API
   const fetchWorkouts = async () => {
     if (!userId) {
-      // setLoading(false);
+      setLoading(false);
       return;
     }
    
-    // setLoading(true);
+    setLoading(true);
    
     try {
       const token = localStorage.getItem('accessToken');
@@ -70,9 +70,9 @@ export default function ScheduledWorkoutPage() {
      
       console.log("Fetching workouts for user:", userId);
      
-      // Call your backend API to get the user's workouts
+      // Call your local backend API to get the user's workouts
       const response = await axios.get(
-        `https://dao5ej9iwk.execute-api.ap-southeast-1.amazonaws.com/dev/workout?id=${userId}`,
+        `http://localhost:8080/api/workouts`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -101,15 +101,8 @@ export default function ScheduledWorkoutPage() {
          
           // Extract coach data
           let coachName = 'Your Coach';
-          if (workout.coach) {
-            if (typeof workout.coach === 'object') {
-              // Try different name fields based on your data structure
-              const firstName = workout.coach.firstName || workout.coach.name || '';
-              const lastName = workout.coach.lastName || '';
-              coachName = `${firstName} ${lastName}`.trim() || 'Your Coach';
-            } else if (typeof workout.coach === 'string') {
-              coachName = workout.coach;
-            }
+          if (workout.coachData) {
+            coachName = workout.coachData.name || 'Your Coach';
           }
          
           // Format the date
@@ -146,42 +139,12 @@ export default function ScheduledWorkoutPage() {
               timeSlot = formatTimeFromISO(workout.slot.time);
             }
           }
-          // If slot is a string (like an ID)
-          else if (typeof workout.slot === 'string') {
-            // Extract time from date as fallback
-            const hours = workoutDate.getHours();
-            const minutes = workoutDate.getMinutes();
-           
-            const startTime = new Date(workoutDate);
-            const endTime = new Date(workoutDate);
-            endTime.setHours(hours + 1); // Assume 1 hour sessions
-           
-            const startFormatted = startTime.toLocaleTimeString('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            });
-           
-            const endFormatted = endTime.toLocaleTimeString('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            });
-           
-            timeSlot = `${startFormatted} - ${endFormatted}`;
-          }
-         
-          // Determine workout status
+          
           let status = 'Scheduled';
-          if (workout.state === 'CANCELLED') status = 'Canceled';
-          else if (workout.state === 'FINISHED') status = 'Finished';
-          else if (workout.state === 'WAITING_FOR_FEEDBACK') status = 'Waiting for Feedback';
-         
-          // Check if workout is in the past but still scheduled
-          const now = new Date();
-          if (status === 'Scheduled' && workoutDate < now) {
-            status = 'Waiting for Feedback';
-          }
+if (workout.state === 'CANCELLED') status = 'Canceled';
+else if (workout.state === 'FINISHED') status = 'Finished';
+else if (workout.state === 'WAITING_FOR_FEEDBACK') status = 'Waiting for Feedback';
+else if (workout.state === 'SCHEDULED') status = 'Scheduled';
          
           return {
             id: workout._id,
@@ -190,7 +153,7 @@ export default function ScheduledWorkoutPage() {
             time: timeSlot,
             date: formattedDate,
             workout_status: status,
-            imageUrl: workout.coach?.profilePicture || workout.coach?.profileImageUrl || 'https://via.placeholder.com/150',
+            imageUrl: workout.coachData?.profilePicture || 'https://via.placeholder.com/150',
             coachName: coachName,
             // Store original data for actions like cancellation
             originalData: workout
@@ -204,18 +167,17 @@ export default function ScheduledWorkoutPage() {
         setWorkouts([]);
       }
      
-      // setLoading(false);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching workouts:", error);
       setError("Failed to load your workouts. Please try again later.");
-      // setLoading(false);
+      setLoading(false);
     }
   };
  
   // Initial fetch
   useEffect(() => {
-    setLoading(true)
-    fetchWorkouts().then().catch();
+    fetchWorkouts();
    
     // Set up event listeners for workout changes
     const handleWorkoutChange = () => {
@@ -224,7 +186,7 @@ export default function ScheduledWorkoutPage() {
    
     window.addEventListener('workoutBooked', handleWorkoutChange);
     window.addEventListener('workoutCancelled', handleWorkoutChange);
-    setLoading(false)
+   
     return () => {
       window.removeEventListener('workoutBooked', handleWorkoutChange);
       window.removeEventListener('workoutCancelled', handleWorkoutChange);
