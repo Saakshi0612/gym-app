@@ -81,7 +81,7 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 
 	return (
 		<>
-			<div className="w-full max-w-3xl p-4 pb-24 shadow-xl rounded-2xl text-gray-700 bg-white relative z-10">
+			<div className="w-full max-w-3xl p-4 pb-32 sm:pb-24 shadow-xl rounded-2xl text-gray-700 bg-white relative z-10">
 				<div className="flex flex-col md:flex-row justify-between gap-4">
 					<div className="flex gap-4 md:gap-5 items-center lg:w-[300px]">
 						<div className="h-[80px] w-[80px] md:h-[100px] md:w-[100px] rounded-full overflow-hidden border shrink-0">
