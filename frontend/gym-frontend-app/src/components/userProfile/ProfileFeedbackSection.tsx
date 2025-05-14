@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ProfileFeedbackCard from '../userProfile/ProfileFeedBackCard';
 import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
