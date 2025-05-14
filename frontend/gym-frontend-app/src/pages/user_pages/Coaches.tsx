@@ -10,7 +10,7 @@ import AvatarImg from '../../assets/images/avatar-1.png';
 const coachesApi = {
   fetchCoaches: async (): Promise<CoachFromApi[]> => {
     try {
-      const response = await fetch("http://localhost:8080/api/coaches");
+      const response = await fetch("https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/coaches");
       
       if (!response.ok) {
         throw new Error("Failed to fetch coaches data");

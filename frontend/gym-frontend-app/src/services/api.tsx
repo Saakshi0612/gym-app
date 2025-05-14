@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // API base URL
-export const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = 'https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy';
 
 // Configure axios instance with interceptors
 export const api = axios.create({

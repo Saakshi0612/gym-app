@@ -48,7 +48,7 @@ export default function CancelWorkoutModal({
       // Use the cancel workout endpoint from your local backend
       await axios({
         method: 'post',
-        url: `http://localhost:8080/api/workouts/cancel`,
+        url: `https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/workouts/cancel`,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

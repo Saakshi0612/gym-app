@@ -74,7 +74,7 @@ const UpcomingWorkouts: React.FC<UpcomingWorkoutsProps> = ({ coachId, onWorkouts
 
             try {
                 const response = await axios.get<UpcomingWorkoutsResponse>(
-                    `http://localhost:8080/api/coaches/${coachId}/workouts`
+                    `https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/coaches/${coachId}/workouts`
                 );
 
                 if (response.data.success) {
@@ -116,7 +116,7 @@ const UpcomingWorkouts: React.FC<UpcomingWorkoutsProps> = ({ coachId, onWorkouts
         setLoading(true);
         try {
             const response = await axios.get<UpcomingWorkoutsResponse>(
-                `http://localhost:8080/api/coaches/${coachId}/workouts`
+                `https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/coaches/${coachId}/workouts`
             );
 
             if (response.data.success) {

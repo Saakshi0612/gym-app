@@ -72,7 +72,7 @@ export default function ScheduledWorkoutPage() {
      
       // Call your local backend API to get the user's workouts
       const response = await axios.get(
-        `http://localhost:8080/api/workouts`,
+        `https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/workouts`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
