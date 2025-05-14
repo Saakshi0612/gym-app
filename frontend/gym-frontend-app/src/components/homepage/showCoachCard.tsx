@@ -81,7 +81,7 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 
 	return (
 		<>
-			<div className="w-full max-w-3xl p-4 shadow-xl rounded-2xl text-gray-700 bg-white relative z-10">
+			<div className="w-full max-w-3xl p-4 pb-24 shadow-xl rounded-2xl text-gray-700 bg-white relative z-10">
 				<div className="flex flex-col md:flex-row justify-between gap-4">
 					<div className="flex gap-4 md:gap-5 items-center lg:w-[300px]">
 						<div className="h-[80px] w-[80px] md:h-[100px] md:w-[100px] rounded-full overflow-hidden border shrink-0">
@@ -163,21 +163,23 @@ const ShowCochesCard: React.FC<ShowCochesCardProps> = ({
 					</div>
 				</div>
 
-				<div className="flex flex-col sm:flex-row gap-3 mt-4">
-					<Button
-						variant="secondary"
-						className="w-full sm:w-1/2 border border-gray-400 py-2 rounded-lg cursor-pointer"
-					>
-						<Link to={`/coaches/${coach._id}`}>Coach Profile</Link>
-					</Button>
+				<div className="absolute bottom-4 left-4 right-4">
+					<div className="flex flex-col sm:flex-row gap-3">
+						<Button
+							variant="secondary"
+							className="w-full sm:w-1/2 border border-gray-400 py-2 rounded-lg cursor-pointer"
+						>
+							<Link to={`/coaches/${coach._id}`}>Coach Profile</Link>
+						</Button>
 
-					<Button
-						onClick={handleBookingClick}
-						variant="primary"
-						className="w-full sm:w-1/2 bg-primary-green text-black py-2 rounded-lg cursor-pointer"
-					>
-						Book Workout
-					</Button>
+						<Button
+							onClick={handleBookingClick}
+							variant="primary"
+							className="w-full sm:w-1/2 bg-primary-green text-black py-2 rounded-lg cursor-pointer"
+						>
+							Book Workout
+						</Button>
+					</div>
 				</div>
 			</div>
 
