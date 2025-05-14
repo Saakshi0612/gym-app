@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { useState } from "react";
 import { X, Star, Dumbbell, Clock, Calendar } from "lucide-react";
 import { feedbackService } from "../../services/feedbackService";

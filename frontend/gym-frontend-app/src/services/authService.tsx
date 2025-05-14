@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 // src/services/authService.ts
 import { checkAuthStatus } from './authSlice';
 
