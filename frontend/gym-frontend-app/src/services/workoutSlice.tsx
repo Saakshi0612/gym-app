@@ -4,8 +4,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the base URL once
-const BASE_URL = 'http://localhost:8080/api/coaches';
-const BASE_URL2 = 'http://localhost:8080/api/workouts';
+const BASE_URL = 'https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/coaches';
+const BASE_URL2 = 'https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/workouts';
 
 type Coach = {
 	id: string;

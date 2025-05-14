@@ -4,7 +4,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 
-const BASE_URL = 'http://localhost:8080/api/workouts';
+const BASE_URL = 'https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/workouts';
 
 interface BookingState {
   loading: boolean;

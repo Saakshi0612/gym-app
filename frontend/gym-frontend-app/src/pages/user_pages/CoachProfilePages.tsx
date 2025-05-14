@@ -71,7 +71,7 @@ const CoachProfilePage: React.FC = () => {
     try {
       const formattedDate = formatDateForApi(date);
       const response = await axios.get<BookedWorkoutsResponse>(
-        `http://localhost:8080/api/coaches/${id}/available-slots/${formattedDate}`
+        `https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/coaches/${id}/available-slots/${formattedDate}`
       );
       console.log(response.data.bookings);
 
@@ -121,7 +121,7 @@ const CoachProfilePage: React.FC = () => {
       try {
         setLoading(true);
 
-        const response = await fetch(`http://localhost:8080/api/coaches/${id}`);
+        const response = await fetch(`https://api-gateway-run8-1-team6-api-gateway-dev.development.krci-dev.cloudmentor.academy/api/coaches/${id}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch coach data');
