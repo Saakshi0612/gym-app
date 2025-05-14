@@ -21,16 +21,21 @@
 // export const useAppDispatch = () => useDispatch<AppDispatch>();
 // export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
+
+
+
 // src/store/store.ts
 import { configureStore } from '@reduxjs/toolkit';
 import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux';
 import authReducer from '../services/authSlice';
 import workoutReducer from '../services/workoutSlice';
+import bookingReducer from '../services/bookingSlice';
 
 export const store = configureStore({
 	reducer: {
 		auth: authReducer,
 		workout: workoutReducer,
+		booking: bookingReducer,
 	},
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
