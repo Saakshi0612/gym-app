@@ -4,6 +4,7 @@ import CoachCard from "../../components/CoachComponents/CoachCard";
 import coachesData from "../../assets/JSON/Coaches.json";
 import { Coach, CoachFromApi } from "../../types/components/coach.types";
 import Button from "../../components/common/ButtonComponent";
+import AvatarImg from '../../assets/images/avatar-1.png';
 
 // API simulation
 const coachesApi = {
@@ -112,7 +113,7 @@ const CoachesPage: React.FC = () => {
               rating={coach.rating}
               title={coach.title}
               description={coach.about}  
-              imageUrl={coach.profileImageUrl}
+              imageUrl={coach.profileImageUrl|| AvatarImg}
               onBookWorkout={() => handleNavigate(coach._id)}
             />
           </div>
