@@ -1,4 +1,4 @@
-// src/services/feedbackService.ts
+// src/services/feedbackService.tsx
 import { api } from './api';
 import { Feedback } from '../types/components/feedback.types';
 
@@ -21,10 +21,6 @@ interface FeedbackResponse {
 export const feedbackService = {
   /**
    * Get feedbacks received by the currently logged-in coach
-   * @param page Page number
-   * @param limit Number of items per page
-   * @param sortBy Field to sort by ('rating' or 'date')
-   * @returns Promise with feedback data
    */
   async getMyReceivedFeedbacks(
     page: number = 1,
@@ -59,11 +55,6 @@ export const feedbackService = {
 
   /**
    * Get feedbacks for a specific coach
-   * @param coachId ID of the coach
-   * @param page Page number
-   * @param limit Number of items per page
-   * @param sortBy Field to sort by ('rating' or 'date')
-   * @returns Promise with feedback data
    */
   async getCoachFeedbacks(
     coachId: string,
@@ -99,10 +90,6 @@ export const feedbackService = {
 
   /**
    * Get feedbacks given by the currently logged-in user
-   * @param page Page number
-   * @param limit Number of items per page
-   * @param sortBy Field to sort by ('rating' or 'date')
-   * @returns Promise with feedback data
    */
   async getMyGivenFeedbacks(
     page: number = 1,
@@ -132,6 +119,33 @@ export const feedbackService = {
     } catch (error) {
       console.error('Error fetching given feedbacks:', error);
       throw new Error('Failed to fetch feedbacks. Please try again later.');
+    }
+  },
+
+  /**
+   * Submit client feedback for a workout
+   */
+  async submitClientFeedback(
+    workoutId: string,
+    rating: number,
+    comment?: string
+  ): Promise<any> {
+    try {
+      const response = await api.post('/api/feedback/client', {
+        workoutId,
+        rating,
+        comment
+      });
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Error submitting feedback:', error);
+      
+      // Extract error message from response if available
+      const errorMessage = error.response?.data?.message || 
+        'Failed to submit feedback. Please try again later.';
+      
+      throw new Error(errorMessage);
     }
   }
 };

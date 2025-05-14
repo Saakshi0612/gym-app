@@ -95,6 +95,25 @@ export default function ScheduledWorkoutCard({
     window.dispatchEvent(new Event('workoutCancelled'));
   };
 
+  // Handle successful feedback submission
+  const handleFeedbackSubmit = (rating, comment) => {
+    console.log("Feedback submitted:", { rating, comment, workoutId: currentWorkout.id });
+    
+    // Update the local workout status if needed
+    if (currentWorkout.workout_status === "Waiting for Feedback") {
+      setCurrentWorkout({
+        ...currentWorkout,
+        workout_status: "Finished"
+      });
+    }
+    
+    // Close the feedback modal
+    setIsFeedbackOpen(false);
+    
+    // Notify parent components
+    window.dispatchEvent(new Event('feedbackSubmitted'));
+  };
+
   return (
     <div className="p-5 text-primary-black border rounded-xl shadow-sm bg-white">
       <div className="flex justify-between items-center mb-2">
@@ -157,14 +176,13 @@ export default function ScheduledWorkoutCard({
       <WorkoutFeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
-        onSubmit={(rating, comment) => {
-          console.log("Feedback submitted:", { rating, comment, workoutId: currentWorkout.id });
-          setIsFeedbackOpen(false);
-        }}
+        onSubmit={handleFeedbackSubmit}
         workoutType={currentWorkout.type_of_sport}
         time={currentWorkout.time}
         date={currentWorkout.date}
         imageUrl={currentWorkout.imageUrl}
+        workoutId={currentWorkout.id} // Pass the workout ID
+        coachName={currentWorkout.coachName} // Pass the coach name
       />
     </div>
   );
