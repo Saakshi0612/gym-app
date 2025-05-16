@@ -151,9 +151,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* Horizontal scrollbar indicator - green line exactly as in the image */}
-              <div className="mt-4 flex  bg-gray-300 rounded-full">
-  <div className="w-32 h-1.5 ml-[236px] bg-green-400 rounded-full"></div>
-</div>
+   
 
               {/* Export Button */}
               <div className="mt-4 flex justify-end relative">

@@ -303,7 +303,7 @@ const RegistrationForm: React.FC = () => {
 
         if (!value) return "Password is required";
         if (/\s/.test(value)) errors.push("• Must not contain spaces");
-        if (!/^[A-Z]/.test(value)) errors.push("• Must start with a capital letter");
+        if (!/[A-Z]/.test(value)) errors.push("• Include a  capital letter");
         if (!/[a-z]/.test(value)) errors.push("• Include a lowercase letter");
         if (!/\d/.test(value)) errors.push("• Include a number");
         if (!/[!@#$%^&*]/.test(value)) errors.push("• Include a special character");
