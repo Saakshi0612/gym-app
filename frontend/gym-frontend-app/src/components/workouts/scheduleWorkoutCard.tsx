@@ -47,9 +47,20 @@ export default function ScheduledWorkoutCard({
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
-  // Update local state when workout prop changes
+  // Update local state when workout prop changes, with localStorage check
   useEffect(() => {
-    setCurrentWorkout(workout);
+    // Check if we have a saved display status in localStorage
+    const savedDisplayStatus = localStorage.getItem(`workout-${workout.id}-display-status`);
+    
+    if (savedDisplayStatus === 'Finished' && 
+        (workout.workout_status === 'Waiting for Feedback' || workout.workout_status === 'Scheduled')) {
+      setCurrentWorkout({
+        ...workout,
+        workout_status: 'Finished'
+      });
+    } else {
+      setCurrentWorkout(workout);
+    }
   }, [workout]);
 
   // Check if workout is in the past (for feedback option)
@@ -91,6 +102,9 @@ export default function ScheduledWorkoutCard({
       workout_status: "Canceled"
     });
     
+    // Store in localStorage for persistence across refreshes
+    localStorage.setItem(`workout-${currentWorkout.id}-display-status`, "Canceled");
+    
     // Notify parent components
     window.dispatchEvent(new Event('workoutCancelled'));
   };
@@ -99,19 +113,26 @@ export default function ScheduledWorkoutCard({
   const handleFeedbackSubmit = (rating, comment) => {
     console.log("Feedback submitted:", { rating, comment, workoutId: currentWorkout.id });
     
-    // Update the local workout status if needed
-    if (currentWorkout.workout_status === "Waiting for Feedback") {
-      setCurrentWorkout({
-        ...currentWorkout,
-        workout_status: "Finished"
-      });
-    }
+    // Update the local workout status
+    const newStatus = "Finished";
+    setCurrentWorkout({
+      ...currentWorkout,
+      workout_status: newStatus
+    });
+    
+    // Store in localStorage for persistence across refreshes
+    localStorage.setItem(`workout-${currentWorkout.id}-display-status`, newStatus);
     
     // Close the feedback modal
     setIsFeedbackOpen(false);
     
     // Notify parent components
-    window.dispatchEvent(new Event('feedbackSubmitted'));
+    window.dispatchEvent(new CustomEvent('feedbackSubmitted', {
+      detail: {
+        workoutId: currentWorkout.id,
+        newStatus: newStatus
+      }
+    }));
   };
 
   return (
@@ -181,8 +202,8 @@ export default function ScheduledWorkoutCard({
         time={currentWorkout.time}
         date={currentWorkout.date}
         imageUrl={currentWorkout.imageUrl}
-        workoutId={currentWorkout.id} // Pass the workout ID
-        coachName={currentWorkout.coachName} // Pass the coach name
+        workoutId={currentWorkout.id}
+        coachName={currentWorkout.coachName}
       />
     </div>
   );
