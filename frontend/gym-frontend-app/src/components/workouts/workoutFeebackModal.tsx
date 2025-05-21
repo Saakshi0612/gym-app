@@ -37,30 +37,35 @@ export default function WorkoutFeedbackModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async () => {
-    if (isSubmitting) return;
+ const handleSubmit = async () => {
+  if (isSubmitting) return;
+  
+  setIsSubmitting(true);
+  setError(null);
+  
+  try {
+    // Submit feedback using the service
+    await feedbackService.submitClientFeedback(workoutId, rating, comment);
     
-    setIsSubmitting(true);
-    setError(null);
+    // Call the onSubmit callback with the new status
+    onSubmit(rating, comment, 'Finished');
     
-    try {
-      // Submit feedback using the service
-      await feedbackService.submitClientFeedback(workoutId, rating, comment);
-      
-      // Call the onSubmit callback
-      onSubmit(rating, comment);
-      
-      // Close the modal
-      onClose();
-      
-      // Dispatch an event to notify other components
-      window.dispatchEvent(new Event('feedbackSubmitted'));
-    } catch (err: any) {
-      setError(err.message || "Failed to submit feedback. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    // Close the modal
+    onClose();
+    
+    // Dispatch a more detailed event to notify other components
+    window.dispatchEvent(new CustomEvent('feedbackSubmitted', {
+      detail: {
+        workoutId,
+        newStatus: 'Finished'
+      }
+    }));
+  } catch (err: any) {
+    setError(err.message || "Failed to submit feedback. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/30">

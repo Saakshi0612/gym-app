@@ -127,27 +127,31 @@ export const feedbackService = {
   /**
    * Submit client feedback for a workout
    */
-  async submitClientFeedback(
-    workoutId: string,
-    rating: number,
-    comment?: string
-  ): Promise<any> {
-    try {
-      const response = await api.post('/api/feedback/client', {
-        workoutId,
-        rating,
-        comment
-      });
-      
-      return response.data;
-    } catch (error: any) {
-      console.error('Error submitting feedback:', error);
-      
-      // Extract error message from response if available
-      const errorMessage = error.response?.data?.message || 
-        'Failed to submit feedback. Please try again later.';
-      
-      throw new Error(errorMessage);
-    }
+  // src/services/feedbackService.tsx
+async submitClientFeedback(
+  workoutId: string,
+  rating: number,
+  comment?: string
+): Promise<any> {
+  try {
+    const response = await api.post('/api/feedback/client', {
+      workoutId,
+      rating,
+      comment
+    });
+    
+    // Store in localStorage that this workout has client feedback and should display as Finished
+    localStorage.setItem(`workout-${workoutId}-display-status`, 'Finished');
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Error submitting feedback:', error);
+    
+    // Extract error message from response if available
+    const errorMessage = error.response?.data?.message || 
+      'Failed to submit feedback. Please try again later.';
+    
+    throw new Error(errorMessage);
   }
+}
 };
